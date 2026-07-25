@@ -9,6 +9,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<!-- SQLite পড়ার জন্য sql.js লাইব্রেরি -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 <style>
 :root{--primary:#2563eb;--primary-dark:#1e40af;--bg:#f9fafb;--card:#fff;--text:#1e293b;--text-light:#64748b;--border:#cbd5e1;--danger:#e11d48;--success:#16a34a;--warning:#d97706;--radius:14px}
 @media(min-width:768px){:root{--bg:#d1d5db;--border:#94a3b8}}
@@ -122,9 +124,11 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--tex
                 </div>
                 <div class="search-container">
                     <div class="search-box" id="searchBox" style="display:flex"><span>🔍</span><input type="text" id="globalSearch" placeholder="নাম বা রুম নম্বর দিয়ে খুঁজুন" oninput="handleGlobalSearch(this.value)"><div class="search-dropdown" id="searchDropdown"></div></div>
-                    <div class="flex gap-8" style="justify-content:center">
+                    <div class="flex gap-8" style="justify-content:center; flex-wrap:wrap">
                         <button class="btn btn-primary" id="actionBtn" style="display:none;"></button>
-                        <button class="btn btn-warning" id="syncBtn" onclick="fetchFromPrisma()" title="পুরাতন ডাটাবেজ থেকে ডাটা আনন।">🔄 পুরাতন ডাটাবেজ থেকে ডাটা আনুন</button>
+                        <!-- পুরাতন ডাটাবেজ ফাইল আপলোড বাটন -->
+                        <input type="file" id="dbFileInput" accept=".db, .sqlite, .sqlite3" style="display:none" onchange="handleDbUpload(event)">
+                        <button class="btn btn-warning" onclick="document.getElementById('dbFileInput').click()" title="prisma ফোল্ডার থেকে dev.db ফাইল আপলোড করুন">📁 পুরাতন ডাটাবেজ ফাইল আপলোড করুন</button>
                     </div>
                 </div>
             </div>
@@ -140,10 +144,12 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--tex
 
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
-let db = null, useFirebase = false;
+let db = null, useFirebase = false, sqlDb = null;
 try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE).catch(err => console.warn("Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
-const OLD_PRISMA_API_URL = "https://egbresident.vercel.app/api/getData";
+// SQLite WASM লোড করা
+initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` }).catch(err => console.error("SQL.js load error:", err));
+
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
 let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null };
 let modalStack = [];
@@ -261,34 +267,114 @@ const Store = {
     async deleteReport(id) { await db.collection('reports').doc(id).delete(); }
 };
 
-async function fetchFromPrisma() {
-    const syncBtn = document.getElementById('syncBtn');
-    syncBtn.disabled = true;
-    syncBtn.innerHTML = `<span class="spinner-small"></span> ডাটা আসছে...`;
-    
-    try {
-        const response = await fetch(OLD_PRISMA_API_URL);
-        if (!response.ok) throw new Error("API থেকে ডাটা আনা যায়নি");
-        const oldData = await response.json();
-        let importedCount = 0;
-        
-        showToast(`${oldData.buildings?.length || 0} টি বিল্ডিং, ${oldData.rooms?.length || 0} টি রুম পাওয়া গেছে। সেভ হচ্ছে...`, "info");
+// ==========================================
+// SQLite ফাইল আপলোড করে ফায়ারবেজে সেভ করার ফাংশন
+// ==========================================
+function handleDbUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    showToast("ফাইল পড়া হচ্ছে...", "info");
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const Uints = new Uint8Array(e.target.result);
+            sqlDb = new SQL.Database(Uints);
+            processSqlData();
+        } catch(err) {
+            showToast("ডাটাবেজ ফাইল পড়তে সমস্যা হয়েছে।", "error");
+        }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = '';
+}
 
-        if (oldData.buildings) { for (const b of oldData.buildings) { await db.collection('buildings').doc(b.id).set({ name: b.name, floorCount: b.floorCount || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }); importedCount++; } }
-        if (oldData.rooms) { for (const r of oldData.rooms) { await db.collection('rooms').doc(r.id).set({ buildingId: r.buildingId, floor: r.floor, number: r.number, items: r.items || [], tenants: r.tenants || [], previousTenants: r.previousTenants || [], guests: r.guests || [], occupants: [] }, { merge: true }); importedCount++; } }
-        if (oldData.templates) { for (const t of oldData.templates) { if (t.items && t.items.length > 0) { await db.collection('materialTemplates').doc(t.buildingId).set({ items: t.items }); } } }
-        if (oldData.reports) { for (const r of oldData.reports) { await db.collection('reports').doc(r.id).set({ building: r.building, floor: r.floor, room: r.room, description: r.description, reporter: r.reporter, status: r.status, createdAt: r.createdAt }, { merge: true }); importedCount++; } }
+function getTableData(tableName) {
+    if (!sqlDb) return [];
+    try {
+        const res = sqlDb.exec(`SELECT * FROM ${tableName}`);
+        if (res.length === 0) return [];
+        const columns = res[0].columns;
+        return res[0].values.map(row => {
+            let obj = {};
+            columns.forEach((col, index) => obj[col] = row[index]);
+            return obj;
+        });
+    } catch (e) { return []; }
+}
+
+async function processSqlData() {
+    if (!sqlDb) return;
+    showToast("ডাটা প্রসেস করা হচ্ছে, অপেক্ষা করুন...", "info");
+
+    try {
+        const bData = getTableData("Building");
+        const fData = getTableData("Floor");
+        const rData = getTableData("Room");
+        const tData = getTableData("Tenant");
+        const iData = getTableData("Inventory");
+        const btData = getTableData("BelongingTemplate");
+        const repData = getTableData("TroubleReport");
+
+        let count = 0;
+
+        for (const b of bData) {
+            await db.collection('buildings').doc(b.id).set({ name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+            const tpls = btData.filter(t => t.buildingId === b.id);
+            if (tpls.length > 0) {
+                await db.collection('materialTemplates').doc(b.id).set({ items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity })) });
+            }
+            count++;
+        }
+
+        for (const r of rData) {
+            const floor = fData.find(f => f.id === r.floorId);
+            const buildingId = floor ? floor.buildingId : null;
+            if (!buildingId) continue;
+
+            const activeTenants = tData.filter(t => t.roomId === r.id && t.isActive);
+            const prevTenants = tData.filter(t => t.roomId === r.id && !t.isActive);
+            const inventories = iData.filter(i => i.roomId === r.id);
+
+            const mappedRoom = {
+                buildingId: buildingId,
+                floor: floor ? String(floor.floorNumber) : '1',
+                number: r.roomNumber,
+                tenants: activeTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', type: 'bachelor', familyInfo: '' })),
+                previousTenants: prevTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '' })),
+                items: inventories.map(i => ({ id: i.id, name: i.itemName, quantity: i.quantity, condition: i.condition, lastRepairDate: null, lastReplaceDate: null, history: [] })),
+                guests: [],
+                occupants: []
+            };
+
+            await db.collection('rooms').doc(r.id).set(mappedRoom, { merge: true });
+            count++;
+        }
+
+        for (const rep of repData) {
+            const room = rData.find(rm => rm.id === rep.roomId);
+            const floor = room ? fData.find(f => f.id === room.floorId) : null;
+            const building = floor ? bData.find(b => b.id === floor.buildingId) : null;
+
+            await db.collection('reports').doc(rep.id).set({
+                building: building ? building.name : 'Unknown',
+                floor: floor ? String(floor.floorNumber) : '-',
+                room: room ? room.roomNumber : '-',
+                description: rep.description,
+                reporter: rep.reportedBy,
+                status: rep.status === "সমাধান হয়েছে" ? "resolved" : "pending",
+                createdAt: { seconds: rep.reportedAt ? new Date(rep.reportedAt).getTime() / 1000 : Date.now() / 1000 }
+            }, { merge: true });
+            count++;
+        }
 
         state.buildings = await Store.getBuildings();
         state.rooms = await Store.getRooms();
         renderPage();
-        showToast(`সফল! ${importedCount} টি পুরাতন ডাটা ফায়ারবেজে চলে এসেছে।`, "success");
+        showToast(`🎉 সফল! ${count} টি ডাটা ফায়ারবেজে চলে এসেছে।`, "success");
+
     } catch (error) {
-        console.error("Prisma Fetch Error:", error);
-        showToast("পুরাতন ডাটাবেজ থেকে ডাটা আনতে সমস্যা হয়েছে। API লিংক ঠিক আছে কিনা দেখুন।", "error");
-    } finally {
-        syncBtn.disabled = false;
-        syncBtn.innerHTML = "🔄 পুরাতন ডাটাবেজ থেকে ডাটা আনুন";
+        console.error("DB Upload Error:", error);
+        showToast("ডাটা সেভ করতে সমস্যা হয়েছে।", "error");
     }
 }
 
