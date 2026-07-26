@@ -89,7 +89,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
     <p id="syncProgressText">0%</p>
 </div>
 
-<div id="authContainer" class="auth-container">
+<div id="authContainer" class="auth-container" style="display:none">
     <div class="auth-box-wrapper">
         <div id="loginView" class="auth-box">
             <h2 class="app-title" style="margin-bottom:30px;">আবাসিক ম্যানেজমেন্ট</h2>
@@ -400,14 +400,15 @@ async function fetchFromTurso() {
         };
 
         for (const b of buildingsData) {
-            if (!b.id) continue;
-            if (!existingBuildingIds.has(b.id)) {
-                const dataToSave = cleanData({ name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                batch.set(db.collection('buildings').doc(b.id), dataToSave, { merge: true });
-                const tpls = templatesData.filter(t => t.buildingId === b.id);
+            const bId = String(b.id || b.Id || ''); // ID কে স্ট্রিং করা হলো
+            if (!bId) continue;
+            if (!existingBuildingIds.has(bId)) {
+                const dataToSave = cleanData({ name: b.name || '', floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                batch.set(db.collection('buildings').doc(bId), dataToSave, { merge: true });
+                const tpls = templatesData.filter(t => String(t.buildingId) === bId);
                 if (tpls.length > 0) {
-                    const tplData = cleanData({ items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity })) });
-                    batch.set(db.collection('materialTemplates').doc(b.id), tplData);
+                    const tplData = cleanData({ items: tpls.map(t => ({ id: String(t.id), name: t.itemName || '', quantity: t.quantity || 1 })) });
+                    batch.set(db.collection('materialTemplates').doc(bId), tplData);
                 }
                 newCount++;
                 opsCount++;
@@ -418,28 +419,29 @@ async function fetchFromTurso() {
         syncProgressText.innerText = '40% - রুম ও মালামাল সেভ হচ্ছে...';
 
         for (const r of roomsData) {
-            if (!r.id) continue;
-            if (!existingRoomIds.has(r.id)) {
-                const floor = floorsData.find(f => f.id === r.floorId);
-                const buildingId = floor ? floor.buildingId : null;
+            const rId = String(r.id || r.Id || ''); // ID কে স্ট্রিং করা হলো
+            if (!rId) continue;
+            if (!existingRoomIds.has(rId)) {
+                const floor = floorsData.find(f => String(f.id) === String(r.floorId));
+                const buildingId = floor ? String(floor.buildingId) : null;
                 if (!buildingId) continue;
 
-                const activeTenants = tenantsData.filter(t => t.roomId === r.id && t.isActive);
-                const prevTenants = tenantsData.filter(t => t.roomId === r.id && !t.isActive);
-                const inventories = inventoryData.filter(inv => inv.roomId === r.id);
+                const activeTenants = tenantsData.filter(t => String(t.roomId) === rId && t.isActive);
+                const prevTenants = tenantsData.filter(t => String(t.roomId) === rId && !t.isActive);
+                const inventories = inventoryData.filter(inv => String(inv.roomId) === rId);
 
                 const mappedRoom = {
                     buildingId: buildingId,
                     floor: floor ? String(floor.floorNumber) : '1',
-                    number: r.roomNumber,
-                    tenants: activeTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', type: 'bachelor', familyInfo: '' })),
-                    previousTenants: prevTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '' })),
+                    number: r.roomNumber || '',
+                    tenants: activeTenants.map(t => ({ id: String(t.id), name: t.name || '', designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', type: 'bachelor', familyInfo: '' })),
+                    previousTenants: prevTenants.map(t => ({ id: String(t.id), name: t.name || '', designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '' })),
                     items: inventories.map(inv => {
                         const history = [];
                         if (inv.lastRepairDate) history.push({ type: 'Repair', date: new Date(inv.lastRepairDate).toISOString().split('T')[0], note: inv.note || '', condition: inv.condition || 'ভাল', quantity: inv.quantity || 1 });
                         if (inv.lastReplaceDate) history.push({ type: 'Replace', date: new Date(inv.lastReplaceDate).toISOString().split('T')[0], note: inv.note || '', condition: inv.condition || 'ভাল', quantity: inv.quantity || 1 });
                         return {
-                            id: inv.id, name: inv.itemName, quantity: inv.quantity, condition: inv.condition || 'ভাল',
+                            id: String(inv.id), name: inv.itemName || '', quantity: inv.quantity || 1, condition: inv.condition || 'ভাল',
                             lastRepairDate: inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : null,
                             lastReplaceDate: inv.lastReplaceDate ? new Date(inv.lastReplaceDate).toISOString().split('T')[0] : null,
                             history: history
@@ -449,7 +451,7 @@ async function fetchFromTurso() {
                 };
                 
                 const cleanRoom = cleanData(mappedRoom);
-                batch.set(db.collection('rooms').doc(r.id), cleanRoom, { merge: true });
+                batch.set(db.collection('rooms').doc(rId), cleanRoom, { merge: true });
                 newCount++;
                 opsCount++;
                 if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
@@ -459,24 +461,25 @@ async function fetchFromTurso() {
         syncProgressText.innerText = '60% - রিপোর্ট সেভ হচ্ছে...';
 
         for (const rep of reportsData) {
-            if (!rep.id) continue;
-            if (!existingReportIds.has(rep.id)) {
-                const room = roomsData.find(rm => rm.id === rep.roomId);
-                const floor = room ? floorsData.find(f => f.id === room.floorId) : null;
-                const building = floor ? buildingsData.find(b => b.id === floor.buildingId) : null;
+            const repId = String(rep.id || rep.Id || ''); // ID কে স্ট্রিং করা হলো
+            if (!repId) continue;
+            if (!existingReportIds.has(repId)) {
+                const room = roomsData.find(rm => String(rm.id) === String(rep.roomId));
+                const floor = room ? floorsData.find(f => String(f.id) === String(room.floorId)) : null;
+                const building = floor ? buildingsData.find(b => String(b.id) === String(floor.buildingId)) : null;
 
                 const reportData = {
                     building: building ? building.name : 'Unknown',
                     floor: floor ? String(floor.floorNumber) : '-',
                     room: room ? room.roomNumber : '-',
-                    description: rep.description,
-                    reporter: rep.reportedBy,
+                    description: rep.description || '',
+                    reporter: rep.reportedBy || '',
                     status: rep.status === "সমাধান হয়েছে" ? "resolved" : "pending",
                     createdAt: { seconds: rep.reportedAt ? new Date(rep.reportedAt).getTime() / 1000 : Date.now() / 1000 }
                 };
                 
                 const cleanRep = cleanData(reportData);
-                batch.set(db.collection('reports').doc(rep.id), cleanRep, { merge: true });
+                batch.set(db.collection('reports').doc(repId), cleanRep, { merge: true });
                 newCount++;
                 opsCount++;
                 if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
@@ -677,22 +680,22 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
 
-// লগইন করলে শুধু Firebase থেকে ডাটা দেখাবে (কোনো লোডিং ছাড়া)
+// লগইন করলে শুধু Firebase থেকে ডাটা দেখাবে (লগইন পেজ চমকে ওঠা বন্ধ করা হলো)
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
-    
-    // সাথে সাথেই লোডার হাইড করে লগইন পেজ দেখানো হচ্ছে
-    document.getElementById('authContainer').style.display = 'flex';
-    document.getElementById('appContainer').style.display = 'none';
-    showLoginView();
-    hideLoader();
 
     if (typeof firebase === 'undefined' || !firebase.auth) {
+        hideLoader();
+        document.getElementById('authContainer').style.display = 'flex';
+        showLoginView();
         showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error");
         return;
     }
     
+    // ফায়ারবেজ চেক না হওয়া পর্যন্ত স্পিনার ঘুরতে থাকবে, কোনো পেজ দেখাবে না
     firebase.auth().onAuthStateChanged(async (user) => {
+        hideLoader(); // ফায়ারবেজ চেক শেষ হলে স্পিনার হাইড করা হলো
+
         if (user) {
             currentUser = { id: user.uid, email: user.email };
             try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
@@ -701,7 +704,7 @@ function initApp() {
             resetIdleTimer();
             
             try {
-                // শুধুমাত্র Firebase থেকে ডাটা লোড করা হচ্ছে (সরাসরি স্ক্রিনে দেখাবে, কোনো লোডিং নেই)
+                // শুধুমাত্র Firebase থেকে ডাটা লোড করা হচ্ছে
                 state.buildings = await Store.getBuildings();
                 state.rooms = await Store.getRooms();
                 renderPage(); 
