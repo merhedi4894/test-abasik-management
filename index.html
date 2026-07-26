@@ -68,10 +68,25 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 .pagination{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:12px;color:var(--text-light)}.footer{text-align:center;margin-top:auto;padding:20px 10px;color:#64748b;font-size:12px;background:transparent;border:none}.footer strong{font-size:14px;color:#64748b;font-weight:600}
 @media(min-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{padding:24px}.building-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));max-width:900px;margin:0 auto}.room-grid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}.modal-overlay{align-items:center;padding:20px}.modal{border-radius:20px;max-width:600px;padding:24px;animation:scaleIn .3s}.modal.large{max-width:800px}@keyframes scaleIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}.desktop-logout{display:inline-flex!important;margin-left:20px;right:24px}}
 @media(max-width:767px){.topbar{padding-bottom:5px;margin-bottom:10px;gap:8px}.main{padding:10px}.footer{padding:10px;font-size:11px}}
+
+/* প্রগ্রেস বার স্টাইল */
+#syncModal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:5000;text-align:center;min-width:300px}
+#syncProgressBar{width:0%;background:var(--success);height:10px;border-radius:5px;transition:width 0.3s;margin-top:15px}
+#syncProgressText{font-size:14px;font-weight:600;margin-top:10px;color:var(--text)}
 </style>
 </head>
 <body>
 <div id="loader"><div class="spinner"><div></div><div></div><div></div><div></div></div></div>
+
+<!-- প্রগ্রেস বার মডাল -->
+<div id="syncModal">
+    <h3 style="margin-bottom:10px;">Turso থেকে ডাটা আসছে...</h3>
+    <div style="width:100%; background:#f1f5f9; border-radius:8px; overflow:hidden; height:12px;">
+        <div id="syncProgressBar"></div>
+    </div>
+    <p id="syncProgressText">0%</p>
+</div>
+
 <div id="authContainer" class="auth-container">
     <div class="auth-box-wrapper">
         <div id="loginView" class="auth-box">
@@ -111,7 +126,6 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
         <div class="nav-item" data-page="templates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>মালামাল টেম্পলেট</div>
         <div class="nav-item" data-page="download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>ডাউনলোড</div>
         
-        <!-- ডাটা আনার অপশনটি এখানে যুক্ত করা হলো -->
         <div class="nav-item" onclick="fetchFromTurso()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9"></path></svg>ডাটা আনুন</div>
         
         <div class="nav-item logout" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>লগ আউট</div>
@@ -248,7 +262,15 @@ async function handleForgotSend() {
 
 let idleTimeout;
 function resetIdleTimer() { clearTimeout(idleTimeout); if (firebase.auth().currentUser) { idleTimeout = setTimeout(() => { showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 300000); } }
-function handleLogout() { clearTimeout(idleTimeout); document.getElementById('loginPassword').value = ''; document.getElementById('loginIdentifier').value = ''; firebase.auth().signOut(); }
+function handleLogout() { 
+    clearTimeout(idleTimeout); 
+    document.getElementById('loginPassword').value = ''; 
+    document.getElementById('loginIdentifier').value = ''; 
+    // লগআউট হলে স্টেট ক্লিয়ার করা হলো যেন পুরোনো ডাটা স্ক্রিনে না থাকে
+    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null };
+    setBtnLoading('loginBtn', false); // লগইন বাটন রিসেট করা হলো
+    firebase.auth().signOut(); 
+}
 
 const Store = {
     async getBuildings() { const s = await db.collection('buildings').get(); return s.docs.map(d => ({ id: d.id, ...d.data() })); },
@@ -267,13 +289,19 @@ const Store = {
 };
 
 // ==========================================
-// Turso থেকে ডাটা আনার ফাংশন
+// Turso থেকে ডাটা আনার ফাংশন (প্রগ্রেস বারসহ)
 // ==========================================
 async function fetchFromTurso() {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('active');
     
-    showToast("ডাটা চেক করা হচ্ছে...", "info");
+    const syncModal = document.getElementById('syncModal');
+    const syncProgressBar = document.getElementById('syncProgressBar');
+    const syncProgressText = document.getElementById('syncProgressText');
+    
+    syncModal.style.display = 'block';
+    syncProgressBar.style.width = '0%';
+    syncProgressText.innerText = '0% - ডাটা ফেচ করা হচ্ছে...';
     
     try {
         const executeTursoQuery = async (sql) => {
@@ -298,43 +326,64 @@ async function fetchFromTurso() {
             });
         };
 
+        syncProgressBar.style.width = '10%';
+        syncProgressText.innerText = '10% - বিল্ডিং আসছে...';
         const buildingsData = await executeTursoQuery('SELECT * FROM "Building"');
-        const floorsData = await executeTursoQuery('SELECT * FROM "Floor"');
+        
+        syncProgressBar.style.width = '20%';
+        syncProgressText.innerText = '20% - রুম আসছে...';
         const roomsData = await executeTursoQuery('SELECT * FROM "Room"');
+        
+        syncProgressBar.style.width = '30%';
+        syncProgressText.innerText = '30% - ভাড়াটে আসছে...';
         const tenantsData = await executeTursoQuery('SELECT * FROM "Tenant"');
+        const floorsData = await executeTursoQuery('SELECT * FROM "Floor"');
+        
+        syncProgressBar.style.width = '40%';
+        syncProgressText.innerText = '40% - মালামাল আসছে...';
         const inventoryData = await executeTursoQuery('SELECT * FROM "Inventory"');
         const templatesData = await executeTursoQuery('SELECT * FROM "BelongingTemplate"');
         const reportsData = await executeTursoQuery('SELECT * FROM "TroubleReport"');
 
+        syncProgressBar.style.width = '50%';
+        syncProgressText.innerText = '50% - চেক করা হচ্ছে...';
+        
         const fbBuildings = await Store.getBuildings();
         const fbRooms = await Store.getRooms();
 
-        // নতুন কোনো ডাটা আছে কিনা চেক করা হচ্ছে
         if (buildingsData.length === fbBuildings.length && roomsData.length === fbRooms.length) {
-            showToast("নতুন কোন ডাটা নেই", "info");
+            showToast("নতুন কোন ডাটা Turso ডাটাবেজে পাওয়া যাইনি", "info");
+            syncModal.style.display = 'none';
             return;
         }
 
         let importedCount = 0;
-        showToast(`নতুন ডাটা পাওয়া গেছে। সেভ হচ্ছে...`, "info");
+        const totalItems = buildingsData.length + roomsData.length + reportsData.length;
 
-        for (const b of buildingsData) {
+        // ১. বিল্ডিং সেভ করা
+        for (let i = 0; i < buildingsData.length; i++) {
+            const b = buildingsData[i];
             await db.collection('buildings').doc(b.id).set({ name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
             const tpls = templatesData.filter(t => t.buildingId === b.id);
             if (tpls.length > 0) {
                 await db.collection('materialTemplates').doc(b.id).set({ items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity })) });
             }
             importedCount++;
+            const progress = 50 + Math.round((importedCount / totalItems) * 50);
+            syncProgressBar.style.width = progress + '%';
+            syncProgressText.innerText = progress + '% - বিল্ডিং সেভ হচ্ছে...';
         }
 
-        for (const r of roomsData) {
+        // ২. রুম ও মালামাল সেভ করা
+        for (let i = 0; i < roomsData.length; i++) {
+            const r = roomsData[i];
             const floor = floorsData.find(f => f.id === r.floorId);
             const buildingId = floor ? floor.buildingId : null;
             if (!buildingId) continue;
 
             const activeTenants = tenantsData.filter(t => t.roomId === r.id && t.isActive);
             const prevTenants = tenantsData.filter(t => t.roomId === r.id && !t.isActive);
-            const inventories = inventoryData.filter(i => i.roomId === r.id);
+            const inventories = inventoryData.filter(inv => inv.roomId === r.id);
 
             const mappedRoom = {
                 buildingId: buildingId,
@@ -344,24 +393,44 @@ async function fetchFromTurso() {
                 previousTenants: prevTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '' })),
                 
                 // মালামালের ডাটা ঠিক করা হলো (অবস্থা, রিপেয়ার, রিপ্লেস ও রেকর্ডসহ)
-                items: inventories.map(i => ({ 
-                    id: i.id, 
-                    name: i.itemName, 
-                    quantity: i.quantity, 
-                    condition: i.condition || 'ভাল',
-                    lastRepairDate: i.lastRepairDate ? new Date(i.lastRepairDate).toISOString().split('T')[0] : (i.addedDate ? new Date(i.addedDate).toISOString().split('T')[0] : null), 
-                    lastReplaceDate: i.lastReplaceDate ? new Date(i.lastReplaceDate).toISOString().split('T')[0] : null, 
-                    history: i.note ? [{ type: 'Repair', date: i.addedDate ? new Date(i.addedDate).toISOString().split('T')[0] : '', note: i.note, condition: i.condition, quantity: i.quantity }] : []
-                })),
+                items: inventories.map(inv => {
+                    const history = [];
+                    // যদি Turso-তে রেকর্ড বা নোট থাকে, তবে সেটি history তে যাবে
+                    if (inv.note || inv.lastRepairDate || inv.lastReplaceDate) {
+                        history.push({
+                            type: inv.lastReplaceDate ? 'Replace' : 'Repair',
+                            date: inv.lastReplaceDate ? new Date(inv.lastReplaceDate).toISOString().split('T')[0] : (inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : (inv.addedDate ? new Date(inv.addedDate).toISOString().split('T')[0] : '')),
+                            note: inv.note || '',
+                            condition: inv.condition || 'ভাল',
+                            quantity: inv.quantity || 1
+                        });
+                    }
+                    
+                    return {
+                        id: inv.id,
+                        name: inv.itemName,
+                        quantity: inv.quantity,
+                        condition: inv.condition || 'ভাল',
+                        // Turso-তে যে তারিখ আছে, সেভাবেই ফায়ারবেজে সেভ হবে
+                        lastRepairDate: inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : (inv.addedDate ? new Date(inv.addedDate).toISOString().split('T')[0] : null),
+                        lastReplaceDate: inv.lastReplaceDate ? new Date(inv.lastReplaceDate).toISOString().split('T')[0] : null,
+                        history: history
+                    };
+                }),
                 guests: [],
                 occupants: []
             };
 
             await db.collection('rooms').doc(r.id).set(mappedRoom, { merge: true });
             importedCount++;
+            const progress = 50 + Math.round((importedCount / totalItems) * 50);
+            syncProgressBar.style.width = progress + '%';
+            syncProgressText.innerText = progress + '% - রুম সেভ হচ্ছে...';
         }
 
-        for (const rep of reportsData) {
+        // ৩. রিপোর্ট সেভ করা
+        for (let i = 0; i < reportsData.length; i++) {
+            const rep = reportsData[i];
             const room = roomsData.find(rm => rm.id === rep.roomId);
             const floor = room ? floorsData.find(f => f.id === room.floorId) : null;
             const building = floor ? buildingsData.find(b => b.id === floor.buildingId) : null;
@@ -376,16 +445,28 @@ async function fetchFromTurso() {
                 createdAt: { seconds: rep.reportedAt ? new Date(rep.reportedAt).getTime() / 1000 : Date.now() / 1000 }
             }, { merge: true });
             importedCount++;
+            const progress = 50 + Math.round((importedCount / totalItems) * 50);
+            syncProgressBar.style.width = progress + '%';
+            syncProgressText.innerText = progress + '% - রিপোর্ট সেভ হচ্ছে...';
         }
 
+        // ফায়ারবেজ থেকে ডাটা রিফ্রেশ করে স্ক্রিনে দেখানো
         state.buildings = await Store.getBuildings();
         state.rooms = await Store.getRooms();
         renderPage();
-        showToast(`🎉 সফল! ${importedCount} টি ডাটা সেভ হয়েছে।`, "success");
+        
+        syncProgressBar.style.width = '100%';
+        syncProgressText.innerText = '100% - সম্পূর্ণ!';
+        
+        setTimeout(() => {
+            syncModal.style.display = 'none';
+            showToast(`🎉 সফল! ${importedCount} টি ডাটা সেভ হয়েছে।`, "success");
+        }, 1000);
         
     } catch (error) {
         console.error("Turso Fetch Error:", error);
         showToast("ডাটা আনতে সমস্যা হয়েছে।", "error");
+        syncModal.style.display = 'none';
     }
 }
 
@@ -550,8 +631,12 @@ function initApp() {
             if (user) {
                 currentUser = { id: user.uid, email: user.email };
                 try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
-                document.getElementById('authContainer').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; resetIdleTimer(); renderPage(); 
-                if (!state.buildings.length) { state.buildings = await Store.getBuildings(); state.rooms = await Store.getRooms(); renderPage(); }
+                document.getElementById('authContainer').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; resetIdleTimer();
+                
+                // লগইন করলে ফায়ারবেজ থেকে সরাসরি ডাটা লোড হবে (পার্মানেন্ট ডাটা)
+                state.buildings = await Store.getBuildings();
+                state.rooms = await Store.getRooms();
+                renderPage();
             } else {
                 currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView();
             }
