@@ -306,7 +306,7 @@ function cleanData(obj) {
     if (Array.isArray(obj)) {
         return obj.map(item => cleanData(item));
     }
-    if (typeof obj === 'object') {
+    if (typeof obj === 'object' && !(obj instanceof Date) && typeof obj.seconds !== 'number') {
         const cleaned = {};
         for (const key in obj) {
             if (obj[key] !== undefined) {
@@ -319,7 +319,7 @@ function cleanData(obj) {
 }
 
 // ==========================================
-// Turso থেকে ডাটা আনার ফাংশন (সব ডাটা ফায়ারবেজে পার্মানেন্ট সেভ হবে)
+// Turso থেকে ডাটা আনার ফাংশন (সব টেবিল ফায়ারবেজে পার্মানেন্ট সেভ হবে)
 // ==========================================
 async function fetchFromTurso() {
     document.getElementById('sidebar').classList.remove('open');
@@ -356,29 +356,25 @@ async function fetchFromTurso() {
             });
         };
 
-        syncProgressBar.style.width = '10%';
-        syncProgressText.innerText = '10% - ডাটা ফেচ করা হচ্ছে...';
+        syncProgressBar.style.width = '5%';
+        syncProgressText.innerText = '5% - টেবিল লিস্ট আসছে...';
         
-        const [buildingsData, roomsData, tenantsData, floorsData, inventoryData, templatesData, reportsData] = await Promise.all([
-            executeTursoQuery('SELECT * FROM "Building"'),
-            executeTursoQuery('SELECT * FROM "Room"'),
-            executeTursoQuery('SELECT * FROM "Tenant"'),
-            executeTursoQuery('SELECT * FROM "Floor"'),
-            executeTursoQuery('SELECT * FROM "Inventory"'),
-            executeTursoQuery('SELECT * FROM "BelongingTemplate"'),
-            executeTursoQuery('SELECT * FROM "TroubleReport"')
-        ]);
-
-        syncProgressBar.style.width = '30%';
-        syncProgressText.innerText = '30% - ফায়ারবেজ চেক করা হচ্ছে...';
-
-        const fbBuildings = await Store.getBuildings();
-        const fbRooms = await Store.getRooms();
-        const fbReports = await Store.getReports();
+        // ১. Turso ডাটাবেজের সব টেবিলের নাম আনা হচ্ছে
+        const schemaRes = await executeTursoQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'");
+        const tableNames = schemaRes.map(r => r.name).filter(n => n);
         
-        const existingBuildingIds = new Set(fbBuildings.map(b => b.id));
-        const existingRoomIds = new Set(fbRooms.map(r => r.id));
-        const existingReportIds = new Set(fbReports.map(r => r.id));
+        // ২. সব টেবিলের ডাটা একসাথে আনা হচ্ছে
+        const tursoData = {};
+        for (let i = 0; i < tableNames.length; i++) {
+            const tbl = tableNames[i];
+            const progress = 5 + Math.round(((i + 1) / tableNames.length) * 35);
+            syncProgressBar.style.width = progress + '%';
+            syncProgressText.innerText = progress + '% - ' + tbl + ' টেবিল আসছে...';
+            tursoData[tbl] = await executeTursoQuery(`SELECT * FROM "${tbl}"`);
+        }
+
+        syncProgressBar.style.width = '40%';
+        syncProgressText.innerText = '40% - ফায়ারবেজে সেভ হচ্ছে...';
 
         let batch = db.batch();
         let opsCount = 0;
@@ -388,7 +384,7 @@ async function fetchFromTurso() {
         const commitBatch = async () => {
             if (opsCount > 0) {
                 try {
-                    await batch.commit(); // ফায়ারবেজে পার্মানেন্ট সেভ হওয়ার জায়গা
+                    await batch.commit();
                     console.log("Batch committed successfully.");
                 } catch (batchErr) {
                     console.error("Firebase Batch Error:", batchErr);
@@ -399,8 +395,43 @@ async function fetchFromTurso() {
             }
         };
 
+        // ৩. Turso এর সব টেবিল ১:১ হিসেবে Firebase এ সেভ করা হচ্ছে
+        for (const tbl of tableNames) {
+            const rows = tursoData[tbl] || [];
+            for (const row of rows) {
+                const rowId = String(row.id || row.Id || genId(tbl));
+                const cleanRow = cleanData(row);
+                batch.set(db.collection(tbl).doc(rowId), cleanRow, { merge: true });
+                opsCount++;
+                newCount++;
+                if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
+            }
+        }
+
+        // ৪. অ্যাপের UI এর জন্য ম্যাপ করা কালেকশন তৈরি করা হচ্ছে (যেমন buildings, rooms)
+        const buildingsData = tursoData['Building'] || [];
+        const roomsData = tursoData['Room'] || [];
+        const tenantsData = tursoData['Tenant'] || [];
+        const floorsData = tursoData['Floor'] || [];
+        const inventoryData = tursoData['Inventory'] || [];
+        const templatesData = tursoData['BelongingTemplate'] || [];
+        const reportsData = tursoData['TroubleReport'] || [];
+        const roomUsersData = tursoData['RoomUser'] || []; // RoomUser টেবিলের ডাটা
+
+        syncProgressBar.style.width = '70%';
+        syncProgressText.innerText = '70% - রুম ম্যাপ করা হচ্ছে...';
+
+        const fbBuildings = await Store.getBuildings();
+        const fbRooms = await Store.getRooms();
+        const fbReports = await Store.getReports();
+        
+        const existingBuildingIds = new Set(fbBuildings.map(b => b.id));
+        const existingRoomIds = new Set(fbRooms.map(r => r.id));
+        const existingReportIds = new Set(fbReports.map(r => r.id));
+
+        // বিল্ডিং সেভ
         for (const b of buildingsData) {
-            const bId = String(b.id || b.Id || ''); // ID কে স্ট্রিং করা হলো
+            const bId = String(b.id || b.Id || '');
             if (!bId) continue;
             if (!existingBuildingIds.has(bId)) {
                 const dataToSave = cleanData({ name: b.name || '', floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
@@ -410,16 +441,14 @@ async function fetchFromTurso() {
                     const tplData = cleanData({ items: tpls.map(t => ({ id: String(t.id), name: t.itemName || '', quantity: t.quantity || 1 })) });
                     batch.set(db.collection('materialTemplates').doc(bId), tplData);
                 }
-                newCount++;
                 opsCount++;
                 if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
             }
         }
-        syncProgressBar.style.width = '40%';
-        syncProgressText.innerText = '40% - রুম ও মালামাল সেভ হচ্ছে...';
 
+        // রুম সেভ
         for (const r of roomsData) {
-            const rId = String(r.id || r.Id || ''); // ID কে স্ট্রিং করা হলো
+            const rId = String(r.id || r.Id || '');
             if (!rId) continue;
             if (!existingRoomIds.has(rId)) {
                 const floor = floorsData.find(f => String(f.id) === String(r.floorId));
@@ -429,6 +458,7 @@ async function fetchFromTurso() {
                 const activeTenants = tenantsData.filter(t => String(t.roomId) === rId && t.isActive);
                 const prevTenants = tenantsData.filter(t => String(t.roomId) === rId && !t.isActive);
                 const inventories = inventoryData.filter(inv => String(inv.roomId) === rId);
+                const occupants = roomUsersData.filter(u => String(u.roomId) === rId); // RoomUser থেকে occupants আনা হলো
 
                 const mappedRoom = {
                     buildingId: buildingId,
@@ -447,21 +477,20 @@ async function fetchFromTurso() {
                             history: history
                         };
                     }),
-                    guests: [], occupants: []
+                    guests: [],
+                    occupants: occupants.map(u => ({ id: String(u.id), name: u.name || u.userName || '', relation: u.relation || u.userRelation || '', phone: u.phone || u.userPhone || '' })) // RoomUser ম্যাপিং
                 };
                 
                 const cleanRoom = cleanData(mappedRoom);
                 batch.set(db.collection('rooms').doc(rId), cleanRoom, { merge: true });
-                newCount++;
                 opsCount++;
                 if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
             }
         }
-        syncProgressBar.style.width = '60%';
-        syncProgressText.innerText = '60% - রিপোর্ট সেভ হচ্ছে...';
 
+        // রিপোর্ট সেভ
         for (const rep of reportsData) {
-            const repId = String(rep.id || rep.Id || ''); // ID কে স্ট্রিং করা হলো
+            const repId = String(rep.id || rep.Id || '');
             if (!repId) continue;
             if (!existingReportIds.has(repId)) {
                 const room = roomsData.find(rm => String(rm.id) === String(rep.roomId));
@@ -480,7 +509,6 @@ async function fetchFromTurso() {
                 
                 const cleanRep = cleanData(reportData);
                 batch.set(db.collection('reports').doc(repId), cleanRep, { merge: true });
-                newCount++;
                 opsCount++;
                 if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
             }
