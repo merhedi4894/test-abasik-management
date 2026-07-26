@@ -163,8 +163,6 @@ let db = null, useFirebase = false;
 try { 
     firebase.initializeApp(firebaseConfig); 
     db = firebase.firestore(); 
-    // Firebase লোকাল ক্যাশ (IndexedDB) চালু করা হলো - এটি ডাটা দ্রুত আনবে
-    db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("Persistence error:", err));
     useFirebase = true; 
     firebase.auth().setPersistence(firebase.auth().Persistence.LOCAL).catch(err => console.warn("Auth Persistence error:", err)); 
 } catch(e) { console.warn("Firebase Error:", e); }
@@ -173,9 +171,8 @@ const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.tur
 const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODUwNTk4NzgsImlkIjoiMDE5ZDk1ZjctODcwMS03YTg1LWE5ZDMtMTZkMTQ5YTg2ZTM0Iiwia2lkIjoiSERvdFg3bzEwclVaY1lJdk1QMm9kUGxES051QjF0VmNDTTd1b3pDMUVjMCIsInJpZCI6IjYxNzk0NDk2LWFiNzctNGRjYy1hZGQ2LTQ4ODkwZjU5OGZhNiJ9.3YG3zvpa51WIQrm_VdV1xd02miBd7uoZ1x0Nfax7SIlTUnJsaAG-bmftZ0yy72Fsfedf-SF9uAWCuA1quzvRDw";
 
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
-let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: true };
+let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
-let buildingsUnsub = null, roomsUnsub = null;
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -274,9 +271,7 @@ let idleTimeout;
 function resetIdleTimer() { clearTimeout(idleTimeout); if (firebase.auth().currentUser) { idleTimeout = setTimeout(() => { showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 300000); } }
 function handleLogout() { 
     clearTimeout(idleTimeout); 
-    if (buildingsUnsub) { buildingsUnsub(); buildingsUnsub = null; }
-    if (roomsUnsub) { roomsUnsub(); roomsUnsub = null; }
-    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: true };
+    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     setBtnLoading('loginBtn', false); 
     firebase.auth().signOut(); 
 }
@@ -487,13 +482,10 @@ async function fetchFromTurso() {
         syncProgressBar.style.width = '90%';
         syncProgressText.innerText = '90% - ফায়ারবেজ আপডেট হচ্ছে...';
 
-        // রিয়েল-টাইম লিসেনার চালু থাকলে ডাটা অটো আপডেট হবে, না থাকলে ম্যানুয়ালি আনবে
-        if (!buildingsUnsub) {
-            state.buildings = await Store.getBuildings();
-            state.rooms = await Store.getRooms();
-            state.isLoading = false;
-            renderPage();
-        }
+        state.buildings = await Store.getBuildings();
+        state.rooms = await Store.getRooms();
+        state.isLoading = false;
+        renderPage();
         
         syncProgressBar.style.width = '100%';
         syncProgressText.innerText = '100% - সম্পূর্ণ!';
@@ -517,12 +509,10 @@ async function fetchFromTurso() {
         showToast(errMsg, "error");
         syncModal.style.display = 'none';
         
-        if (!buildingsUnsub) {
-            state.buildings = await Store.getBuildings();
-            state.rooms = await Store.getRooms();
-            state.isLoading = false;
-            renderPage();
-        }
+        state.buildings = await Store.getBuildings();
+        state.rooms = await Store.getRooms();
+        state.isLoading = false;
+        renderPage();
     }
 }
 
@@ -555,9 +545,8 @@ function renderPage() {
     else { actionBtn.style.display = 'none'; }
     const c = document.getElementById('pageContent');
     
-    // লোডিং স্টেট চেক করা হচ্ছে
     if (state.isLoading) {
-        c.innerHTML = `<div class="card"><div class="empty-state"><div class="spinner"><div></div><div></div><div></div><div></div></div><p>ডাটা লোড হচ্ছে...</p></div></div>`;
+        c.innerHTML = `<div class="card"><div class="empty-state"><div class="spinner"><div></div><div></div><div></div><div></div></div><p style="margin-top:10px;">ডাটা লোড হচ্ছে...</p></div></div>`;
         return;
     }
 
@@ -615,7 +604,7 @@ function toggleHistoryCard(e, el) { e.stopPropagation(); const container = el.cl
 function addOccupantModal(rId) { openModal('নতুন ব্যবহারকারী', `<div class="form-group"><label>নাম</label><input type="text" id="o_name"></div><div class="grid grid-2"><div class="form-group"><label>সম্পর্ক</label><input type="text" id="o_rel"></div><div class="form-group"><label>ফোন</label><input type="text" id="o_phone"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveSingleOccupant('${rId}')">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, relation: document.getElementById('o_rel').value.trim(), phone: document.getElementById('o_phone').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 async function saveBulkEdit(rId) { const r = state.rooms.find(x => x.id === rId); r.items.forEach(i => { const s = document.getElementById(`bc_${i.id}`); const q = document.getElementById(`bq_${i.id}`); if (s) i.condition = s.value; if (q) i.quantity = parseInt(q.value) || 1; }); document.getElementById('saveBulkBtn').disabled = true; showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
-function switchRoomTab(e, tab, rId) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); e.target.classList.add('active'); const c = document.getElementById('roomTabContent'); if (tab === 'history') renderRoomHistoryTab(rId, c); else if (tab === 'guests') renderGuestsTab(rId, c); else if (tab === 'items') renderItemsTab(rId, 1); else c.innerHTML = state.roomTabs[rId][tab]; }
+function switchRoomTab(e, tab, rId) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'); e.target.classList.add('active'); const c = document.getElementById('roomTabContent'); if (tab === 'history') renderRoomHistoryTab(rId, c); else if (tab === 'guests') renderGuestsTab(rId, c); else if (tab === 'items') renderItemsTab(rId, 1); else c.innerHTML = state.roomTabs[rId][tab]; }
 function renderRoomHistoryTab(rId, c) { const r = state.rooms.find(x => x.id === rId); const p = r.previousTenants || []; c.innerHTML = `<h4 class="mb-16">📜 পূর্বের ভাড়াটে (${p.length})</h4>${p.length === 0 ? `<div class="empty-state"><p>কেউ নেই।</p></div>` : `<div class="grid gap-12">${p.slice().reverse().map(t => `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${escapeHtml(t.name)}</strong><span class="text-sm">ছাড়া: ${formatDate(t.endDate)}</span></div><div class="card-body"><p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>ফোন: ${escapeHtml(t.phone || '-')}</p><p>বরাদ্ক: ${formatDate(t.startDate)}</p><div class="flex gap-8 mt-8"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); viewTenantSnapshot('${rId}','${t.id}')">📦 মালামাল</button><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div></div></div>`).join('')}</div>`}`; }
 function editRoom(rId) { const r = state.rooms.find(x => x.id === rId); openModal('রুম এডিট', `<div class="grid grid-2"><div class="form-group"><label>তলা</label><input type="text" id="efloor" value="${escapeHtml(r.floor)}"></div><div class="form-group"><label>রুম নম্বর</label><input type="text" id="enumber" value="${escapeHtml(r.number)}"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveRoomEdit('${rId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveRoomEdit(rId) { const f = document.getElementById('efloor').value.trim(); const n = document.getElementById('enumber').value.trim(); if (!f || !n) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); r.floor = f; r.number = n; forceCloseModal(); renderPage(); try { await Store.saveRoom({ ...r, floor: f, number: n }); showToast('আপডেট হয়েছে'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); renderPage(); } }
@@ -709,49 +698,38 @@ function initApp() {
             document.getElementById('appContainer').style.display = 'block'; 
             resetIdleTimer();
             
-            // ডাটা লোড হওয়ার আগ পর্যন্ত লোডিং স্পিনার দেখানো হবে
+            // লোডিং স্পিনার দেখানো হলো
             state.isLoading = true;
             renderPage();
             
-            // রিয়েল-টাইম লিসেনার চালু করুন (এটি লোকাল ক্যাশ থেকে সাথে সাথে ডাটা নিয়ে আসবে)
-            setupRealtimeListeners();
-            
-            // রিপোর্ট একবার লোড করে রাখা
-            state.reports = await Store.getReports();
+            // সাধারণ ওয়েবসাইটের মতো সরাসরি ডাটা আনা হচ্ছে
+            try {
+                const [buildings, rooms, reports] = await Promise.all([
+                    Store.getBuildings(),
+                    Store.getRooms(),
+                    Store.getReports()
+                ]);
+                state.buildings = buildings;
+                state.rooms = rooms;
+                state.reports = reports;
+                state.isLoading = false;
+                renderPage();
+            } catch(e) {
+                state.isLoading = false;
+                renderPage();
+                let errMsg = "ডাটা লোডে সমস্যা: " + e.message;
+                if (e.code === 'permission-denied') {
+                    errMsg = "Firebase Security Rules এ ডাটা পড়া বন্ধ! Firebase Console এ গিয়ে Rules ঠিক করুন।";
+                }
+                showToast(errMsg, "error");
+            }
         } else {
             currentUser = null;
-            if (buildingsUnsub) { buildingsUnsub(); buildingsUnsub = null; }
-            if (roomsUnsub) { roomsUnsub(); roomsUnsub = null; }
-            
+            state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'flex';
             showLoginView();
         }
-    });
-}
-
-function setupRealtimeListeners() {
-    if (buildingsUnsub) buildingsUnsub();
-    if (roomsUnsub) roomsUnsub();
-    
-    buildingsUnsub = db.collection('buildings').onSnapshot(snapshot => {
-        state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.isLoading = false;
-        renderPage();
-    }, error => {
-        console.error("Buildings listener error:", error);
-        state.isLoading = false;
-        showToast("বিল্ডিং ডাটা লোডে সমস্যা: " + error.message, "error");
-    });
-    
-    roomsUnsub = db.collection('rooms').onSnapshot(snapshot => {
-        state.rooms = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.isLoading = false;
-        renderPage();
-    }, error => {
-        console.error("Rooms listener error:", error);
-        state.isLoading = false;
-        showToast("রুম ডাটা লোডে সমস্যা: " + error.message, "error");
     });
 }
 
