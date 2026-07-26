@@ -159,7 +159,17 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 <div id="toastContainer"></div>
 
 <script>
-const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E",
+  authDomain: "test-abasik-management.firebaseapp.com",
+  projectId: "test-abasik-management",
+  storageBucket: "test-abasik-management.firebasestorage.app",
+  messagingSenderId: "732260863743",
+  appId: "1:732260863743:web:50d4495f3b7c7e051346ca",
+  measurementId: "G-28K4ZQC519"
+};
+
 let db = null, useFirebase = false;
 try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => console.warn("Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
@@ -291,7 +301,7 @@ const Store = {
 };
 
 // ==========================================
-// Turso থেকে ডাটা আনার ফাংশন (অপ্টিমাইজড ও দ্রুত)
+// Turso থেকে ডাটা আনার ফাংশন (শুধু নতুন ডাটা সেভ হবে, ডুপ্লিকেট হবে না)
 // ==========================================
 async function fetchFromTurso() {
     document.getElementById('sidebar').classList.remove('open');
@@ -343,11 +353,21 @@ async function fetchFromTurso() {
         ]);
 
         syncProgressBar.style.width = '30%';
-        syncProgressText.innerText = '30% - ডাটা প্রসেস করা হচ্ছে...';
+        syncProgressText.innerText = '30% - ফায়ারবেজ চেক করা হচ্ছে...';
+
+        // ফায়ারবেজে ইতিমধ্যে কী কী আইডি আছে তা বের করা হচ্ছে
+        const fbBuildings = await Store.getBuildings();
+        const fbRooms = await Store.getRooms();
+        const fbReports = await Store.getReports();
+        
+        const existingBuildingIds = new Set(fbBuildings.map(b => b.id));
+        const existingRoomIds = new Set(fbRooms.map(r => r.id));
+        const existingReportIds = new Set(fbReports.map(r => r.id));
 
         let batch = db.batch();
         let opsCount = 0;
-        const MAX_BATCH_SIZE = 400; // ফায়ারবেজের লিমিট 500, নিরাপত্তার জন্য 400 রাখা হলো
+        let newCount = 0;
+        const MAX_BATCH_SIZE = 400; 
         
         const commitBatch = async () => {
             if (opsCount > 0) {
@@ -357,81 +377,89 @@ async function fetchFromTurso() {
             }
         };
 
-        // ১. বিল্ডিং ও টেম্পলেট সেভ
+        // ১. বিল্ডিং ও টেম্পলেট সেভ (শুধু নতুন গুলো)
         for (const b of buildingsData) {
-            batch.set(db.collection('buildings').doc(b.id), { name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-            const tpls = templatesData.filter(t => t.buildingId === b.id);
-            if (tpls.length > 0) {
-                batch.set(db.collection('materialTemplates').doc(b.id), { items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity })) });
+            if (!existingBuildingIds.has(b.id)) {
+                batch.set(db.collection('buildings').doc(b.id), { name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+                const tpls = templatesData.filter(t => t.buildingId === b.id);
+                if (tpls.length > 0) {
+                    batch.set(db.collection('materialTemplates').doc(b.id), { items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity })) });
+                }
+                newCount++;
+                opsCount++;
+                if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
             }
-            opsCount++;
-            if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
         syncProgressBar.style.width = '40%';
         syncProgressText.innerText = '40% - রুম ও মালামাল সেভ হচ্ছে...';
 
-        // ২. রুম ও মালামাল সেভ
+        // ২. রুম ও মালামাল সেভ (শুধু নতুন গুলো)
         for (const r of roomsData) {
-            const floor = floorsData.find(f => f.id === r.floorId);
-            const buildingId = floor ? floor.buildingId : null;
-            if (!buildingId) continue;
+            if (!existingRoomIds.has(r.id)) {
+                const floor = floorsData.find(f => f.id === r.floorId);
+                const buildingId = floor ? floor.buildingId : null;
+                if (!buildingId) continue;
 
-            const activeTenants = tenantsData.filter(t => t.roomId === r.id && t.isActive);
-            const prevTenants = tenantsData.filter(t => t.roomId === r.id && !t.isActive);
-            const inventories = inventoryData.filter(inv => inv.roomId === r.id);
+                const activeTenants = tenantsData.filter(t => t.roomId === r.id && t.isActive);
+                const prevTenants = tenantsData.filter(t => t.roomId === r.id && !t.isActive);
+                const inventories = inventoryData.filter(inv => inv.roomId === r.id);
 
-            const mappedRoom = {
-                buildingId: buildingId,
-                floor: floor ? String(floor.floorNumber) : '1',
-                number: r.roomNumber,
-                tenants: activeTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', type: 'bachelor', familyInfo: '' })),
-                previousTenants: prevTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '' })),
-                items: inventories.map(inv => {
-                    const history = [];
-                    if (inv.lastRepairDate) history.push({ type: 'Repair', date: new Date(inv.lastRepairDate).toISOString().split('T')[0], note: inv.note || '', condition: inv.condition || 'ভাল', quantity: inv.quantity || 1 });
-                    if (inv.lastReplaceDate) history.push({ type: 'Replace', date: new Date(inv.lastReplaceDate).toISOString().split('T')[0], note: inv.note || '', condition: inv.condition || 'ভাল', quantity: inv.quantity || 1 });
-                    return {
-                        id: inv.id, name: inv.itemName, quantity: inv.quantity, condition: inv.condition || 'ভাল',
-                        lastRepairDate: inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : null,
-                        lastReplaceDate: inv.lastReplaceDate ? new Date(inv.lastReplaceDate).toISOString().split('T')[0] : null,
-                        history: history
-                    };
-                }),
-                guests: [], occupants: []
-            };
-            
-            batch.set(db.collection('rooms').doc(r.id), mappedRoom, { merge: true });
-            opsCount++;
-            if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
+                const mappedRoom = {
+                    buildingId: buildingId,
+                    floor: floor ? String(floor.floorNumber) : '1',
+                    number: r.roomNumber,
+                    tenants: activeTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', type: 'bachelor', familyInfo: '' })),
+                    previousTenants: prevTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '' })),
+                    items: inventories.map(inv => {
+                        const history = [];
+                        if (inv.lastRepairDate) history.push({ type: 'Repair', date: new Date(inv.lastRepairDate).toISOString().split('T')[0], note: inv.note || '', condition: inv.condition || 'ভাল', quantity: inv.quantity || 1 });
+                        if (inv.lastReplaceDate) history.push({ type: 'Replace', date: new Date(inv.lastReplaceDate).toISOString().split('T')[0], note: inv.note || '', condition: inv.condition || 'ভাল', quantity: inv.quantity || 1 });
+                        return {
+                            id: inv.id, name: inv.itemName, quantity: inv.quantity, condition: inv.condition || 'ভাল',
+                            lastRepairDate: inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : null,
+                            lastReplaceDate: inv.lastReplaceDate ? new Date(inv.lastReplaceDate).toISOString().split('T')[0] : null,
+                            history: history
+                        };
+                    }),
+                    guests: [], occupants: []
+                };
+                
+                batch.set(db.collection('rooms').doc(r.id), mappedRoom, { merge: true });
+                newCount++;
+                opsCount++;
+                if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
+            }
         }
         syncProgressBar.style.width = '60%';
         syncProgressText.innerText = '60% - রিপোর্ট সেভ হচ্ছে...';
 
-        // ৩. রিপোর্ট সেভ
+        // ৩. রিপোর্ট সেভ (শুধু নতুন গুলো)
         for (const rep of reportsData) {
-            const room = roomsData.find(rm => rm.id === rep.roomId);
-            const floor = room ? floorsData.find(f => f.id === room.floorId) : null;
-            const building = floor ? buildingsData.find(b => b.id === floor.buildingId) : null;
+            if (!existingReportIds.has(rep.id)) {
+                const room = roomsData.find(rm => rm.id === rep.roomId);
+                const floor = room ? floorsData.find(f => f.id === room.floorId) : null;
+                const building = floor ? buildingsData.find(b => b.id === floor.buildingId) : null;
 
-            batch.set(db.collection('reports').doc(rep.id), {
-                building: building ? building.name : 'Unknown',
-                floor: floor ? String(floor.floorNumber) : '-',
-                room: room ? room.roomNumber : '-',
-                description: rep.description,
-                reporter: rep.reportedBy,
-                status: rep.status === "সমাধান হয়েছে" ? "resolved" : "pending",
-                createdAt: { seconds: rep.reportedAt ? new Date(rep.reportedAt).getTime() / 1000 : Date.now() / 1000 }
-            }, { merge: true });
-            opsCount++;
-            if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
+                batch.set(db.collection('reports').doc(rep.id), {
+                    building: building ? building.name : 'Unknown',
+                    floor: floor ? String(floor.floorNumber) : '-',
+                    room: room ? room.roomNumber : '-',
+                    description: rep.description,
+                    reporter: rep.reportedBy,
+                    status: rep.status === "সমাধান হয়েছে" ? "resolved" : "pending",
+                    createdAt: { seconds: rep.reportedAt ? new Date(rep.reportedAt).getTime() / 1000 : Date.now() / 1000 }
+                }, { merge: true });
+                newCount++;
+                opsCount++;
+                if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
+            }
         }
 
-        await commitBatch(); // বাকি থাকা ডাটা সেভ হওয়া
+        await commitBatch(); 
         
         syncProgressBar.style.width = '90%';
         syncProgressText.innerText = '90% - ফায়ারবেজ আপডেট হচ্ছে...';
 
-        // ফায়ারবেজ থেকে ডাটা রিফ্রেশ করে স্ক্রিনে দেখানো
         state.buildings = await Store.getBuildings();
         state.rooms = await Store.getRooms();
         renderPage();
@@ -441,7 +469,11 @@ async function fetchFromTurso() {
         
         setTimeout(() => {
             syncModal.style.display = 'none';
-            showToast(`🎉 সফল! সব ডাটা সেভ হয়েছে।`, "success");
+            if(newCount === 0) {
+                showToast(`Turso-তে নতুন কোনো ডাটা নেই, সব আগেই ফায়ারবেজে আছে।`, "info");
+            } else {
+                showToast(`🎉 সফল! ${newCount} টি নতুন ডাটা সেভ হয়েছে।`, "success");
+            }
         }, 500);
         
     } catch (error) {
@@ -504,7 +536,7 @@ async function saveRoomModal(bId, f) { const n = document.getElementById('roomNu
 function showRoomDetail(rId, activeTab = 'tenant', replace = false) {
     const room = state.rooms.find(r => r.id === rId); if (!room) return; const building = state.buildings.find(b => b.id === room.buildingId);
     let tArr = room.tenants || (room.tenant ? [room.tenant] : []); let oArr = room.occupants || [];
-    const getCard = (t, isOcc = false, isPrev = false) => { let bodyContent = isOcc ? `<p>সম্পর্ক: ${escapeHtml(t.relation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p>` : `<p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p><p>📅 বরাদ্দ: ${formatDate(t.startDate)}</p>${t.endDate ? `<p>📅 ছাড়া: ${formatDate(t.endDate)}</p>` : ''}${t.type === 'family' ? `<p><strong>পরিবার:</strong> ${escapeHtml(t.familyInfo || '-')}</p>` : ''}`; let actions = ''; if (isPrev) actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div>`; else if (isOcc) actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editOccupantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteOccupant('${rId}','${t.id}')">${delIcon}</button></div>`; else actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editSpecificTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteSpecificTenant('${rId}','${t.id}')">${delIcon}</button></div>`; return `<div class="expandable-3d-card ${isOcc ? 'occupant' : ''}" onclick="toggleCard(event, this)"><div class="card-header"><span>${isOcc ? '🏠' : (t.type === 'family' ? '👪' : '👤')} <strong>${escapeHtml(t.name)}</strong></span><span class="text-sm">বিস্তারিত ▼</span></div><div class="card-body">${bodyContent}${actions}</div></div>`; };
+    const getCard = (t, isOcc = false, isPrev = false) => { let bodyContent = isOcc ? `<p>সম্পর্ক: ${escapeHtml(t.relation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p>` : `<p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p><p>📅 বরাদ্ক: ${formatDate(t.startDate)}</p>${t.endDate ? `<p>📅 ছাড়া: ${formatDate(t.endDate)}</p>` : ''}${t.type === 'family' ? `<p><strong>পরিবার:</strong> ${escapeHtml(t.familyInfo || '-')}</p>` : ''}`; let actions = ''; if (isPrev) actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div>`; else if (isOcc) actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editOccupantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteOccupant('${rId}','${t.id}')">${delIcon}</button></div>`; else actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editSpecificTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteSpecificTenant('${rId}','${t.id}')">${delIcon}</button></div>`; return `<div class="expandable-3d-card ${isOcc ? 'occupant' : ''}" onclick="toggleCard(event, this)"><div class="card-header"><span>${isOcc ? '🏠' : (t.type === 'family' ? '👪' : '👤')} <strong>${escapeHtml(t.name)}</strong></span><span class="text-sm">বিস্তারিত ▼</span></div><div class="card-body">${bodyContent}${actions}</div></div>`; };
     let tHtml = `<div class="flex-between mb-16"><h4 style="margin:0; font-size:15px;">👤 বরাদ্ক পাওয়া ব্যক্তি</h4><button class="btn btn-primary btn-sm" onclick="showAssignTenantModal('${rId}', true)">+ যোগ</button></div>`;
     if (tArr.length === 0) tHtml = `<div class="card" style="text-align:center;border:1px dashed var(--border)"><p style="font-size:32px">🚪</p><p class="text-light">রুম খালি আছে</p><button class="btn btn-primary mt-16" onclick="showAssignTenantModal('${rId}', false)">+ নতুন ভাড়াটে</button></div>`;
     if (tArr.length > 0) { tHtml += `<div class="grid grid-2">${tArr.map(t => getCard(t, false)).join('')}</div>`; tHtml += `<div class="flex gap-8 mt-16"><button class="btn btn-danger btn-sm" onclick="showVacateModal('${rId}')">📤 রুম ছাড়ুন</button></div>`; }
