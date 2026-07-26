@@ -9,8 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<!-- SQLite পড়ার জন্য sql.js লাইব্রেরি -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 <style>
 :root{--primary:#2563eb;--primary-dark:#1e40af;--bg:#f9fafb;--card:#fff;--text:#1e293b;--text-light:#64748b;--border:#cbd5e1;--danger:#e11d48;--success:#16a34a;--warning:#d97706;--radius:14px}
 @media(min-width:768px){:root{--bg:#d1d5db;--border:#94a3b8}}
@@ -126,9 +124,7 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--tex
                     <div class="search-box" id="searchBox" style="display:flex"><span>🔍</span><input type="text" id="globalSearch" placeholder="নাম বা রুম নম্বর দিয়ে খুঁজুন" oninput="handleGlobalSearch(this.value)"><div class="search-dropdown" id="searchDropdown"></div></div>
                     <div class="flex gap-8" style="justify-content:center; flex-wrap:wrap">
                         <button class="btn btn-primary" id="actionBtn" style="display:none;"></button>
-                        <!-- পুরাতন ডাটাবেজ ফাইল আপলোড বাটন -->
-                        <input type="file" id="dbFileInput" accept=".db, .sqlite, .sqlite3" style="display:none" onchange="handleDbUpload(event)">
-                        <button class="btn btn-warning" onclick="document.getElementById('dbFileInput').click()" title="prisma ফোল্ডার থেকে dev.db ফাইল আপলোড করুন">📁 পুরাতন ডাটাবেজ ফাইল আপলোড করুন</button>
+                        <button class="btn btn-warning" id="syncBtn" onclick="fetchFromTurso()" title="Turso থেকে ডাটা আনুন">🚀 Turso থেকে ডাটা আনুন</button>
                     </div>
                 </div>
             </div>
@@ -144,11 +140,14 @@ body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--tex
 
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
-let db = null, useFirebase = false, sqlDb = null;
+let db = null, useFirebase = false;
 try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE).catch(err => console.warn("Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
-// SQLite WASM লোড করা
-initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` }).catch(err => console.error("SQL.js load error:", err));
+// ==========================================
+// আপনার Turso এর তথ্য এখানে বসানো আছে
+// ==========================================
+const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.turso.io";
+const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODUwNTk4NzgsImlkIjoiMDE5ZDk1ZjctODcwMS03YTg1LWE5ZDMtMTZkMTQ5YTg2ZTM0Iiwia2lkIjoiSERvdFg3bzEwclVaY1lJdk1QMm9kUGxES051QjF0VmNDTTd1b3pDMUVjMCIsInJpZCI6IjYxNzk0NDk2LWFiNzctNGRjYy1hZGQ2LTQ4ODkwZjU5OGZhNiJ9.3YG3zvpa51WIQrm_VdV1xd02miBd7uoZ1x0Nfax7SIlTUnJsaAG-bmftZ0yy72Fsfedf-SF9uAWCuA1quzvRDw";
 
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
 let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null };
@@ -268,72 +267,81 @@ const Store = {
 };
 
 // ==========================================
-// SQLite ফাইল আপলোড করে ফায়ারবেজে সেভ করার ফাংশন
+// Turso থেকে ডাটা আনার ফাংশন
 // ==========================================
-function handleDbUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    showToast("ফাইল পড়া হচ্ছে...", "info");
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const Uints = new Uint8Array(e.target.result);
-            sqlDb = new SQL.Database(Uints);
-            processSqlData();
-        } catch(err) {
-            showToast("ডাটাবেজ ফাইল পড়তে সমস্যা হয়েছে।", "error");
-        }
-    };
-    reader.readAsArrayBuffer(file);
-    event.target.value = '';
-}
-
-function getTableData(tableName) {
-    if (!sqlDb) return [];
+async function fetchFromTurso() {
+    const syncBtn = document.getElementById('syncBtn');
+    syncBtn.disabled = true;
+    syncBtn.innerHTML = `<span class="spinner-small"></span> ডাটা আসছে...`;
+    
     try {
-        const res = sqlDb.exec(`SELECT * FROM ${tableName}`);
-        if (res.length === 0) return [];
-        const columns = res[0].columns;
-        return res[0].values.map(row => {
-            let obj = {};
-            columns.forEach((col, index) => obj[col] = row[index]);
-            return obj;
-        });
-    } catch (e) { return []; }
-}
+        const executeTursoQuery = async (sql) => {
+            const url = `${TURSO_URL}/v2/pipeline`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${TURSO_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    requests: [
+                        { type: "execute", stmt: { sql: sql } },
+                        { type: "close" }
+                    ]
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || "Turso API Error");
+            
+            if(!data.results || !data.results[0] || !data.results[0].response || !data.results[0].response.result) return [];
+            
+            const result = data.results[0].response.result;
+            const cols = result.cols.map(c => c.name);
+            return (result.rows || []).map(row => {
+                let obj = {};
+                row.forEach((val, index) => {
+                    let cellValue = (typeof val === 'object' && val !== null && 'value' in val) ? val.value : val;
+                    obj[cols[index]] = cellValue;
+                });
+                return obj;
+            });
+        };
 
-async function processSqlData() {
-    if (!sqlDb) return;
-    showToast("ডাটা প্রসেস করা হচ্ছে, অপেক্ষা করুন...", "info");
+        const buildingsData = await executeTursoQuery('SELECT * FROM "Building"');
+        const floorsData = await executeTursoQuery('SELECT * FROM "Floor"');
+        const roomsData = await executeTursoQuery('SELECT * FROM "Room"');
+        const tenantsData = await executeTursoQuery('SELECT * FROM "Tenant"');
+        const inventoryData = await executeTursoQuery('SELECT * FROM "Inventory"');
+        const templatesData = await executeTursoQuery('SELECT * FROM "BelongingTemplate"');
+        const reportsData = await executeTursoQuery('SELECT * FROM "TroubleReport"');
 
-    try {
-        const bData = getTableData("Building");
-        const fData = getTableData("Floor");
-        const rData = getTableData("Room");
-        const tData = getTableData("Tenant");
-        const iData = getTableData("Inventory");
-        const btData = getTableData("BelongingTemplate");
-        const repData = getTableData("TroubleReport");
+        let importedCount = 0;
+        showToast(`ডাটা পাওয়া গেছে। ফায়ারবেজে সেভ হচ্ছে...`, "info");
 
-        let count = 0;
-
-        for (const b of bData) {
-            await db.collection('buildings').doc(b.id).set({ name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-            const tpls = btData.filter(t => t.buildingId === b.id);
+        for (const b of buildingsData) {
+            await db.collection('buildings').doc(b.id).set({
+                name: b.name,
+                floorCount: b.totalFloors || 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            const tpls = templatesData.filter(t => t.buildingId === b.id);
             if (tpls.length > 0) {
-                await db.collection('materialTemplates').doc(b.id).set({ items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity })) });
+                await db.collection('materialTemplates').doc(b.id).set({
+                    items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity }))
+                });
             }
-            count++;
+            importedCount++;
         }
 
-        for (const r of rData) {
-            const floor = fData.find(f => f.id === r.floorId);
+        for (const r of roomsData) {
+            const floor = floorsData.find(f => f.id === r.floorId);
             const buildingId = floor ? floor.buildingId : null;
             if (!buildingId) continue;
 
-            const activeTenants = tData.filter(t => t.roomId === r.id && t.isActive);
-            const prevTenants = tData.filter(t => t.roomId === r.id && !t.isActive);
-            const inventories = iData.filter(i => i.roomId === r.id);
+            const activeTenants = tenantsData.filter(t => t.roomId === r.id && t.isActive);
+            const prevTenants = tenantsData.filter(t => t.roomId === r.id && !t.isActive);
+            const inventories = inventoryData.filter(i => i.roomId === r.id);
 
             const mappedRoom = {
                 buildingId: buildingId,
@@ -347,13 +355,13 @@ async function processSqlData() {
             };
 
             await db.collection('rooms').doc(r.id).set(mappedRoom, { merge: true });
-            count++;
+            importedCount++;
         }
 
-        for (const rep of repData) {
-            const room = rData.find(rm => rm.id === rep.roomId);
-            const floor = room ? fData.find(f => f.id === room.floorId) : null;
-            const building = floor ? bData.find(b => b.id === floor.buildingId) : null;
+        for (const rep of reportsData) {
+            const room = roomsData.find(rm => rm.id === rep.roomId);
+            const floor = room ? floorsData.find(f => f.id === room.floorId) : null;
+            const building = floor ? buildingsData.find(b => b.id === floor.buildingId) : null;
 
             await db.collection('reports').doc(rep.id).set({
                 building: building ? building.name : 'Unknown',
@@ -364,17 +372,20 @@ async function processSqlData() {
                 status: rep.status === "সমাধান হয়েছে" ? "resolved" : "pending",
                 createdAt: { seconds: rep.reportedAt ? new Date(rep.reportedAt).getTime() / 1000 : Date.now() / 1000 }
             }, { merge: true });
-            count++;
+            importedCount++;
         }
 
         state.buildings = await Store.getBuildings();
         state.rooms = await Store.getRooms();
         renderPage();
-        showToast(`🎉 সফল! ${count} টি ডাটা ফায়ারবেজে চলে এসেছে।`, "success");
-
+        showToast(`🎉 সফল! ${importedCount} টি ডাটা Turso থেকে ফায়ারবেজে চলে এসেছে।`, "success");
+        
     } catch (error) {
-        console.error("DB Upload Error:", error);
-        showToast("ডাটা সেভ করতে সমস্যা হয়েছে।", "error");
+        console.error("Turso Fetch Error:", error);
+        showToast("Turso থেকে ডাটা আনতে সমস্যা হয়েছে। URL এবং Token ঠিক আছে কিনা দেখুন।", "error");
+    } finally {
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = "🚀 Turso থেকে ডাটা আনুন";
     }
 }
 
@@ -525,7 +536,7 @@ function loadDlFloors() { const bId = document.getElementById('dlBuilding').valu
 function loadDlRooms() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rS = document.getElementById('dlRoom'); rS.innerHTML = '-সিলেক্ট করুন-<option value="all">সকল রুম</option>'; if (fId === 'all' || fId === '') { rS.disabled = true; rS.value = ''; } else { const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; } checkDlFields(); }
 function checkDlFields() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; let isValid = bId !== '' && t !== ''; const fEl = document.getElementById('dlFloor'); const rEl = document.getElementById('dlRoom'); if (fEl && !fEl.disabled && fId === '') isValid = false; if (rEl && !rEl.disabled && rId === '') isValid = false; const dlExcel = document.getElementById('dlExcel'); const dlPdf = document.getElementById('dlPdf'); if (dlExcel && dlPdf) { if(isValid) { dlExcel.disabled = false; dlPdf.disabled = false; } else { dlExcel.disabled = true; dlPdf.disabled = true; } } }
 async function downloadReport(fmt) { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; if (!t) { showToast('ধরন সিলেক্ট করুন', 'error'); return; } let rs = state.rooms; if (bId !== 'all') rs = rs.filter(r => r.buildingId === bId); if (fId !== 'all') rs = rs.filter(r => r.floor === fId); if (rId !== 'all') rs = rs.filter(r => r.id === rId); const bName = bId === 'all' ? 'সকল' : (state.buildings.find(b => b.id === bId)?.name || ''); const fName = fId === 'all' ? 'সকল' : fId; const rName = rId === 'all' ? 'সকল' : (state.rooms.find(r => r.id === rId)?.number || ''); const dStr = new Date().toISOString().split('T')[0]; let data = [], headers = [], title = ''; if (t === 'reports') { title='ট্রাবল রিপোর্ট'; headers=['#','বিল্ডিং','তলা','রুম','সমস্যা','রিপোর্টকারী','তারিখ']; const reps = state.reports; reps.forEach((r,i)=>{ if((bId === 'all' || r.building === bName) && (fId === 'all' || r.floor === fName) && (rId === 'all' || r.room === rName)) { data.push([i+1, r.building, r.floor, r.room, r.description, r.reporter, new Date(r.createdAt?.seconds||r.createdAt).toLocaleDateString()]); } }); } else if (t === 'payments') { title='পেমেন্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','ব্যক্তি','টাকা','মাস','বছর','তারিখ']; const pays = await Store.getPayments(); pays.forEach((p,i)=>{ if((bId === 'all' || p.building === bName) && (fId === 'all' || p.floor === fName) && (rId === 'all' || p.room === rName)) { data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]]); } }); } else if (t === 'items') { title='মালামাল তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','পরিমাণ','অবস্থা','রিপেয়ার তারিখ','রিপ্লেস তারিখ','মন্তব্য','ভাড়াটে']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.items || []).forEach(item => { let note = '-'; if (item.history && item.history.length > 0) { note = item.history[item.history.length - 1].note || '-'; } data.push([data.length+1, bN, room.floor, room.number, item.name, item.quantity || 1, item.condition, item.lastRepairDate ? formatDate(item.lastRepairDate) : '-', item.lastReplaceDate ? formatDate(item.lastReplaceDate) : '-', note, room.tenants?.map(t=>t.name).join(', ') || 'খালি']); }); }); } else if (t === 'tenants') { title='ভাড়াটে তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','পদবী','ফোন','প্রকার','বরাদ্কের তারিখ']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; let tArr = room.tenants || (room.tenant ? [room.tenant] : []); tArr.forEach(t => data.push([data.length+1, bN, room.floor, room.number, t.name, t.designation || '-', t.phone || '-', t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', t.startDate])); (room.previousTenants || []).forEach(pt => data.push([data.length+1, bN, room.floor, room.number, pt.name + ' (পূর্বের)', pt.designation || '-', pt.phone || '-', pt.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', pt.startDate])); }); } else if (t === 'guests') { title='গেস্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','মোবাইল','প্রবেশ','চেক-আউট','স্ট্যাটাস']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.guests || []).forEach(g => data.push([data.length+1, bN, room.floor, room.number, g.name, g.mobile || '-', g.startDate, g.endDate || 'উপস্থিত', g.isPaid ? 'Paid' : 'Non-Paid'])); }); } else if (t === 'rooms') { title='রুম তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','ভাড়াটে','প্রকার','তারিখ']; rs.forEach((room, i) => data.push([i+1, state.buildings.find(b => b.id === room.buildingId)?.name || '', room.floor, room.number, (room.items || []).length, room.tenants?.map(t=>t.name).join(', ') || 'খালি', room.tenants?.some(t=>t.type==='family') ? 'পরিবার' : 'ব্যাচেলর', room.tenants?.[0]?.startDate || '-'])); } if (data.length === 0) { showToast('কোন ডেটা নেই', 'error'); return; } if (fmt === 'xlsx') { const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, title); XLSX.writeFile(wb, `${title}_${bName}_${dStr}.xlsx`); } else { const win = window.open('', '_blank'); win.document.write(`<html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; } h2 { text-align: center; margin-bottom: 5px; font-weight: 700; } p { text-align: center; margin-top: 0; margin-bottom: 20px; color: #555; font-weight: 600; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 11px; } th { background-color: #2563eb; color: #fff; font-weight: 700; } @media print { body { padding: 0; } }</style></head><body><h2>${title}</h2><p>বিল্ডিং: ${bName} | তলা: ${fName} | রুম: ${rName} | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`); win.document.close(); win.focus(); setTimeout(() => { win.print(); }, 500); } showToast('ডাউনলোড হচ্ছে...'); }
-function handleGlobalSearch(v) { const d = document.getElementById('searchDropdown'); if (!v.trim()) { d.style.display = 'none'; return; } const res = state.rooms.filter(r => roomMatchesSearch(v, r.number) || r.tenants?.some(t => t.name.toLowerCase().includes(v.toLowerCase())) || r.tenant?.name.toLowerCase().includes(v.toLowerCase())); d.innerHTML = res.length === 0 ? '<div class="search-item text-light">কোন ফলাফল নেই</div>' : res.map(r => { const bN = state.buildings.find(b => b.id === r.buildingId)?.name || ''; const tN = r.tenants?.map(t=>t.name).join(', ') || r.tenant?.name || 'খালি'; return `<div class="search-item" onclick="showRoomDetail('${r.id}'); document.getElementById('searchDropdown').style.display='none';"><strong>${escapeHtml(tN)}</strong><br><span class="text-sm">${escapeHtml(bN)} - রুম: ${escapeHtml(r.number)}</span></div>`; }).join(''); d.style.display = 'block'; }
+function handleGlobalSearch(v) { const d = document.getElementById('searchDropdown'); if (!v.trim()) { d.style.display = 'none'; return; } const res = state.rooms.filter(r => roomMatchesSearch(v, r.number) || r.tenants?.some(t => t.name.toLowerCase().includes(v.toLowerCase())) || r.tenant?.name.toLowerCase().includes(v.toLowerCase())); d.innerHTML = res.length === 0 ? '-কোন ফলাফল নেই-' : res.map(r => { const bN = state.buildings.find(b => b.id === r.buildingId)?.name || ''; const tN = r.tenants?.map(t=>t.name).join(', ') || r.tenant?.name || 'খালি'; return `<div class="search-item" onclick="showRoomDetail('${r.id}'); document.getElementById('searchDropdown').style.display='none';"><strong>${escapeHtml(tN)}</strong><br><span class="text-sm">${escapeHtml(bN)} - রুম: ${escapeHtml(r.number)}</span></div>`; }).join(''); d.style.display = 'block'; }
 document.addEventListener('click', (e) => { if (!e.target.closest('.search-box')) document.getElementById('searchDropdown').style.display = 'none'; });
 document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target.id === 'modalOverlay') forceCloseModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
