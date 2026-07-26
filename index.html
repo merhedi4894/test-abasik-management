@@ -299,7 +299,7 @@ const Store = {
 };
 
 // ==========================================
-// Turso থেকে ডাটা আনার ফাংশন (শুধু ম্যানুয়াল ক্লিকে সেভ হবে, ডুপ্লিকেট হবে না)
+// Turso থেকে ডাটা আনার ফাংশন (সব ডাটা স্মার্টভাবে সেভ হবে)
 // ==========================================
 async function fetchFromTurso() {
     document.getElementById('sidebar').classList.remove('open');
@@ -367,7 +367,13 @@ async function fetchFromTurso() {
         
         const commitBatch = async () => {
             if (opsCount > 0) {
-                await batch.commit();
+                try {
+                    await batch.commit(); // ফায়ারবেজে পার্মানেন্ট সেভ হওয়ার জায়গা
+                    console.log("Batch committed successfully.");
+                } catch (batchErr) {
+                    console.error("Firebase Batch Error:", batchErr);
+                    throw new Error("Firebase-এ সেভ করতে সমস্যা! Rules ঠিক আছে কিনা চেক করুন।");
+                }
                 batch = db.batch();
                 opsCount = 0;
             }
@@ -472,10 +478,12 @@ async function fetchFromTurso() {
     } catch (error) {
         console.error("Fetch/Sync Error:", error);
         let errMsg = "ডাটা আনতে বা সেভ করতে সমস্যা হয়েছে।";
-        if (error.code === 'permission-denied' || error.message.includes('PERMISSION_DENIED')) {
+        if (error.code === 'permission-denied' || error.message.includes('Permission denied') || error.message.includes('PERMISSION_DENIED')) {
             errMsg = "Firebase Security Rules এ ডাটা সেভ করা বন্ধ আছে! Firebase Console এ গিয়ে Rules ঠিক করুন।";
         } else if (error.message.includes('Failed to fetch')) {
             errMsg = "ইন্টারনেট বা Turso সার্ভারে সমস্যার কারণে ডাটা আসছে না।";
+        } else if (error.message) {
+            errMsg = error.message;
         }
         showToast(errMsg, "error");
         syncModal.style.display = 'none';
@@ -640,44 +648,31 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
 
-// স্মার্ট লোডার: ফায়ারবেজ চেক করার জন্য ১.৫ সেকেন্ড অপেক্ষা করবে, তারপর লগইন পেজ দেখাবে
+// লগইন করলে শুধু Firebase থেকে ডাটা দেখাবে (কোনো লোডিং ছাড়া)
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
+    
+    // সাথে সাথেই লোডার হাইড করে লগইন পেজ দেখানো হচ্ছে
+    document.getElementById('authContainer').style.display = 'flex';
+    document.getElementById('appContainer').style.display = 'none';
+    showLoginView();
+    hideLoader();
 
     if (typeof firebase === 'undefined' || !firebase.auth) {
-        hideLoader();
-        document.getElementById('authContainer').style.display = 'flex';
-        showLoginView();
         showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error");
         return;
     }
-
-    let authResolved = false;
-
-    // ১. ফায়ারবেজ চেক করার জন্য ১.৫ সেকেন্ড অপেক্ষা করা হলো
-    setTimeout(() => {
-        if (!authResolved) {
-            hideLoader();
-            document.getElementById('authContainer').style.display = 'flex';
-            document.getElementById('appContainer').style.display = 'none';
-            showLoginView();
-        }
-    }, 1500);
-
+    
     firebase.auth().onAuthStateChanged(async (user) => {
-        authResolved = true;
-        hideLoader();
-
         if (user) {
             currentUser = { id: user.uid, email: user.email };
             try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
-            
             document.getElementById('authContainer').style.display = 'none'; 
             document.getElementById('appContainer').style.display = 'block'; 
             resetIdleTimer();
             
             try {
-                // সরাসরি ফায়ারবেজ থেকে ডাটা লোড হবে (কোনো লোডিং স্ক্রিন ছাড়া)
+                // শুধুমাত্র Firebase থেকে ডাটা লোড করা হচ্ছে (সরাসরি স্ক্রিনে দেখাবে, কোনো লোডিং নেই)
                 state.buildings = await Store.getBuildings();
                 state.rooms = await Store.getRooms();
                 renderPage(); 
