@@ -159,7 +159,6 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 <div id="toastContainer"></div>
 
 <script>
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E",
   authDomain: "test-abasik-management.firebaseapp.com",
@@ -301,7 +300,7 @@ const Store = {
 };
 
 // ==========================================
-// Turso থেকে ডাটা আনার ফাংশন (শুধু নতুন ডাটা সেভ হবে, ডুপ্লিকেট হবে না)
+// Turso থেকে ডাটা আনার ফাংশন (অটোমেটিক এবং ম্যানুয়াল)
 // ==========================================
 async function fetchFromTurso() {
     document.getElementById('sidebar').classList.remove('open');
@@ -341,7 +340,6 @@ async function fetchFromTurso() {
         syncProgressBar.style.width = '10%';
         syncProgressText.innerText = '10% - ডাটা ফেচ করা হচ্ছে...';
         
-        // Promise.all ব্যবহার করে একসাথে সব ডাটা আনা হচ্ছে (এতে সময় অনেক কম লাগে)
         const [buildingsData, roomsData, tenantsData, floorsData, inventoryData, templatesData, reportsData] = await Promise.all([
             executeTursoQuery('SELECT * FROM "Building"'),
             executeTursoQuery('SELECT * FROM "Room"'),
@@ -355,7 +353,6 @@ async function fetchFromTurso() {
         syncProgressBar.style.width = '30%';
         syncProgressText.innerText = '30% - ফায়ারবেজ চেক করা হচ্ছে...';
 
-        // ফায়ারবেজে ইতিমধ্যে কী কী আইডি আছে তা বের করা হচ্ছে
         const fbBuildings = await Store.getBuildings();
         const fbRooms = await Store.getRooms();
         const fbReports = await Store.getReports();
@@ -377,7 +374,6 @@ async function fetchFromTurso() {
             }
         };
 
-        // ১. বিল্ডিং ও টেম্পলেট সেভ (শুধু নতুন গুলো)
         for (const b of buildingsData) {
             if (!existingBuildingIds.has(b.id)) {
                 batch.set(db.collection('buildings').doc(b.id), { name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
@@ -393,7 +389,6 @@ async function fetchFromTurso() {
         syncProgressBar.style.width = '40%';
         syncProgressText.innerText = '40% - রুম ও মালামাল সেভ হচ্ছে...';
 
-        // ২. রুম ও মালামাল সেভ (শুধু নতুন গুলো)
         for (const r of roomsData) {
             if (!existingRoomIds.has(r.id)) {
                 const floor = floorsData.find(f => f.id === r.floorId);
@@ -433,7 +428,6 @@ async function fetchFromTurso() {
         syncProgressBar.style.width = '60%';
         syncProgressText.innerText = '60% - রিপোর্ট সেভ হচ্ছে...';
 
-        // ৩. রিপোর্ট সেভ (শুধু নতুন গুলো)
         for (const rep of reportsData) {
             if (!existingReportIds.has(rep.id)) {
                 const room = roomsData.find(rm => rm.id === rep.roomId);
@@ -455,7 +449,7 @@ async function fetchFromTurso() {
             }
         }
 
-        await commitBatch(); 
+        if (opsCount > 0) await commitBatch(); 
         
         syncProgressBar.style.width = '90%';
         syncProgressText.innerText = '90% - ফায়ারবেজ আপডেট হচ্ছে...';
@@ -477,8 +471,12 @@ async function fetchFromTurso() {
         }, 500);
         
     } catch (error) {
-        console.error("Turso Fetch Error:", error);
-        showToast("ডাটা আনতে সমস্যা হয়েছে।", "error");
+        console.error("Fetch/Sync Error:", error);
+        let errMsg = "ডাটা আনতে বা সেভ করতে সমস্যা হয়েছে।";
+        if (error.code === 'permission-denied') {
+            errMsg = "Firebase Security Rules এ ডাটা সেভ করা বন্ধ আছে! Firebase Console এ গিয়ে Rules ঠিক করুন।";
+        }
+        showToast(errMsg, "error");
         syncModal.style.display = 'none';
     }
 }
@@ -519,7 +517,7 @@ function renderPage() {
 }
 
 function renderDashboard(c) {
-    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p></div></div>`; return; }
+    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><button class="btn btn-primary mt-16" onclick="fetchFromTurso()">Turso থেকে ডাটা আনুন</button></div></div>`; return; }
     let overlayHtml = state.expandedBuilding ? `<div class="expanded-overlay" onclick="toggleExpand('${state.expandedBuilding}')"></div>` : '';
     c.innerHTML = overlayHtml + `<div class="building-grid">${state.buildings.map(b => { const bR = state.rooms.filter(r => r.buildingId === b.id); const occ = bR.filter(r => (r.tenants && r.tenants.length > 0) || r.tenant).length; const isExp = state.expandedBuilding === b.id; let body = ''; if (isExp) { for (let f = 1; f <= (b.floorCount || 1); f++) { const fR = bR.filter(r => r.floor == String(f)); body += `<div style="margin-bottom:16px"><div class="flex-between mb-16"><strong>তলা: ${f}</strong><button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); showAddRoomModal('${b.id}', '${f}')">➕ রুম</button></div><div class="room-grid">${fR.length > 0 ? fR.map(r => { const o = !!(r.tenants && r.tenants.length > 0) || !!r.tenant; const isF = r.tenants?.some(t => t.type === 'family') || r.tenant?.type === 'family'; return `<div class="room-box-mini ${o ? 'occupied' : ''}" onclick="event.stopPropagation(); showRoomDetail('${r.id}')"><div class="r-num">${escapeHtml(r.number)}</div><div class="r-icon">${isF ? '👪' : (o ? '👤' : '')}</div></div>`; }).join('') : `<p class="text-sm text-light" style="grid-column: 1 / -1;">কোন রুম নেই।</p>`}</div></div>`; } } return `<div class="building-card ${isExp ? 'expanded' : ''}"><div class="building-card-header" onclick="toggleExpand('${b.id}')"><div class="b-actions" onclick="event.stopPropagation()"><button class="b-icon" onclick="editBuilding('${b.id}')">${editIcon}</button><button class="b-icon danger" onclick="deleteBuilding('${b.id}')">${delIcon}</button></div><div><h3>🏢 ${escapeHtml(b.name)}</h3><div class="b-stats">তলা: ${b.floorCount || 0} | রুম: ${bR.length} | ভাড়াটে: ${occ}</div></div></div><div class="building-card-body" onclick="if(event.target === this) toggleExpand('${b.id}')">${body}</div></div>`; }).join('')}</div>`;
 }
@@ -636,6 +634,8 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
+
+// লগইন করলে অটোমেটিক ডাটা চেক করা হবে। যদি ফায়ারবেজ খালি থাকে তবে Turso থেকে নিয়ে আসবে।
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
     if (typeof firebase === 'undefined' || !firebase.auth) { hideLoader(); document.getElementById('authContainer').style.display = 'flex'; showLoginView(); showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error"); return; }
@@ -646,13 +646,24 @@ function initApp() {
                 try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
                 document.getElementById('authContainer').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; resetIdleTimer();
                 
+                // ফায়ারবেজ থেকে ডাটা লোড করা হচ্ছে
                 state.buildings = await Store.getBuildings();
                 state.rooms = await Store.getRooms();
-                renderPage();
+                
+                // যদি ফায়ারবেজে কোনো ডাটা না থাকে, তবে অটোমেটিক Turso থেকে ডাটা এনে সেভ করবে
+                if (state.buildings.length === 0) {
+                    console.log("Firebase empty, auto-fetching from Turso...");
+                    await fetchFromTurso();
+                } else {
+                    renderPage();
+                }
             } else {
                 currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView();
             }
-        } catch (error) { console.error("Initialization error:", error); document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); } 
+        } catch (error) { 
+            console.error("Initialization error:", error); 
+            document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); 
+        } 
         finally { hideLoader(); }
     });
 }
