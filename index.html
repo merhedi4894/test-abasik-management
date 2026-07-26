@@ -299,6 +299,26 @@ const Store = {
 };
 
 // ==========================================
+// ফায়ারবেজে undefined ডাটা সেভ হওয়া রোধ করার ফাংশন
+// ==========================================
+function cleanData(obj) {
+    if (obj === null || obj === undefined) return null;
+    if (Array.isArray(obj)) {
+        return obj.map(item => cleanData(item));
+    }
+    if (typeof obj === 'object') {
+        const cleaned = {};
+        for (const key in obj) {
+            if (obj[key] !== undefined) {
+                cleaned[key] = cleanData(obj[key]);
+            }
+        }
+        return cleaned;
+    }
+    return obj;
+}
+
+// ==========================================
 // Turso থেকে ডাটা আনার ফাংশন (সব ডাটা ফায়ারবেজে পার্মানেন্ট সেভ হবে)
 // ==========================================
 async function fetchFromTurso() {
@@ -382,10 +402,12 @@ async function fetchFromTurso() {
         for (const b of buildingsData) {
             if (!b.id) continue;
             if (!existingBuildingIds.has(b.id)) {
-                batch.set(db.collection('buildings').doc(b.id), { name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+                const dataToSave = cleanData({ name: b.name, floorCount: b.totalFloors || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                batch.set(db.collection('buildings').doc(b.id), dataToSave, { merge: true });
                 const tpls = templatesData.filter(t => t.buildingId === b.id);
                 if (tpls.length > 0) {
-                    batch.set(db.collection('materialTemplates').doc(b.id), { items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity })) });
+                    const tplData = cleanData({ items: tpls.map(t => ({ id: t.id, name: t.itemName, quantity: t.quantity })) });
+                    batch.set(db.collection('materialTemplates').doc(b.id), tplData);
                 }
                 newCount++;
                 opsCount++;
@@ -426,7 +448,8 @@ async function fetchFromTurso() {
                     guests: [], occupants: []
                 };
                 
-                batch.set(db.collection('rooms').doc(r.id), mappedRoom, { merge: true });
+                const cleanRoom = cleanData(mappedRoom);
+                batch.set(db.collection('rooms').doc(r.id), cleanRoom, { merge: true });
                 newCount++;
                 opsCount++;
                 if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
@@ -442,7 +465,7 @@ async function fetchFromTurso() {
                 const floor = room ? floorsData.find(f => f.id === room.floorId) : null;
                 const building = floor ? buildingsData.find(b => b.id === floor.buildingId) : null;
 
-                batch.set(db.collection('reports').doc(rep.id), {
+                const reportData = {
                     building: building ? building.name : 'Unknown',
                     floor: floor ? String(floor.floorNumber) : '-',
                     room: room ? room.roomNumber : '-',
@@ -450,7 +473,10 @@ async function fetchFromTurso() {
                     reporter: rep.reportedBy,
                     status: rep.status === "সমাধান হয়েছে" ? "resolved" : "pending",
                     createdAt: { seconds: rep.reportedAt ? new Date(rep.reportedAt).getTime() / 1000 : Date.now() / 1000 }
-                }, { merge: true });
+                };
+                
+                const cleanRep = cleanData(reportData);
+                batch.set(db.collection('reports').doc(rep.id), cleanRep, { merge: true });
                 newCount++;
                 opsCount++;
                 if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
