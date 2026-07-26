@@ -369,7 +369,8 @@ async function fetchFromTurso() {
         
         const commitBatch = async () => {
             if (opsCount > 0) {
-                await batch.commit();
+                console.log("Committing batch to Firebase. Ops:", opsCount);
+                await batch.commit(); // এখানেই ফায়ারবেজে পার্মানেন্ট সেভ হয়। যদি Rules বন্ধ থাকে, এখান থেকে Error থ্রো করবে।
                 batch = db.batch();
                 opsCount = 0;
             }
@@ -450,7 +451,8 @@ async function fetchFromTurso() {
             }
         }
 
-        if (opsCount > 0) await commitBatch(); 
+        if (opsCount > 0) await commitBatch();
+        console.log("Firebase save completed successfully.");
         
         syncProgressBar.style.width = '90%';
         syncProgressText.innerText = '90% - ফায়ারবেজ আপডেট হচ্ছে...';
