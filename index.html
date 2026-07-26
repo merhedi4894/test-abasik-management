@@ -368,7 +368,7 @@ async function fetchFromTurso() {
         
         const commitBatch = async () => {
             if (opsCount > 0) {
-                await batch.commit(); // যদি Rules বন্ধ থাকে, এখানেই Error থ্রো করবে এবং Catch এ চলে যাবে
+                await batch.commit();
                 batch = db.batch();
                 opsCount = 0;
             }
@@ -449,12 +449,11 @@ async function fetchFromTurso() {
             }
         }
 
-        if (opsCount > 0) await commitBatch(); // শেষ ব্যাচ সেভ হওয়া
+        if (opsCount > 0) await commitBatch(); 
         
         syncProgressBar.style.width = '90%';
         syncProgressText.innerText = '90% - ফায়ারবেজ আপডেট হচ্ছে...';
 
-        // সেভ সফল হলে স্টেট আপডেট করে স্ক্রিনে দেখানো হবে
         state.buildings = await Store.getBuildings();
         state.rooms = await Store.getRooms();
         renderPage();
@@ -641,26 +640,29 @@ function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
     if (typeof firebase === 'undefined' || !firebase.auth) { hideLoader(); document.getElementById('authContainer').style.display = 'flex'; showLoginView(); showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error"); return; }
     firebase.auth().onAuthStateChanged(async (user) => {
+        hideLoader(); // লগইন স্টেট জানা মাত্রই লোডার হাইড করা হলো যেন স্ক্রিন ফাঁকা না থাকে
         try {
             if (user) {
                 currentUser = { id: user.uid, email: user.email };
                 try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
                 document.getElementById('authContainer').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; resetIdleTimer();
                 
-                // ১. সাথে সাথে স্ক্রিন রেন্ডার করা হচ্ছে যাতে স্ক্রিন ফাঁকা না থাকে
-                renderPage();
+                // ডাটা লোড হওয়ার আগে একটি লোডিং মেসেজ দেখানো হলো
+                document.getElementById('pageContent').innerHTML = `<div class="card"><div class="empty-state"><div class="spinner"><div></div><div></div><div></div><div></div></div><p style="margin-top:16px;">ডাটা লোড হচ্ছে...</p></div></div>`;
                 
-                // ২. ফায়ারবেজ থেকে ডাটা লোড করার চেষ্টা করা হচ্ছে
                 try {
                     state.buildings = await Store.getBuildings();
                     state.rooms = await Store.getRooms();
-                    renderPage(); // ডাটা পেলে আবার রেন্ডার করা হবে
                 } catch (e) {
                     console.error("Firestore read error:", e);
                     showToast("Firebase থেকে ডাটা পড়তে সমস্যা! Security Rules চেক করুন।", "error");
+                    document.getElementById('pageContent').innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">⚠️</p><p>ডাটা লোডে সমস্যা!</p><p class="text-sm mt-8">Firebase Rules ঠিক আছে কিনা চেক করুন।</p></div></div>`;
+                    return;
                 }
                 
-                // ৩. যদি ফায়ারবেজে কোনো ডাটা না থাকে, তবে অটোমেটিক Turso থেকে ডাটা এনে সেভ করবে
+                renderPage(); // ফায়ারবেজের ডাটা স্ক্রিনে দেখানো হলো
+
+                // যদি ফায়ারবেজে কোনো ডাটা না থাকে, তবে অটোমেটিক Turso থেকে ডাটা এনে সেভ করবে
                 if (state.buildings.length === 0) {
                     console.log("Firebase empty, auto-fetching from Turso...");
                     await fetchFromTurso();
@@ -671,8 +673,7 @@ function initApp() {
         } catch (error) { 
             console.error("Initialization error:", error); 
             document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); 
-        } 
-        finally { hideLoader(); }
+        }
     });
 }
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
