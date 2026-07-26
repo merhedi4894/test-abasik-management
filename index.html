@@ -303,19 +303,15 @@ const Store = {
 // ==========================================
 function cleanData(obj) {
     if (obj === null || obj === undefined) return null;
-    if (Array.isArray(obj)) {
-        return obj.map(item => cleanData(item));
-    }
-    if (typeof obj === 'object' && !(obj instanceof Date) && typeof obj.seconds !== 'number') {
-        const cleaned = {};
-        for (const key in obj) {
-            if (obj[key] !== undefined) {
-                cleaned[key] = cleanData(obj[key]);
-            }
+    if (typeof obj !== 'object' || obj instanceof Date || (obj.seconds !== undefined && obj.nanoseconds !== undefined) || (obj._methodName !== undefined)) return obj;
+    if (Array.isArray(obj)) return obj.map(cleanData);
+    const cleaned = {};
+    for (const key in obj) {
+        if (obj[key] !== undefined) {
+            cleaned[key] = cleanData(obj[key]);
         }
-        return cleaned;
     }
-    return obj;
+    return cleaned;
 }
 
 // ==========================================
@@ -679,7 +675,7 @@ async function renderTemplates(c) { if (state.buildings.length === 0) { c.innerH
 function showAddTemplateModal() { openModal('নতুন টেম্পলেট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="tName"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="tQty" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplate()">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveTemplate() { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('tName').value.trim(); const q = parseInt(document.getElementById('tQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } const tpls = await Store.getTemplates(bId); if (!tpls.find(t => t.name === n)) tpls.push({ id: genId('t'), name: n, quantity: q }); await Store.saveTemplates(bId, tpls); showToast('যোগ হয়েছে'); forceCloseModal(); renderPage(); }
 async function editTemplateModal(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = await Store.getTemplates(bId); const t = tpls.find(x => x.id === tId); openModal('টেম্পলেট এডিট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="etName" value="${escapeHtml(t.name)}"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="etQty" value="${t.quantity || 1}" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateEdit('${tId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
-async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } const tpls = await Store.getTemplates(bId); const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'; forceCloseModal(); renderPage(); }
+async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } const tpls = await Store.getTemplates(bId); const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'); forceCloseModal(); renderPage(); }
 async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = await Store.getTemplates(bId); await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
 async function renderPayment(c) { if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } c.innerHTML = `<div class="card"><h3 class="mb-16">💵 পেমেন্ট রেকর্ড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="payBuilding" onchange="loadPayFloors()"><option value="">সিলেক্ট করুন</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা</label><select id="payFloor" onchange="loadPayRooms()" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম নম্বর</label><select id="payRoom" onchange="loadPayPersons()" disabled><option value="">সিলেক্ট করুন</option></select></div><div class="form-group"><label>ব্যক্তি</label><select id="payPerson" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-3"><div class="form-group"><label>জমা টাকার পরিমাণ</label><input type="number" id="payAmount" placeholder="৳"></div><div class="form-group"><label>মাস</label><select id="payMonth">${['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'].map(m=>`<option value="${m}">${m}</option>`).join('')}</select></div><div class="form-group"><label>বছর</label><input type="number" id="payYear" value="${new Date().getFullYear()}"></div></div><button class="btn btn-primary" style="width:100%" onclick="savePayment()">পেমেন্ট সেভ করুন</button></div>`; }
 function loadPayFloors() { const bId = document.getElementById('payBuilding').value; const b = state.buildings.find(x=>x.id===bId); const fS = document.getElementById('payFloor'); fS.innerHTML = '-সিলেক্ট করুন-'; for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; document.getElementById('payRoom').disabled = true; document.getElementById('payPerson').disabled = true; document.getElementById('payRoom').innerHTML = '-সিলেক্ট করুন-'; document.getElementById('payPerson').innerHTML = '-সিলেক্ট করুন-'; }
@@ -713,6 +709,9 @@ function hideLoader() { const loader = document.getElementById('loader'); if (lo
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
 
+    // ফায়ারবেজ চেক না হওয়া পর্যন্ত স্পিনার ঘুরতে থাকবে, কিন্তু ৩ সেকেন্ড পরে ফোর্স হাইড করা হবে যাতে আটকে না থাকে
+    setTimeout(hideLoader, 3000);
+
     if (typeof firebase === 'undefined' || !firebase.auth) {
         hideLoader();
         document.getElementById('authContainer').style.display = 'flex';
@@ -738,7 +737,6 @@ function initApp() {
                 renderPage(); 
             } catch (e) {
                 console.error("Firestore read error:", e);
-                // এরর হলে অ্যাপ ব্লক না করে খালি পেজ দেখাবে এবং মেসেজ দেখাবে
                 state.buildings = [];
                 state.rooms = [];
                 renderPage();
