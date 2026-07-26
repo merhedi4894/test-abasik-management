@@ -39,7 +39,7 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 .menu-toggle{position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;background:#fff;border:1px solid var(--border);font-size:20px;cursor:pointer;padding:8px 12px;border-radius:8px;color:var(--primary)}.desktop-logout{display:none!important;position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:25}
 .search-container{width:100%;max-width:500px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
 .search-box{display:flex;gap:8px;align-items:center;background:var(--card);padding:8px 16px;border-radius:30px;border:1px solid var(--border);width:100%;box-shadow:0 2px 4px rgba(0,0,0,.03);position:relative}.search-box input{border:none;outline:none;font-family:inherit;font-size:14px;width:100%;background:transparent}
-.search-dropdown{position:absolute;top:100%;left:0;right:0;margin-top:8px;background:#f0fdf4;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.15);z-index:50;display:none;max-height:300px;overflow-y:auto;border:1px solid #bbf7d0}.search-item{padding:10px 16px;border-bottom:1px solid #d1fae5;cursor:pointer}.search-item:hover{background:#dcfce7}
+.search-dropdown{position:absolute;top:100%;left:0;right:0;margin-top:8px;background:#ecfdf5;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.15);z-index:50;display:none;max-height:300px;overflow-y:auto;border:1px solid #bbf7d0}.search-item{padding:10px 16px;border-bottom:1px solid #d1fae5;cursor:pointer;color:#14532d}.search-item:hover{background:#dcfce7}
 .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 2px 4px rgba(0,0,0,.03);margin-bottom:16px;border:1px solid #f1f5f9}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
 .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}.btn-danger{background:#fee2e2;color:var(--danger)}.btn-danger:hover{background:var(--danger);color:#fff}.btn-success{background:#dcfce7;color:var(--success)}.btn-success:hover{background:var(--success);color:#fff}.btn-outline{background:var(--bg);border:1px solid var(--border);color:var(--text)}.btn-outline:hover{background:#e2e8f0}.btn-sm{padding:6px 10px;font-size:12px}.btn-warning{background:#fef3c7;color:var(--warning)}.btn-warning:hover{background:var(--warning);color:#fff}
@@ -51,8 +51,14 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 .building-card-body{padding:16px;display:none;overflow:hidden;background:#f8fafc;cursor:pointer}.building-card.expanded .building-card-body{display:block}
 .b-actions{position:absolute;top:8px;left:8px;display:flex;gap:6px;z-index:5}.building-card.expanded .b-actions{right:20px;left:auto;top:20px}.b-icon{width:auto;height:auto;font-size:13px;background:transparent;border:none;cursor:pointer;color:#94a3b8;padding:2px}.b-icon:hover{color:#475569}.b-icon.danger{color:var(--danger)}.b-icon.danger:hover{color:#be123c}.b-icon svg{width:14px;height:14px}
 .expanded-overlay{position:fixed;inset:0;z-index:5;background:transparent}
-.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:6px}.room-box-mini{aspect-ratio:1;background:linear-gradient(145deg,#ffffff,#e2e8f0);box-shadow:3px 3px 6px #cbd5e1,-3px -3px 6px #ffffff;border:1px solid #f1f5f9;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:all 0.2s;padding:2px}.room-box-mini:hover{transform:translateY(-2px);box-shadow:4px 4px 8px #cbd5e1,-4px -4px 8px #ffffff}.room-box-mini.occupied{background:#dcfce7;border:2px solid #86efac;box-shadow:0 0 8px rgba(22,163,74,0.3)}.room-box-mini .r-num{font-weight:700;font-size:12px;color:var(--text);text-align:center}.room-box-mini.occupied .r-num{color:#166534}.room-box-mini .r-icon{font-size:10px}
-.table-wrapper{overflow-x:auto;width:100%;-webkit-overflow-scrolling:touch}table{width:100%;border-collapse:collapse;table-layout:auto}.material-table th,.material-table td{text-align:left;padding:4px 2px;border-bottom:1px solid var(--border);font-size:11px;word-break:break-word;white-space:normal;color:#111827;font-weight:600}.material-table th{font-weight:700;color:var(--text-light);font-size:10px;white-space:nowrap}.material-table select,.material-table input{padding:1px 2px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:10px;width:100%;max-width:60px}
+.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:6px}
+.room-box-mini{aspect-ratio:1;background:linear-gradient(145deg,#e5e7eb,#d1d5db);box-shadow:3px 3px 6px #9ca3af,-3px -3px 6px #ffffff;border:1px solid #9ca3af;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:all 0.2s;padding:2px}.room-box-mini:hover{transform:translateY(-2px);box-shadow:4px 4px 8px #9ca3af,-4px -4px 8px #ffffff}.room-box-mini.occupied{background:linear-gradient(145deg,#86efac,#4ade80);border:2px solid #22c55e;box-shadow:3px 3px 6px #bbf7d0,-3px -3px 6px #ffffff}.room-box-mini .r-num{font-weight:700;font-size:12px;color:#6b7280;text-align:center}.room-box-mini.occupied .r-num{color:#14532d}.room-box-mini .r-icon{font-size:10px}
+/* মালামাল টেবিল হাল্কা সবুজ থিম */
+.table-wrapper{overflow-x:auto;width:100%;-webkit-overflow-scrolling:touch;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;padding:6px}
+table{width:100%;border-collapse:collapse;table-layout:auto}
+.material-table th,.material-table td{text-align:left;padding:4px 2px;border-bottom:1px solid #bbf7d0;font-size:11px;word-break:break-word;white-space:normal;color:#14532d;font-weight:600}
+.material-table th{font-weight:700;color:#166534;font-size:10px;white-space:nowrap;background:#dcfce7}
+.material-table select,.material-table input{padding:1px 2px;border:1px solid #86efac;border-radius:4px;font-family:inherit;font-size:10px;width:100%;max-width:60px;background:#f0fdf4;color:#14532d}
 @media(min-width:768px){.material-table th,.material-table td{font-size:14px;padding:8px}.material-table th{font-size:13px}}
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:2000;padding:0}.modal-overlay.active{display:flex}.modal{background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:92vh;overflow-y:auto;animation:slideUp .3s}.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}.modal-header h3{font-size:18px;font-weight:700}.modal-close{background:var(--bg);border:none;font-size:20px;cursor:pointer;color:var(--text-light);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .form-group{margin-bottom:14px}.form-group label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#f8fafc}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);background:#fff}
@@ -71,7 +77,7 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 
 /* প্রগ্রেস বার স্টাইল */
 #syncModal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:5000;text-align:center;min-width:300px}
-#syncProgressBar{width:0%;background:var(--success);height:10px;border-radius:5px;transition:width 0.3s;margin-top:15px}
+#syncProgressBar{width:0%;background:var(--success);height:10px;border-radius:5px;margin-top:15px}
 #syncProgressText{font-size:14px;font-weight:600;margin-top:10px;color:var(--text)}
 </style>
 </head>
@@ -140,7 +146,8 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
                 </div>
                 <div class="search-container">
                     <div class="search-box" id="searchBox" style="display:flex"><span>🔍</span><input type="text" id="globalSearch" placeholder="নাম বা রুম নম্বর দিয়ে খুঁজুন" oninput="handleGlobalSearch(this.value)"><div class="search-dropdown" id="searchDropdown"></div></div>
-                    <div class="flex gap-8" style="justify-content:center; flex-wrap:wrap">
+                    <!-- বিল্ডিং বাটন ডান দিকে -->
+                    <div class="flex gap-8" style="justify-content:flex-end; flex-wrap:wrap">
                         <button class="btn btn-primary" id="actionBtn" style="display:none;"></button>
                     </div>
                 </div>
@@ -158,7 +165,8 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
 let db = null, useFirebase = false;
-try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE).catch(err => console.warn("Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
+// রিফ্রেশ দিলে যেন লগআউট না হয় সেজন্য Persistence.LOCAL দেওয়া হলো
+try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => console.warn("Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
 const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.turso.io";
 const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODUwNTk4NzgsImlkIjoiMDE5ZDk1ZjctODcwMS03YTg1LWE5ZDMtMTZkMTQ5YTg2ZTM0Iiwia2lkIjoiSERvdFg3bzEwclVaY1lJdk1QMm9kUGxES051QjF0VmNDTTd1b3pDMUVjMCIsInJpZCI6IjYxNzk0NDk2LWFiNzctNGRjYy1hZGQ2LTQ4ODkwZjU5OGZhNiJ9.3YG3zvpa51WIQrm_VdV1xd02miBd7uoZ1x0Nfax7SIlTUnJsaAG-bmftZ0yy72Fsfedf-SF9uAWCuA1quzvRDw";
@@ -335,7 +343,7 @@ async function fetchFromTurso() {
         const roomsData = await executeTursoQuery('SELECT * FROM "Room"');
         
         syncProgressBar.style.width = '30%';
-        syncProgressText.innerText = '30% - ভাড়াটে আসছে...';
+        syncProgressText.innerText = '30% - ভাড়াটে আসছে...';
         const tenantsData = await executeTursoQuery('SELECT * FROM "Tenant"');
         const floorsData = await executeTursoQuery('SELECT * FROM "Floor"');
         
@@ -352,7 +360,7 @@ async function fetchFromTurso() {
         const fbRooms = await Store.getRooms();
 
         if (buildingsData.length === fbBuildings.length && roomsData.length === fbRooms.length) {
-            showToast("নতুন কোন ডাটা Turso ডাটাবেজে পাওয়া যাইনি", "info");
+            showToast("নতুন কোন ডাটা Turso ডাটাবেজে পাওয়া যায়নি", "info");
             syncModal.style.display = 'none';
             return;
         }
@@ -392,14 +400,23 @@ async function fetchFromTurso() {
                 tenants: activeTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', type: 'bachelor', familyInfo: '' })),
                 previousTenants: prevTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '' })),
                 
-                // মালামালের ডাটা ঠিক করা হলো (অবস্থা, রিপেয়ার, রিপ্লেস ও রেকর্ডসহ)
+                // মালামালের ডাটা ঠিক করা হলো (অবস্থা, রিপেয়ার, রিপ্লেস ও রেকর্ডসহ)
                 items: inventories.map(inv => {
                     const history = [];
-                    // যদি Turso-তে রেকর্ড বা নোট থাকে, তবে সেটি history তে যাবে
-                    if (inv.note || inv.lastRepairDate || inv.lastReplaceDate) {
+                    // যদি Turso-তে রিপেয়ার বা রিপ্লেস এর তারিখ থাকে, তবে সেটি history তে যাবে
+                    if (inv.lastRepairDate) {
                         history.push({
-                            type: inv.lastReplaceDate ? 'Replace' : 'Repair',
-                            date: inv.lastReplaceDate ? new Date(inv.lastReplaceDate).toISOString().split('T')[0] : (inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : (inv.addedDate ? new Date(inv.addedDate).toISOString().split('T')[0] : '')),
+                            type: 'Repair',
+                            date: new Date(inv.lastRepairDate).toISOString().split('T')[0],
+                            note: inv.note || '',
+                            condition: inv.condition || 'ভাল',
+                            quantity: inv.quantity || 1
+                        });
+                    }
+                    if (inv.lastReplaceDate) {
+                        history.push({
+                            type: 'Replace',
+                            date: new Date(inv.lastReplaceDate).toISOString().split('T')[0],
                             note: inv.note || '',
                             condition: inv.condition || 'ভাল',
                             quantity: inv.quantity || 1
@@ -411,8 +428,8 @@ async function fetchFromTurso() {
                         name: inv.itemName,
                         quantity: inv.quantity,
                         condition: inv.condition || 'ভাল',
-                        // Turso-তে যে তারিখ আছে, সেভাবেই ফায়ারবেজে সেভ হবে
-                        lastRepairDate: inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : (inv.addedDate ? new Date(inv.addedDate).toISOString().split('T')[0] : null),
+                        // যে তারিখ আছে সেভাবেই সেভ হবে, না থাকলে null হবে
+                        lastRepairDate: inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : null,
                         lastReplaceDate: inv.lastReplaceDate ? new Date(inv.lastReplaceDate).toISOString().split('T')[0] : null,
                         history: history
                     };
@@ -450,7 +467,7 @@ async function fetchFromTurso() {
             syncProgressText.innerText = progress + '% - রিপোর্ট সেভ হচ্ছে...';
         }
 
-        // ফায়ারবেজ থেকে ডাটা রিফ্রেশ করে স্ক্রিনে দেখানো
+        // ফায়ারবেজ থেকে ডাটা রিফ্রেশ করে স্ক্রিনে দেখানো
         state.buildings = await Store.getBuildings();
         state.rooms = await Store.getRooms();
         renderPage();
@@ -460,7 +477,7 @@ async function fetchFromTurso() {
         
         setTimeout(() => {
             syncModal.style.display = 'none';
-            showToast(`🎉 সফল! ${importedCount} টি ডাটা সেভ হয়েছে।`, "success");
+            showToast(`🎉 সফল! ${importedCount} টি ডাটা সেভ হয়েছে।`, "success");
         }, 1000);
         
     } catch (error) {
@@ -547,13 +564,26 @@ function renderItemsTab(rId, page = 1) {
     }
     document.getElementById('roomTabContent').innerHTML = iHtml;
 }
-function toggleCard(e, el) { e.stopPropagation(); const isExpanded = el.classList.contains('expanded'); el.parentElement.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
-function toggleHistoryCard(e, el) { e.stopPropagation(); const isExpanded = el.classList.contains('expanded'); el.parentElement.querySelectorAll('.thin-bright-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
+// একজনের তালিকা expand করলে অন্য জনের যেন expand না হয়
+function toggleCard(e, el) { 
+    e.stopPropagation(); 
+    const container = el.closest('#roomTabContent') || el.parentElement; 
+    const isExpanded = el.classList.contains('expanded'); 
+    container.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); 
+    if (!isExpanded) el.classList.add('expanded'); 
+}
+function toggleHistoryCard(e, el) { 
+    e.stopPropagation(); 
+    const container = el.closest('#roomTabContent') || el.parentElement; 
+    const isExpanded = el.classList.contains('expanded'); 
+    container.querySelectorAll('.thin-bright-card').forEach(card => card.classList.remove('expanded')); 
+    if (!isExpanded) el.classList.add('expanded'); 
+}
 function addOccupantModal(rId) { openModal('নতুন ব্যবহারকারী', `<div class="form-group"><label>নাম</label><input type="text" id="o_name"></div><div class="grid grid-2"><div class="form-group"><label>সম্পর্ক</label><input type="text" id="o_rel"></div><div class="form-group"><label>ফোন</label><input type="text" id="o_phone"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveSingleOccupant('${rId}')">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, relation: document.getElementById('o_rel').value.trim(), phone: document.getElementById('o_phone').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 async function saveBulkEdit(rId) { const r = state.rooms.find(x => x.id === rId); r.items.forEach(i => { const s = document.getElementById(`bc_${i.id}`); const q = document.getElementById(`bq_${i.id}`); if (s) i.condition = s.value; if (q) i.quantity = parseInt(q.value) || 1; }); document.getElementById('saveBulkBtn').disabled = true; showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 function switchRoomTab(e, tab, rId) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); e.target.classList.add('active'); const c = document.getElementById('roomTabContent'); if (tab === 'history') renderRoomHistoryTab(rId, c); else if (tab === 'guests') renderGuestsTab(rId, c); else if (tab === 'items') renderItemsTab(rId, 1); else c.innerHTML = state.roomTabs[rId][tab]; }
-function renderRoomHistoryTab(rId, c) { const r = state.rooms.find(x => x.id === rId); const p = r.previousTenants || []; c.innerHTML = `<h4 class="mb-16">📜 পূর্বের ভাড়াটে (${p.length})</h4>${p.length === 0 ? `<div class="empty-state"><p>কেউ নেই।</p></div>` : `<div class="grid gap-12">${p.slice().reverse().map(t => `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${escapeHtml(t.name)}</strong><span class="text-sm">ছাড়া: ${formatDate(t.endDate)}</span></div><div class="card-body"><p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>ফোন: ${escapeHtml(t.phone || '-')}</p><p>বরাদ্দ: ${formatDate(t.startDate)}</p><div class="flex gap-8 mt-8"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); viewTenantSnapshot('${rId}','${t.id}')">📦 মালামাল</button><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div></div></div>`).join('')}</div>`}`; }
+function renderRoomHistoryTab(rId, c) { const r = state.rooms.find(x => x.id === rId); const p = r.previousTenants || []; c.innerHTML = `<h4 class="mb-16">📜 পূর্বের ভাড়াটে (${p.length})</h4>${p.length === 0 ? `<div class="empty-state"><p>কেউ নেই।</p></div>` : `<div class="grid gap-12">${p.slice().reverse().map(t => `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${escapeHtml(t.name)}</strong><span class="text-sm">ছাড়া: ${formatDate(t.endDate)}</span></div><div class="card-body"><p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>ফোন: ${escapeHtml(t.phone || '-')}</p><p>বরাদ্ক: ${formatDate(t.startDate)}</p><div class="flex gap-8 mt-8"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); viewTenantSnapshot('${rId}','${t.id}')">📦 মালামাল</button><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div></div></div>`).join('')}</div>`}`; }
 function editRoom(rId) { const r = state.rooms.find(x => x.id === rId); openModal('রুম এডিট', `<div class="grid grid-2"><div class="form-group"><label>তলা</label><input type="text" id="efloor" value="${escapeHtml(r.floor)}"></div><div class="form-group"><label>রুম নম্বর</label><input type="text" id="enumber" value="${escapeHtml(r.number)}"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveRoomEdit('${rId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveRoomEdit(rId) { const f = document.getElementById('efloor').value.trim(); const n = document.getElementById('enumber').value.trim(); if (!f || !n) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); r.floor = f; r.number = n; forceCloseModal(); renderPage(); try { await Store.saveRoom({ ...r, floor: f, number: n }); showToast('আপডেট হয়েছে'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); renderPage(); } }
 async function deleteRoom(rId) { checkPassword(() => { showConfirm('এই রুম ডিলিট হবে। নিশ্চিত?', async () => { state.rooms = state.rooms.filter(x => x.id !== rId); forceCloseModal(); renderPage(); try { await Store.deleteRoom(rId); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); state.rooms = await Store.getRooms(); renderPage(); } }); }); }
@@ -633,7 +663,7 @@ function initApp() {
                 try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
                 document.getElementById('authContainer').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; resetIdleTimer();
                 
-                // লগইন করলে ফায়ারবেজ থেকে সরাসরি ডাটা লোড হবে (পার্মানেন্ট ডাটা)
+                // লগইন করলে ফায়ারবেজ থেকে সরাসরি ডাটা লোড হবে (পার্মানেন্ট ডাটা)
                 state.buildings = await Store.getBuildings();
                 state.rooms = await Store.getRooms();
                 renderPage();
