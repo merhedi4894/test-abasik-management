@@ -300,7 +300,7 @@ const Store = {
 };
 
 // ==========================================
-// Turso থেকে ডাটা আনার ফাংশন (অটোমেটিক এবং ম্যানুয়াল)
+// Turso থেকে ডাটা আনার ফাংশন (শুধু ম্যানুয়াল ক্লিকে সেভ হবে, ডুপ্লিকেট হবে না)
 // ==========================================
 async function fetchFromTurso() {
     document.getElementById('sidebar').classList.remove('open');
@@ -357,6 +357,7 @@ async function fetchFromTurso() {
         const fbRooms = await Store.getRooms();
         const fbReports = await Store.getReports();
         
+        // ডুপ্লিকেট ডাটা প্রতিরোধের জন্য আগে থেকে থাকা আইডিগুলো সেট করা হলো
         const existingBuildingIds = new Set(fbBuildings.map(b => b.id));
         const existingRoomIds = new Set(fbRooms.map(r => r.id));
         const existingReportIds = new Set(fbReports.map(r => r.id));
@@ -641,11 +642,11 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
 
-// লগইন করলে অটোমেটিক ডাটা চেক করা হবে। যদি ফায়ারবেজ খালি থাকে তবে Turso থেকে নিয়ে আসবে।
+// লগইন করলে শুধু Firebase থেকে ডাটা দেখাবে
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
     
-    // সাথে সাথেই লোডার হাইড করে লগইন পেজ দেখানো হচ্ছে যাতে স্পিনার আটকে না থাকে
+    // সাথে সাথেই লোডার হাইড করে লগইন পেজ দেখানো হচ্ছে
     document.getElementById('authContainer').style.display = 'flex';
     document.getElementById('appContainer').style.display = 'none';
     showLoginView();
@@ -662,25 +663,19 @@ function initApp() {
             try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
             document.getElementById('authContainer').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; resetIdleTimer();
             
-            // ডাটা লোড হওয়ার আগে একটি লোডিং স্পিনার দেখানো হলো
             document.getElementById('pageContent').innerHTML = `<div class="card"><div class="empty-state"><div class="spinner"><div></div><div></div><div></div><div></div></div><p style="margin-top:16px;">ডাটা লোড হচ্ছে...</p></div></div>`;
             
             try {
+                // শুধুমাত্র Firebase থেকে ডাটা লোড করা হচ্ছে
                 state.buildings = await Store.getBuildings();
                 state.rooms = await Store.getRooms();
-                renderPage(); // ফায়ারবেজের ডাটা স্ক্রিনে দেখানো হলো
+                renderPage(); 
             } catch (e) {
                 console.error("Firestore read error:", e);
                 showToast("Firebase থেকে ডাটা পড়তে সমস্যা! Security Rules চেক করুন।", "error");
                 document.getElementById('pageContent').innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">⚠️</p><p>ডাটা লোডে সমস্যা!</p><p class="text-sm mt-8">Firebase Rules ঠিক আছে কিনা চেক করুন।</p></div></div>`;
-                return;
             }
-
-            // যদি ফায়ারবেজে কোনো ডাটা না থাকে, তবে অটোমেটিক Turso থেকে ডাটা এনে সেভ করবে
-            if (state.buildings.length === 0) {
-                console.log("Firebase empty, auto-fetching from Turso...");
-                await fetchFromTurso();
-            }
+            // এখানে কোনো অটোমেটিক Turso Fetch করা হবে না। ইউজার ম্যানুয়ালি বাটনে ক্লিক করলেই কেবল Turso থেকে ডাটা আসবে।
         } else {
             currentUser = null;
             document.getElementById('appContainer').style.display = 'none';
