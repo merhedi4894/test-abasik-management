@@ -39,6 +39,7 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 .menu-toggle{position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;background:#fff;border:1px solid var(--border);font-size:20px;cursor:pointer;padding:8px 12px;border-radius:8px;color:var(--primary)}.desktop-logout{display:none!important;position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:25}
 .search-container{width:100%;max-width:500px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
 .search-box{display:flex;gap:8px;align-items:center;background:var(--card);padding:8px 16px;border-radius:30px;border:1px solid var(--border);width:100%;box-shadow:0 2px 4px rgba(0,0,0,.03);position:relative}.search-box input{border:none;outline:none;font-family:inherit;font-size:14px;width:100%;background:transparent}
+/* সার্চ ড্রপডাউন হালকা সবুজ */
 .search-dropdown{position:absolute;top:100%;left:0;right:0;margin-top:8px;background:#f0fdf4;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.15);z-index:50;display:none;max-height:300px;overflow-y:auto;border:1px solid #bbf7d0}.search-item{padding:10px 16px;border-bottom:1px solid #d1fae5;cursor:pointer}.search-item:hover{background:#dcfce7}
 .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 2px 4px rgba(0,0,0,.03);margin-bottom:16px;border:1px solid #f1f5f9}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
@@ -51,8 +52,10 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 .building-card-body{padding:16px;display:none;overflow:hidden;background:#f8fafc;cursor:pointer}.building-card.expanded .building-card-body{display:block}
 .b-actions{position:absolute;top:8px;left:8px;display:flex;gap:6px;z-index:5}.building-card.expanded .b-actions{right:20px;left:auto;top:20px}.b-icon{width:auto;height:auto;font-size:13px;background:transparent;border:none;cursor:pointer;color:#94a3b8;padding:2px}.b-icon:hover{color:#475569}.b-icon.danger{color:var(--danger)}.b-icon.danger:hover{color:#be123c}.b-icon svg{width:14px;height:14px}
 .expanded-overlay{position:fixed;inset:0;z-index:5;background:transparent}
-.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:6px}.room-box-mini{aspect-ratio:1;background:linear-gradient(145deg,#ffffff,#e2e8f0);box-shadow:3px 3px 6px #cbd5e1,-3px -3px 6px #ffffff;border:1px solid #f1f5f9;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:all 0.2s;padding:2px}.room-box-mini:hover{transform:translateY(-2px);box-shadow:4px 4px 8px #cbd5e1,-4px -4px 8px #ffffff}.room-box-mini.occupied{background:#dcfce7;border:2px solid #86efac;box-shadow:0 0 8px rgba(22,163,74,0.3)}.room-box-mini .r-num{font-weight:700;font-size:12px;color:var(--text);text-align:center}.room-box-mini.occupied .r-num{color:#166534}.room-box-mini .r-icon{font-size:10px}
-.table-wrapper{overflow-x:auto;width:100%;-webkit-overflow-scrolling:touch}table{width:100%;border-collapse:collapse;table-layout:auto}.material-table th,.material-table td{text-align:left;padding:4px 2px;border-bottom:1px solid var(--border);font-size:11px;word-break:break-word;white-space:normal;color:#111827;font-weight:600}.material-table th{font-weight:700;color:var(--text-light);font-size:10px;white-space:nowrap}.material-table select,.material-table input{padding:1px 2px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:10px;width:100%;max-width:60px}
+/* রুমের কালার: খালি গ্রে, বরাদ্দ গাঢ় সবুজ */
+.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:6px}.room-box-mini{aspect-ratio:1;background:linear-gradient(145deg, #e2e8f0, #cbd5e1);box-shadow:3px 3px 6px #94a3b8,-3px -3px 6px #f1f5f9;border:1px solid #94a3b8;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:all 0.2s;padding:2px}.room-box-mini:hover{transform:translateY(-2px);box-shadow:4px 4px 8px #94a3b8,-4px -4px 8px #f1f5f9}.room-box-mini.occupied{background:linear-gradient(145deg, #86efac, #4ade80);border:2px solid #22c55e;box-shadow:0 0 8px rgba(34,197,94,0.4)}.room-box-mini .r-num{font-weight:700;font-size:12px;color:#334155;text-align:center}.room-box-mini.occupied .r-num{color:#14532d}.room-box-mini .r-icon{font-size:10px}
+/* মালামাল টেবিল হালকা সবুজ */
+.table-wrapper{overflow-x:auto;width:100%;-webkit-overflow-scrolling:touch}table{width:100%;border-collapse:collapse;table-layout:auto}.material-table th,.material-table td{text-align:left;padding:4px 2px;border-bottom:1px solid #86efac;font-size:11px;word-break:break-word;white-space:normal;font-weight:600}.material-table th{font-weight:700;color:#14532d;font-size:10px;white-space:nowrap;background:#dcfce7}.material-table td{color:#14532d;background:#f0fdf4}.material-table select,.material-table input{padding:1px 2px;border:1px solid #86efac;border-radius:4px;font-family:inherit;font-size:10px;width:100%;max-width:60px;background:#fff;color:#14532d}
 @media(min-width:768px){.material-table th,.material-table td{font-size:14px;padding:8px}.material-table th{font-size:13px}}
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:2000;padding:0}.modal-overlay.active{display:flex}.modal{background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:92vh;overflow-y:auto;animation:slideUp .3s}.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}.modal-header h3{font-size:18px;font-weight:700}.modal-close{background:var(--bg);border:none;font-size:20px;cursor:pointer;color:var(--text-light);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .form-group{margin-bottom:14px}.form-group label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#f8fafc}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);background:#fff}
@@ -71,7 +74,7 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 
 /* প্রগ্রেস বার স্টাইল */
 #syncModal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:5000;text-align:center;min-width:300px}
-#syncProgressBar{width:0%;background:var(--success);height:10px;border-radius:5px;transition:width 0.3s;margin-top:15px}
+#syncProgressBar{width:0%;background:var(--success);height:10px;border-radius:5px;transition:width 0.2s linear;margin-top:15px}
 #syncProgressText{font-size:14px;font-weight:600;margin-top:10px;color:var(--text)}
 </style>
 </head>
@@ -140,7 +143,8 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
                 </div>
                 <div class="search-container">
                     <div class="search-box" id="searchBox" style="display:flex"><span>🔍</span><input type="text" id="globalSearch" placeholder="নাম বা রুম নম্বর দিয়ে খুঁজুন" oninput="handleGlobalSearch(this.value)"><div class="search-dropdown" id="searchDropdown"></div></div>
-                    <div class="flex gap-8" style="justify-content:center; flex-wrap:wrap">
+                    <!-- বাটনটি ডান দিকে রাখা হলো -->
+                    <div class="flex gap-8" style="justify-content:flex-end; flex-wrap:wrap">
                         <button class="btn btn-primary" id="actionBtn" style="display:none;"></button>
                     </div>
                 </div>
@@ -158,7 +162,9 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
 let db = null, useFirebase = false;
-try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE).catch(err => console.warn("Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
+
+// রিফ্রেশ দিলে লগআউট না হওয়ার জন্য Persistence LOCAL করা হলো
+try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => console.warn("Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
 const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.turso.io";
 const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODUwNTk4NzgsImlkIjoiMDE5ZDk1ZjctODcwMS03YTg1LWE5ZDMtMTZkMTQ5YTg2ZTM0Iiwia2lkIjoiSERvdFg3bzEwclVaY1lJdk1QMm9kUGxES051QjF0VmNDTTd1b3pDMUVjMCIsInJpZCI6IjYxNzk0NDk2LWFiNzctNGRjYy1hZGQ2LTQ4ODkwZjU5OGZhNiJ9.3YG3zvpa51WIQrm_VdV1xd02miBd7uoZ1x0Nfax7SIlTUnJsaAG-bmftZ0yy72Fsfedf-SF9uAWCuA1quzvRDw";
@@ -266,9 +272,8 @@ function handleLogout() {
     clearTimeout(idleTimeout); 
     document.getElementById('loginPassword').value = ''; 
     document.getElementById('loginIdentifier').value = ''; 
-    // লগআউট হলে স্টেট ক্লিয়ার করা হলো যেন পুরোনো ডাটা স্ক্রিনে না থাকে
     state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null };
-    setBtnLoading('loginBtn', false); // লগইন বাটন রিসেট করা হলো
+    setBtnLoading('loginBtn', false);
     firebase.auth().signOut(); 
 }
 
@@ -289,7 +294,7 @@ const Store = {
 };
 
 // ==========================================
-// Turso থেকে ডাটা আনার ফাংশন (প্রগ্রেস বারসহ)
+// Turso থেকে ডাটা আনার ফাংশন
 // ==========================================
 async function fetchFromTurso() {
     document.getElementById('sidebar').classList.remove('open');
@@ -326,27 +331,22 @@ async function fetchFromTurso() {
             });
         };
 
-        syncProgressBar.style.width = '10%';
-        syncProgressText.innerText = '10% - বিল্ডিং আসছে...';
+        syncProgressBar.style.width = '10%'; syncProgressText.innerText = '10% - বিল্ডিং আসছে...';
         const buildingsData = await executeTursoQuery('SELECT * FROM "Building"');
         
-        syncProgressBar.style.width = '20%';
-        syncProgressText.innerText = '20% - রুম আসছে...';
+        syncProgressBar.style.width = '20%'; syncProgressText.innerText = '20% - রুম আসছে...';
         const roomsData = await executeTursoQuery('SELECT * FROM "Room"');
         
-        syncProgressBar.style.width = '30%';
-        syncProgressText.innerText = '30% - ভাড়াটে আসছে...';
+        syncProgressBar.style.width = '30%'; syncProgressText.innerText = '30% - ভাড়াটে আসছে...';
         const tenantsData = await executeTursoQuery('SELECT * FROM "Tenant"');
         const floorsData = await executeTursoQuery('SELECT * FROM "Floor"');
         
-        syncProgressBar.style.width = '40%';
-        syncProgressText.innerText = '40% - মালামাল আসছে...';
+        syncProgressBar.style.width = '40%'; syncProgressText.innerText = '40% - মালামাল আসছে...';
         const inventoryData = await executeTursoQuery('SELECT * FROM "Inventory"');
         const templatesData = await executeTursoQuery('SELECT * FROM "BelongingTemplate"');
         const reportsData = await executeTursoQuery('SELECT * FROM "TroubleReport"');
 
-        syncProgressBar.style.width = '50%';
-        syncProgressText.innerText = '50% - চেক করা হচ্ছে...';
+        syncProgressBar.style.width = '50%'; syncProgressText.innerText = '50% - চেক করা হচ্ছে...';
         
         const fbBuildings = await Store.getBuildings();
         const fbRooms = await Store.getRooms();
@@ -370,8 +370,7 @@ async function fetchFromTurso() {
             }
             importedCount++;
             const progress = 50 + Math.round((importedCount / totalItems) * 50);
-            syncProgressBar.style.width = progress + '%';
-            syncProgressText.innerText = progress + '% - বিল্ডিং সেভ হচ্ছে...';
+            syncProgressBar.style.width = progress + '%'; syncProgressText.innerText = progress + '% - বিল্ডিং সেভ হচ্ছে...';
         }
 
         // ২. রুম ও মালামাল সেভ করা
@@ -392,7 +391,7 @@ async function fetchFromTurso() {
                 tenants: activeTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', type: 'bachelor', familyInfo: '' })),
                 previousTenants: prevTenants.map(t => ({ id: t.id, name: t.name, designation: t.designation || '', phone: t.phone || '', startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '', endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '' })),
                 
-                // মালামালের ডাটা ঠিক করা হলো (অবস্থা, রিপেয়ার, রিপ্লেস ও রেকর্ডসহ)
+                // মালামালের ডাটা ঠিক করা হলো (শুধু যেগুলোর তারিখ আছে, শুধু সেগুলোতেই তারিখ সেভ হবে)
                 items: inventories.map(inv => {
                     const history = [];
                     // যদি Turso-তে রেকর্ড বা নোট থাকে, তবে সেটি history তে যাবে
@@ -411,8 +410,8 @@ async function fetchFromTurso() {
                         name: inv.itemName,
                         quantity: inv.quantity,
                         condition: inv.condition || 'ভাল',
-                        // Turso-তে যে তারিখ আছে, সেভাবেই ফায়ারবেজে সেভ হবে
-                        lastRepairDate: inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : (inv.addedDate ? new Date(inv.addedDate).toISOString().split('T')[0] : null),
+                        // শুধুমাত্র ডাটাবেজে যদি তারিখ থাকে, তবহ সেটি সেভ হবে, নাহলে null
+                        lastRepairDate: inv.lastRepairDate ? new Date(inv.lastRepairDate).toISOString().split('T')[0] : null,
                         lastReplaceDate: inv.lastReplaceDate ? new Date(inv.lastReplaceDate).toISOString().split('T')[0] : null,
                         history: history
                     };
@@ -424,8 +423,7 @@ async function fetchFromTurso() {
             await db.collection('rooms').doc(r.id).set(mappedRoom, { merge: true });
             importedCount++;
             const progress = 50 + Math.round((importedCount / totalItems) * 50);
-            syncProgressBar.style.width = progress + '%';
-            syncProgressText.innerText = progress + '% - রুম সেভ হচ্ছে...';
+            syncProgressBar.style.width = progress + '%'; syncProgressText.innerText = progress + '% - রুম সেভ হচ্ছে...';
         }
 
         // ৩. রিপোর্ট সেভ করা
@@ -446,8 +444,7 @@ async function fetchFromTurso() {
             }, { merge: true });
             importedCount++;
             const progress = 50 + Math.round((importedCount / totalItems) * 50);
-            syncProgressBar.style.width = progress + '%';
-            syncProgressText.innerText = progress + '% - রিপোর্ট সেভ হচ্ছে...';
+            syncProgressBar.style.width = progress + '%'; syncProgressText.innerText = progress + '% - রিপোর্ট সেভ হচ্ছে...';
         }
 
         // ফায়ারবেজ থেকে ডাটা রিফ্রেশ করে স্ক্রিনে দেখানো
@@ -455,8 +452,7 @@ async function fetchFromTurso() {
         state.rooms = await Store.getRooms();
         renderPage();
         
-        syncProgressBar.style.width = '100%';
-        syncProgressText.innerText = '100% - সম্পূর্ণ!';
+        syncProgressBar.style.width = '100%'; syncProgressText.innerText = '100% - সম্পূর্ণ!';
         
         setTimeout(() => {
             syncModal.style.display = 'none';
@@ -547,7 +543,16 @@ function renderItemsTab(rId, page = 1) {
     }
     document.getElementById('roomTabContent').innerHTML = iHtml;
 }
-function toggleCard(e, el) { e.stopPropagation(); const isExpanded = el.classList.contains('expanded'); el.parentElement.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
+
+// এক্সপান্ড করলে অন্যটা বন্ধ হওয়ার লজিক ঠিক করা হলো
+function toggleCard(e, el) { 
+    e.stopPropagation(); 
+    const isExpanded = el.classList.contains('expanded'); 
+    // প্যারেন্ট এলিমেন্টের ভেতরের সব কার্ড বন্ধ করে দাও
+    el.parentElement.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); 
+    // যদি আগে খোলা না থাকে, তবে এটি খোলো
+    if (!isExpanded) el.classList.add('expanded'); 
+}
 function toggleHistoryCard(e, el) { e.stopPropagation(); const isExpanded = el.classList.contains('expanded'); el.parentElement.querySelectorAll('.thin-bright-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
 function addOccupantModal(rId) { openModal('নতুন ব্যবহারকারী', `<div class="form-group"><label>নাম</label><input type="text" id="o_name"></div><div class="grid grid-2"><div class="form-group"><label>সম্পর্ক</label><input type="text" id="o_rel"></div><div class="form-group"><label>ফোন</label><input type="text" id="o_phone"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveSingleOccupant('${rId}')">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, relation: document.getElementById('o_rel').value.trim(), phone: document.getElementById('o_phone').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
@@ -588,7 +593,7 @@ async function saveItem(rId) { const n = document.getElementById('iName').value.
 async function deleteItem(rId, iId) { checkPassword(async () => { const r = state.rooms.find(x => x.id === rId); r.items = r.items.filter(i => i.id !== iId); forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); showRoomDetail(rId, 'items', true); } }); }
 function repairReplaceModal(rId, iId) { const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); let historyHtml = ''; if (i.history && i.history.length > 0) { historyHtml = `<h4 class="mt-16 mb-8" style="font-size:14px; font-weight:700;">📜 রেকর্ড তালিকা</h4><div class="grid gap-12">`; i.history.slice().reverse().map(h => { historyHtml += `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${h.type === 'Repair' ? '🔧 রিপেয়ার' : '🔄 রিপ্লেস'}</strong><span class="text-sm">${formatDate(h.date)}</span></div><div class="card-body"><p>পরিমাণ: ${h.quantity || '-'}</p><p>অবস্থা: ${getConditionBadge(h.condition)}</p><p>মন্তব্য: ${escapeHtml(h.note || '-')}</p></div></div>`; }); historyHtml += `</div>`; } else { historyHtml = `<p class="text-light text-sm mt-16 text-center">কোন পূর্বের রেকর্ড নেই।</p>`; } openModal(`রিপেয়ার/রিপ্লেস - ${escapeHtml(i.name)}`, `<div class="grid grid-2"><div class="form-group"><label>প্রকার</label><select id="rType"><option value="Repair">Repair</option><option value="Replace">Replace</option></select></div><div class="form-group"><label>তারিখ *</label><input type="date" id="rDate" value="${new Date().toISOString().split('T')[0]}"></div></div><div class="grid grid-2"><div class="form-group"><label>পরিমাণ</label><input type="number" id="rQty" value="${i.quantity || 1}" min="1"></div><div class="form-group"><label>অবস্থা</label><select id="rCond">${getConditionOptions(i.condition)}</select></div></div><div class="form-group"><label>মন্তব্য</label><input type="text" id="rNote" placeholder="মন্তব্য লিখুন"></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveRepair('${rId}','${iId}')">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>${historyHtml}`, true); }
 async function saveRepair(rId, iId) { const t = document.getElementById('rType').value; const d = document.getElementById('rDate').value; const c = document.getElementById('rCond').value; const q = parseInt(document.getElementById('rQty').value) || 1; const n = document.getElementById('rNote').value.trim(); if (!d) { showToast('তারিখ দিন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); if (!i.history) i.history = []; i.history.push({ type: t, date: d, note: n, condition: c, quantity: q }); if (t === 'Repair') i.lastRepairDate = d; else i.lastReplaceDate = d; i.condition = c; i.quantity = q; forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('রেকর্ড সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
-async function addItemsFromTemplate(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = await Store.getTemplates(r.buildingId); if (tpls.length === 0) { openModal('টেম্পলেট', `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div><button class="btn btn-outline mt-16" style="width:100%" onclick="closeModal()">বন্ধ</button>`, true); return; } const exN = (r.items || []).map(i => i.name); const miss = tpls.filter(t => !exN.includes(t.name)); if (miss.length === 0) { showToast('সব মালামাল আছে', 'error'); closeModal(); return; } openModal('টেম্পলেট থেকে যোগ', `<p class="text-sm text-light mb-16">পরিমাণ ও অবস্থা এডিট করে নিচের বাটনে ক্লিক করুন।</p><div class="card" style="margin:0;max-height:300px;overflow-y:auto;background:#f8fafc">${miss.map(t => `<div class="flex-between" style="padding:4px 0;border-bottom:1px solid var(--border)"><span class="text-sm">${escapeHtml(t.name)}</span><div class="flex gap-8"><input type="number" value="${t.quantity || 1}" id="tq_${t.id}" style="width:50px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px"><select id="tc_${t.id}" style="width:auto;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px">${getConditionOptions('আছে')}</select></div></div>`).join('')}</div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateItems('${rId}')">সবগুলো যোগ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
+async function addItemsFromTemplate(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = await Store.getTemplates(r.buildingId); if (tpls.length === 0) { openModal('টেম্পলেট', `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div><button class="btn btn-outline mt-16" style="width:100%" onclick="closeModal()">বন্ধ</button>`, true); return; } const exN = (r.items || []).map(i => i.name); const miss = tpls.filter(t => !exN.includes(t.name)); if (miss.length === 0) { showToast('সব মালামাল আছে', 'error'); closeModal(); return; } openModal('টেম্পলেট থেকে যোগ', `<p class="text-sm text-light mb-16">পরিমাণ ও অবস্থা এডিট করে নিচের বাটনে ক্লিক করুন।</p><div class="card" style="margin:0;max-height:300px;overflow-y:auto;background:#f0fdf4;border:1px solid #86efac;">${miss.map(t => `<div class="flex-between" style="padding:4px 0;border-bottom:1px solid #d1fae5"><span class="text-sm" style="color:#14532d;">${escapeHtml(t.name)}</span><div class="flex gap-8"><input type="number" value="${t.quantity || 1}" id="tq_${t.id}" style="width:50px;padding:2px;border:1px solid #86efac;border-radius:4px;font-size:11px;background:#fff;color:#14532d;"><select id="tc_${t.id}" style="width:auto;padding:2px;border:1px solid #86efac;border-radius:4px;font-size:11px;background:#fff;color:#14532d;">${getConditionOptions('আছে')}</select></div></div>`).join('')}</div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateItems('${rId}')">সবগুলো যোগ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
 async function saveTemplateItems(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = await Store.getTemplates(r.buildingId); const exN = (r.items || []).map(i => i.name); let cnt = 0; if (!r.items) r.items = []; tpls.forEach(t => { if (!exN.includes(t.name)) { const q = document.getElementById(`tq_${t.id}`); const c = document.getElementById(`tc_${t.id}`); r.items.push({ id: genId('i'), name: t.name, quantity: q ? parseInt(q.value) : 1, condition: c ? c.value : 'আছে', lastRepairDate: null, lastReplaceDate: null, history: [] }); cnt++; } }); forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast(`${cnt} টি যোগ হয়েছে`); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 async function renderTemplates(c) { if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } const bId = state.selectedBuilding || state.buildings[0].id; const tpls = await Store.getTemplates(bId); const renderTable = (arr) => { return `<div class="table-wrapper"><table class="material-table"><thead><tr><th>নাম</th><th>পরিমাণ</th><th>অ্যাকশন</th></tr></thead><tbody>${arr.map(t => `<tr><td>${escapeHtml(t.name)}</td><td>${t.quantity || 1}</td><td><button class="btn-icon" onclick="editTemplateModal('${t.id}')">${editIcon}</button> <button class="btn-icon danger" onclick="deleteTemplate('${t.id}')">${delIcon}</button></td></tr>`).join('')}</tbody></table></div>`; }; let tableHtml = ''; const isDesktop = window.innerWidth >= 768; if (isDesktop && tpls.length > 4) { const half = Math.ceil(tpls.length / 2); const leftTpls = tpls.slice(0, half); const rightTpls = tpls.slice(half); tableHtml = `<div class="grid grid-2">${renderTable(leftTpls)}${renderTable(rightTpls)}</div>`; } else { tableHtml = renderTable(tpls); } c.innerHTML = `<div class="flex gap-12 mb-16 flex-wrap"><select style="padding:8px 12px;border-radius:8px;border:1px solid var(--border)" onchange="state.selectedBuilding=this.value;renderPage()">${state.buildings.map(b => `<option value="${b.id}" ${b.id === bId ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}</select><button class="btn btn-primary btn-sm" onclick="showAddTemplateModal()">+ টেম্পলেট</button></div><div class="card"><h3 class="mb-16">মালামাল টেম্পলেট (${tpls.length})</h3>${tpls.length === 0 ? `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div>` : tableHtml}</div>`; }
 function showAddTemplateModal() { openModal('নতুন টেম্পলেট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="tName"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="tQty" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplate()">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
@@ -617,34 +622,4 @@ function loadDlFloors() { const bId = document.getElementById('dlBuilding').valu
 function loadDlRooms() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rS = document.getElementById('dlRoom'); rS.innerHTML = '-সিলেক্ট করুন-<option value="all">সকল রুম</option>'; if (fId === 'all' || fId === '') { rS.disabled = true; rS.value = ''; } else { const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; } checkDlFields(); }
 function checkDlFields() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; let isValid = bId !== '' && t !== ''; const fEl = document.getElementById('dlFloor'); const rEl = document.getElementById('dlRoom'); if (fEl && !fEl.disabled && fId === '') isValid = false; if (rEl && !rEl.disabled && rId === '') isValid = false; const dlExcel = document.getElementById('dlExcel'); const dlPdf = document.getElementById('dlPdf'); if (dlExcel && dlPdf) { if(isValid) { dlExcel.disabled = false; dlPdf.disabled = false; } else { dlExcel.disabled = true; dlPdf.disabled = true; } } }
 async function downloadReport(fmt) { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; if (!t) { showToast('ধরন সিলেক্ট করুন', 'error'); return; } let rs = state.rooms; if (bId !== 'all') rs = rs.filter(r => r.buildingId === bId); if (fId !== 'all') rs = rs.filter(r => r.floor === fId); if (rId !== 'all') rs = rs.filter(r => r.id === rId); const bName = bId === 'all' ? 'সকল' : (state.buildings.find(b => b.id === bId)?.name || ''); const fName = fId === 'all' ? 'সকল' : fId; const rName = rId === 'all' ? 'সকল' : (state.rooms.find(r => r.id === rId)?.number || ''); const dStr = new Date().toISOString().split('T')[0]; let data = [], headers = [], title = ''; if (t === 'reports') { title='ট্রাবল রিপোর্ট'; headers=['#','বিল্ডিং','তলা','রুম','সমস্যা','রিপোর্টকারী','তারিখ']; const reps = state.reports; reps.forEach((r,i)=>{ if((bId === 'all' || r.building === bName) && (fId === 'all' || r.floor === fName) && (rId === 'all' || r.room === rName)) { data.push([i+1, r.building, r.floor, r.room, r.description, r.reporter, new Date(r.createdAt?.seconds||r.createdAt).toLocaleDateString()]); } }); } else if (t === 'payments') { title='পেমেন্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','ব্যক্তি','টাকা','মাস','বছর','তারিখ']; const pays = await Store.getPayments(); pays.forEach((p,i)=>{ if((bId === 'all' || p.building === bName) && (fId === 'all' || p.floor === fName) && (rId === 'all' || p.room === rName)) { data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]]); } }); } else if (t === 'items') { title='মালামাল তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','পরিমাণ','অবস্থা','রিপেয়ার তারিখ','রিপ্লেস তারিখ','মন্তব্য','ভাড়াটে']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.items || []).forEach(item => { let note = '-'; if (item.history && item.history.length > 0) { note = item.history[item.history.length - 1].note || '-'; } data.push([data.length+1, bN, room.floor, room.number, item.name, item.quantity || 1, item.condition, item.lastRepairDate ? formatDate(item.lastRepairDate) : '-', item.lastReplaceDate ? formatDate(item.lastReplaceDate) : '-', note, room.tenants?.map(t=>t.name).join(', ') || 'খালি']); }); }); } else if (t === 'tenants') { title='ভাড়াটে তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','পদবী','ফোন','প্রকার','বরাদ্দের তারিখ']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; let tArr = room.tenants || (room.tenant ? [room.tenant] : []); tArr.forEach(t => data.push([data.length+1, bN, room.floor, room.number, t.name, t.designation || '-', t.phone || '-', t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', t.startDate])); (room.previousTenants || []).forEach(pt => data.push([data.length+1, bN, room.floor, room.number, pt.name + ' (পূর্বের)', pt.designation || '-', pt.phone || '-', pt.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', pt.startDate])); }); } else if (t === 'guests') { title='গেস্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','মোবাইল','প্রবেশ','চেক-আউট','স্ট্যাটাস']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.guests || []).forEach(g => data.push([data.length+1, bN, room.floor, room.number, g.name, g.mobile || '-', g.startDate, g.endDate || 'উপস্থিত', g.isPaid ? 'Paid' : 'Non-Paid'])); }); } else if (t === 'rooms') { title='রুম তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','ভাড়াটে','প্রকার','তারিখ']; rs.forEach((room, i) => data.push([i+1, state.buildings.find(b => b.id === room.buildingId)?.name || '', room.floor, room.number, (room.items || []).length, room.tenants?.map(t=>t.name).join(', ') || 'খালি', room.tenants?.some(t=>t.type==='family') ? 'পরিবার' : 'ব্যাচেলর', room.tenants?.[0]?.startDate || '-'])); } if (data.length === 0) { showToast('কোন ডেটা নেই', 'error'); return; } if (fmt === 'xlsx') { const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, title); XLSX.writeFile(wb, `${title}_${bName}_${dStr}.xlsx`); } else { const win = window.open('', '_blank'); win.document.write(`<html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; } h2 { text-align: center; margin-bottom: 5px; font-weight: 700; } p { text-align: center; margin-top: 0; margin-bottom: 20px; color: #555; font-weight: 600; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 11px; } th { background-color: #2563eb; color: #fff; font-weight: 700; } @media print { body { padding: 0; } }</style></head><body><h2>${title}</h2><p>বিল্ডিং: ${bName} | তলা: ${fName} | রুম: ${rName} | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`); win.document.close(); win.focus(); setTimeout(() => { win.print(); }, 500); } showToast('ডাউনলোড হচ্ছে...'); }
-function handleGlobalSearch(v) { const d = document.getElementById('searchDropdown'); if (!v.trim()) { d.style.display = 'none'; return; } const res = state.rooms.filter(r => roomMatchesSearch(v, r.number) || r.tenants?.some(t => t.name.toLowerCase().includes(v.toLowerCase())) || r.tenant?.name.toLowerCase().includes(v.toLowerCase())); d.innerHTML = res.length === 0 ? '<div class="search-item text-light">কোন ফলাফল নেই</div>' : res.map(r => { const bN = state.buildings.find(b => b.id === r.buildingId)?.name || ''; const tN = r.tenants?.map(t=>t.name).join(', ') || r.tenant?.name || 'খালি'; return `<div class="search-item" onclick="showRoomDetail('${r.id}'); document.getElementById('searchDropdown').style.display='none';"><strong>${escapeHtml(tN)}</strong><br><span class="text-sm">${escapeHtml(bN)} - রুম: ${escapeHtml(r.number)}</span></div>`; }).join(''); d.style.display = 'block'; }
-document.addEventListener('click', (e) => { if (!e.target.closest('.search-box')) document.getElementById('searchDropdown').style.display = 'none'; });
-document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target.id === 'modalOverlay') forceCloseModal(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
-function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
-function initApp() {
-    document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
-    if (typeof firebase === 'undefined' || !firebase.auth) { hideLoader(); document.getElementById('authContainer').style.display = 'flex'; showLoginView(); showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error"); return; }
-    firebase.auth().onAuthStateChanged(async (user) => {
-        try {
-            if (user) {
-                currentUser = { id: user.uid, email: user.email };
-                try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
-                document.getElementById('authContainer').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; resetIdleTimer();
-                
-                // লগইন করলে ফায়ারবেজ থেকে সরাসরি ডাটা লোড হবে (পার্মানেন্ট ডাটা)
-                state.buildings = await Store.getBuildings();
-                state.rooms = await Store.getRooms();
-                renderPage();
-            } else {
-                currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView();
-            }
-        } catch (error) { console.error("Initialization error:", error); document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); } 
-        finally { hideLoader(); }
-    });
-}
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
-</script>
-</body>
-</html>
+function handleGlobalSearch(v) { const d = document.getElementById('
