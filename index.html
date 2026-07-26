@@ -160,13 +160,20 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
 let db = null, useFirebase = false;
-try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth().Persistence.LOCAL).catch(err => console.warn("Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
+try { 
+    firebase.initializeApp(firebaseConfig); 
+    db = firebase.firestore(); 
+    // Firebase লোকাল ক্যাশ (IndexedDB) চালু করা হলো - এটি ডাটা দ্রুত আনবে
+    db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("Persistence error:", err));
+    useFirebase = true; 
+    firebase.auth().setPersistence(firebase.auth().Persistence.LOCAL).catch(err => console.warn("Auth Persistence error:", err)); 
+} catch(e) { console.warn("Firebase Error:", e); }
 
 const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.turso.io";
 const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODUwNTk4NzgsImlkIjoiMDE5ZDk1ZjctODcwMS03YTg1LWE5ZDMtMTZkMTQ5YTg2ZTM0Iiwia2lkIjoiSERvdFg3bzEwclVaY1lJdk1QMm9kUGxES051QjF0VmNDTTd1b3pDMUVjMCIsInJpZCI6IjYxNzk0NDk2LWFiNzctNGRjYy1hZGQ2LTQ4ODkwZjU5OGZhNiJ9.3YG3zvpa51WIQrm_VdV1xd02miBd7uoZ1x0Nfax7SIlTUnJsaAG-bmftZ0yy72Fsfedf-SF9uAWCuA1quzvRDw";
 
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
-let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null };
+let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: true };
 let modalStack = [];
 let buildingsUnsub = null, roomsUnsub = null;
 
@@ -269,11 +276,7 @@ function handleLogout() {
     clearTimeout(idleTimeout); 
     if (buildingsUnsub) { buildingsUnsub(); buildingsUnsub = null; }
     if (roomsUnsub) { roomsUnsub(); roomsUnsub = null; }
-    localStorage.removeItem('rms_buildings_cache');
-    localStorage.removeItem('rms_rooms_cache');
-    document.getElementById('loginPassword').value = ''; 
-    document.getElementById('loginIdentifier').value = ''; 
-    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null };
+    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: true };
     setBtnLoading('loginBtn', false); 
     firebase.auth().signOut(); 
 }
@@ -484,9 +487,13 @@ async function fetchFromTurso() {
         syncProgressBar.style.width = '90%';
         syncProgressText.innerText = '90% - ফায়ারবেজ আপডেট হচ্ছে...';
 
-        state.buildings = await Store.getBuildings();
-        state.rooms = await Store.getRooms();
-        renderPage();
+        // রিয়েল-টাইম লিসেনার চালু থাকলে ডাটা অটো আপডেট হবে, না থাকলে ম্যানুয়ালি আনবে
+        if (!buildingsUnsub) {
+            state.buildings = await Store.getBuildings();
+            state.rooms = await Store.getRooms();
+            state.isLoading = false;
+            renderPage();
+        }
         
         syncProgressBar.style.width = '100%';
         syncProgressText.innerText = '100% - সম্পূর্ণ!';
@@ -510,9 +517,12 @@ async function fetchFromTurso() {
         showToast(errMsg, "error");
         syncModal.style.display = 'none';
         
-        state.buildings = await Store.getBuildings();
-        state.rooms = await Store.getRooms();
-        renderPage();
+        if (!buildingsUnsub) {
+            state.buildings = await Store.getBuildings();
+            state.rooms = await Store.getRooms();
+            state.isLoading = false;
+            renderPage();
+        }
     }
 }
 
@@ -544,6 +554,13 @@ function renderPage() {
     else if (state.currentPage === 'troubleReport') { actionBtn.style.display = 'inline-flex'; actionBtn.textContent = '+ নতুন রিপোর্ট'; actionBtn.onclick = showAddReportModal; }
     else { actionBtn.style.display = 'none'; }
     const c = document.getElementById('pageContent');
+    
+    // লোডিং স্টেট চেক করা হচ্ছে
+    if (state.isLoading) {
+        c.innerHTML = `<div class="card"><div class="empty-state"><div class="spinner"><div></div><div></div><div></div><div></div></div><p>ডাটা লোড হচ্ছে...</p></div></div>`;
+        return;
+    }
+
     if (state.currentPage === 'dashboard') renderDashboard(c);
     else if (state.currentPage === 'templates') renderTemplates(c);
     else if (state.currentPage === 'download') renderDownload(c);
@@ -672,7 +689,7 @@ function hideLoader() { const loader = document.getElementById('loader'); if (lo
 
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
-    hideLoader(); // লোডার সাথে সাথে হাইড করা হবে
+    hideLoader();
 
     if (typeof firebase === 'undefined' || !firebase.auth) {
         hideLoader();
@@ -692,46 +709,17 @@ function initApp() {
             document.getElementById('appContainer').style.display = 'block'; 
             resetIdleTimer();
             
-            // ১. localStorage থেকে ক্যাশ করা ডাটা সাথে সাথে দেখান
-            try {
-                const cachedBuildings = localStorage.getItem('rms_buildings_cache');
-                const cachedRooms = localStorage.getItem('rms_rooms_cache');
-                if (cachedBuildings) {
-                    state.buildings = JSON.parse(cachedBuildings);
-                    state.rooms = cachedRooms ? JSON.parse(cachedRooms) : [];
-                    renderPage(); // ক্যাশ করা ডাটা সাথে সাথে দেখাবে
-                }
-            } catch(e) { console.warn("Cache load error:", e); }
+            // ডাটা লোড হওয়ার আগ পর্যন্ত লোডিং স্পিনার দেখানো হবে
+            state.isLoading = true;
+            renderPage();
             
-            // ২. প্যারালালে নতুন ডাটা আনুন
-            try {
-                const [buildings, rooms] = await Promise.all([
-                    Store.getBuildings(),
-                    Store.getRooms()
-                ]);
-                state.buildings = buildings;
-                state.rooms = rooms;
-                
-                // ক্যাশে সেভ করে রাখুন
-                localStorage.setItem('rms_buildings_cache', JSON.stringify(buildings));
-                localStorage.setItem('rms_rooms_cache', JSON.stringify(rooms));
-                
-                renderPage(); 
-            } catch (e) {
-                console.error("Firestore read error:", e);
-                if (state.buildings.length === 0) {
-                    state.buildings = [];
-                    state.rooms = [];
-                    renderPage();
-                }
-                showToast("Firebase থেকে ডাটা পড়তে সমস্যা: " + e.message, "error");
-            }
-            
-            // ৩. রিয়েল-টাইম লিসেনার চালু করুন (ডাটা পরিবর্তন হলে সাথে সাথে আপডেট হবে)
+            // রিয়েল-টাইম লিসেনার চালু করুন (এটি লোকাল ক্যাশ থেকে সাথে সাথে ডাটা নিয়ে আসবে)
             setupRealtimeListeners();
+            
+            // রিপোর্ট একবার লোড করে রাখা
+            state.reports = await Store.getReports();
         } else {
             currentUser = null;
-            // লগআউট হলে লিসেনার বন্ধ করুন
             if (buildingsUnsub) { buildingsUnsub(); buildingsUnsub = null; }
             if (roomsUnsub) { roomsUnsub(); roomsUnsub = null; }
             
@@ -742,22 +730,28 @@ function initApp() {
     });
 }
 
-// রিয়েল-টাইম লিসেনার সেটআপ
 function setupRealtimeListeners() {
-    // আগের লিসেনার বন্ধ করুন
     if (buildingsUnsub) buildingsUnsub();
     if (roomsUnsub) roomsUnsub();
     
     buildingsUnsub = db.collection('buildings').onSnapshot(snapshot => {
         state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        localStorage.setItem('rms_buildings_cache', JSON.stringify(state.buildings));
+        state.isLoading = false;
         renderPage();
+    }, error => {
+        console.error("Buildings listener error:", error);
+        state.isLoading = false;
+        showToast("বিল্ডিং ডাটা লোডে সমস্যা: " + error.message, "error");
     });
     
     roomsUnsub = db.collection('rooms').onSnapshot(snapshot => {
         state.rooms = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        localStorage.setItem('rms_rooms_cache', JSON.stringify(state.rooms));
+        state.isLoading = false;
         renderPage();
+    }, error => {
+        console.error("Rooms listener error:", error);
+        state.isLoading = false;
+        showToast("রুম ডাটা লোডে সমস্যা: " + error.message, "error");
     });
 }
 
