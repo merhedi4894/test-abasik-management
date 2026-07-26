@@ -50,7 +50,31 @@ function openModal(t,c,l=false,r=false){const m=document.getElementById('modalCo
 function closeModal(){if(modalStack.length>0){document.getElementById('modalContent').innerHTML=modalStack.pop();document.getElementById('modal').scrollTop=0}else{forceCloseModal()}}
 function forceCloseModal(){modalStack=[];const m=document.getElementById('modalOverlay');m.classList.remove('active');m.style.display='none';document.getElementById('modalContent').innerHTML=''}
 function showLoginView(){document.getElementById('loginView').style.display='block'}
-function handleLogin(){const i=document.getElementById('loginIdentifier').value.trim(),p=document.getElementById('loginPassword').value.trim();if(!i||!p){showToast('সব ফিল্ড পূরণ করুন','error');return}firebase.auth().signInWithEmailAndPassword(i.includes('@')?i:i,p).catch(e=>showToast(e.message,'error'))}
+function showSignupView(){document.getElementById('loginView').style.display='none';document.getElementById('signupView').style.display='block'}
+
+// লগইন ফাংশন ঠিক করা হলো (ইউজারনেম বা ইমেইল দুটোই কাজ করবে)
+async function handleLogin() {
+    const identifier = document.getElementById('loginIdentifier').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if (!identifier || !password) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; }
+    
+    let email = identifier;
+    try {
+        if (!identifier.includes('@')) {
+            const userSnapshot = await db.collection('users').where('username', '==', identifier).limit(1).get();
+            if (userSnapshot.empty) { showToast('ইউজারনেম খুঁজে পাওয়া যায়নি।', 'error'); return; }
+            email = userSnapshot.docs[0].data().email;
+        }
+        await firebase.auth().signInWithEmailAndPassword(email, password);
+    } catch(e) {
+        let msg = 'ত্রুটি: ' + e.message;
+        if(e.code === 'auth/user-not-found') msg = 'এই ইমেইল দিয়ে কোন অ্যাকাউন্ট নেই।';
+        else if(e.code === 'auth/wrong-password') msg = 'ভুল পাসওয়ার্ড।';
+        else if(e.code === 'auth/invalid-email') msg = 'সঠিক ইমেইল ফরম্যাট দিন।';
+        showToast(msg, 'error');
+    }
+}
+
 function handleLogout(){firebase.auth().signOut()}
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active')}
 
