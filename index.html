@@ -261,7 +261,6 @@ function handleLogout() {
 }
 
 const Store = {
-    // এখানে getBuildings বা getRooms এর আর দরকার নেই, কারণ onSnapshot লাইভ ভিউ দেখাচ্ছে
     async saveBuilding(b) { if (b.id) { await db.collection('buildings').doc(b.id).set(b, { merge: true }); return b; } else { const r = await db.collection('buildings').add({ name: b.name, floorCount: b.floorCount || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); return { id: r.id, name: b.name, floorCount: b.floorCount || 0 }; } },
     async deleteBuilding(id) { await db.collection('buildings').doc(id).delete(); const r = await db.collection('rooms').where('buildingId', '==', id).get(); const b = db.batch(); r.docs.forEach(d => b.delete(d.ref)); await b.commit(); },
     async saveRoom(r) { if (r.id) { await db.collection('rooms').doc(r.id).set(r, { merge: true }); return r; } else { const ref = await db.collection('rooms').add(r); return { id: ref.id, ...r }; } },
@@ -456,7 +455,24 @@ async function fetchFromTurso() {
 function normalizeRoomNumber(num) { if (!num) return ''; const l = String(num).toLowerCase().trim(); return (l.match(/[a-z\u0980-\u09ff]/g) || []).sort().join('') + (l.match(/[0-9]/g) || []).sort().join(''); }
 function roomMatchesSearch(s, n) { return normalizeRoomNumber(s) === normalizeRoomNumber(n); }
 function getConditionBadge(c) { const m = { 'ভাল':'badge-good', 'খারাপ':'badge-bad', 'আছে':'badge-exists', 'ভাঙ্গা':'badge-broken', 'নেই':'badge-bad', 'নতুন':'badge-new', 'পুরাতন':'badge-old' }; return `<span class="badge ${m[c] || 'badge-exists'}">${c}</span>`; }
-function formatDate(d) { if (!d) return '-'; const dt = new Date(d); if (isNaN(dt)) return d; return dt.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' }); }
+// 🟢 ফরম্যাট ডেট ফাংশন আপডেট করা হলো যাতে ফায়ারবেজ টাইমস্ট্যাম্প এবং স্ট্রিং দুটোই সাপোর্ট করে
+function formatDate(d) {
+    if (!d) return '-';
+    if (typeof d === 'object' && d !== null && d.seconds !== undefined) {
+        return new Date(d.seconds * 1000).toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    if (typeof d === 'string' && d.includes('T')) {
+        const dt = new Date(d);
+        if (!isNaN(dt)) return dt.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    if (typeof d === 'string' && d.length === 10 && d.includes('-')) {
+        const dt = new Date(d + 'T00:00:00'); 
+        if (!isNaN(dt)) return dt.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    const dt = new Date(d);
+    if (isNaN(dt)) return String(d);
+    return dt.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
+}
 function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function genId(p) { return (p || 'id') + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5); }
 function getConditionOptions(sel) { return `<option value="আছে" ${sel==='আছে'?'selected':''}>আছে</option><option value="ভাল" ${sel==='ভাল'?'selected':''}>ভাল</option><option value="খারাপ" ${sel==='খারাপ'?'selected':''}>খারাপ</option><option value="ভাঙ্গা" ${sel==='ভাঙ্গা'?'selected':''}>ভাঙ্গা</option><option value="নেই" ${sel==='নেই'?'selected':''}>নেই</option><option value="নতুন" ${sel==='নতুন'?'selected':''}>নতুন</option><option value="পুরাতন" ${sel==='পুরাতন'?'selected':''}>পুরাতন</option>`; }
@@ -562,7 +578,7 @@ function editRoom(rId) { const r = state.rooms.find(x => x.id === rId); openModa
 async function saveRoomEdit(rId) { const f = document.getElementById('efloor').value.trim(); const n = document.getElementById('enumber').value.trim(); if (!f || !n) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); r.floor = f; r.number = n; forceCloseModal(); renderPage(); try { await Store.saveRoom({ ...r, floor: f, number: n }); showToast('আপডেট হয়েছে'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); renderPage(); } }
 async function deleteRoom(rId) { checkPassword(() => { showConfirm('এই রুম ডিলিট হবে। নিশ্চিত?', async () => { state.rooms = state.rooms.filter(x => x.id !== rId); forceCloseModal(); renderPage(); try { await Store.deleteRoom(rId); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); renderPage(); } }); }); }
 function showAssignTenantModal(rId, isAddingMore = false) { tenantIndex = 1; occupantIndex = 1; const r = state.rooms.find(x => x.id === rId); const itemSnap = (r.items || []).map(i => `<div class="flex-between" style="padding:4px 0;border-bottom:1px solid var(--border)"><span class="text-sm">${escapeHtml(i.name)}</span><div class="flex gap-8"><input type="number" value="${i.quantity || 1}" id="sqty_${i.id}" style="width:50px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px"><select id="scon_${i.id}" style="width:auto;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px">${getConditionOptions(i.condition)}</select></div></div>`).join(''); openModal('নতুন ভাড়াটে যোগ করুন', `<div id="tFields">${getTenantFieldHtml(1)}</div><button class="btn btn-outline btn-sm mt-8" onclick="addTenantField()">+ আরেকজন ভাড়াটে</button><h4 class="mt-16 mb-16">🏠 রুম ব্যবহারকারী</h4><div id="oFields"></div><button class="btn btn-outline btn-sm mt-8" onclick="addOccupantField()">+ ব্যবহারকারী</button>${itemSnap ? `<div class="form-group mt-16"><label>মালামালের পরিমাণ ও অবস্থা</label>${itemSnap}</div>` : ''}<div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTenant('${rId}', ${isAddingMore})">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
-function getTenantFieldHtml(i) { return `<div class="tenant-card" id="t_${i}"><div class="flex-between mb-8"><strong>ভাড়াটে ${i}</strong>${i > 1 ? `<button class="btn-icon danger" onclick="document.getElementById('t_${i}').remove()">✖</button>` : ''}</div><div class="form-group"><label>নাম *</label><input type="text" class="t_name" placeholder="নাম"></div><div class="grid grid-2"><div class="form-group"><label>পদবী</label><input type="text" class="t_desig"></div><div class="form-group"><label>�োন</label><input type="text" class="t_phone"></div></div><div class="grid grid-2"><div class="form-group"><label>তারিখ *</label><input type="date" class="t_date" value="${new Date().toISOString().split('T')[0]}"></div><div class="form-group"><label>প্রকার</label><div class="flex gap-16 mt-8"><label class="flex gap-8"><input type="radio" name="t_type_${i}" value="bachelor" checked onchange="toggleFamilyInfo(${i})"> ব্যাচেলর</label><label class="flex gap-8"><input type="radio" name="t_type_${i}" value="family" onchange="toggleFamilyInfo(${i})"> পরিবার</label></div></div></div><div class="form-group t_fam_div" style="display:none;"><label>পরিবারের তথ্য</label><input type="text" class="t_fam_info"></div></div>`; }
+function getTenantFieldHtml(i) { return `<div class="tenant-card" id="t_${i}"><div class="flex-between mb-8"><strong>ভাড়াটে ${i}</strong>${i > 1 ? `<button class="btn-icon danger" onclick="document.getElementById('t_${i}').remove()">✖</button>` : ''}</div><div class="form-group"><label>নাম *</label><input type="text" class="t_name" placeholder="নাম"></div><div class="grid grid-2"><div class="form-group"><label>পদবী</label><input type="text" class="t_desig"></div><div class="form-group"><label>ফোন</label><input type="text" class="t_phone"></div></div><div class="grid grid-2"><div class="form-group"><label>তারিখ *</label><input type="date" class="t_date" value="${new Date().toISOString().split('T')[0]}"></div><div class="form-group"><label>প্রকার</label><div class="flex gap-16 mt-8"><label class="flex gap-8"><input type="radio" name="t_type_${i}" value="bachelor" checked onchange="toggleFamilyInfo(${i})"> ব্যাচেলর</label><label class="flex gap-8"><input type="radio" name="t_type_${i}" value="family" onchange="toggleFamilyInfo(${i})"> পরিবার</label></div></div></div><div class="form-group t_fam_div" style="display:none;"><label>পরিবারের তথ্য</label><input type="text" class="t_fam_info"></div></div>`; }
 function toggleFamilyInfo(i) { const isF = document.querySelector(`input[name="t_type_${i}"][value="family"]`).checked; document.querySelector(`#t_${i} .t_fam_div`).style.display = isF ? 'block' : 'none'; }
 function addTenantField() { tenantIndex++; document.getElementById('tFields').insertAdjacentHTML('beforeend', getTenantFieldHtml(tenantIndex)); }
 function addOccupantField() { occupantIndex++; document.getElementById('oFields').insertAdjacentHTML('beforeend', `<div class="tenant-card" id="o_${occupantIndex}" style="background:#eff6ff;border-color:#bfdbfe"><div class="flex-between mb-8"><strong>ব্যবহারকারী ${occupantIndex}</strong><button class="btn-icon danger" onclick="document.getElementById('o_${occupantIndex}').remove()">✖</button></div><div class="form-group"><label>নাম</label><input type="text" class="o_name"></div><div class="grid grid-2"><div class="form-group"><label>সম্পর্ক</label><input type="text" class="o_rel"></div><div class="form-group"><label>ফোন</label><input type="text" class="o_phone"></div></div></div>`); }
@@ -628,7 +644,6 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
 
-// 🔴 লাইভ ভিউ সিস্টেম: ফায়ারবেজ সার্ভারে ডাটা পরিবর্তন হলে সাথে সাথে স্ক্রিনে দেখাবে
 function setupRealtimeListeners() {
     if (buildingsUnsub) buildingsUnsub();
     if (roomsUnsub) roomsUnsub();
@@ -666,7 +681,7 @@ function initApp() {
     }
     
     firebase.auth().onAuthStateChanged(async (user) => {
-        hideLoader(); // লোডার সাথে সাথে হাইড করা হবে
+        hideLoader();
 
         if (user) {
             currentUser = { id: user.uid, email: user.email };
@@ -675,11 +690,9 @@ function initApp() {
             document.getElementById('appContainer').style.display = 'block'; 
             resetIdleTimer();
             
-            // লোডিং স্পিনার দেখাবে যতক্ষণ না প্রথম ডাটা আসছে
             state.isLoading = true;
             renderPage(); 
             
-            // লাইভ ভিউ চালু করা হলো
             setupRealtimeListeners();
         } else {
             currentUser = null;
