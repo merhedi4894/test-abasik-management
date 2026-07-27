@@ -188,7 +188,7 @@ function validateEmail(email) { const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; return 
 function validateMobile(mobile) { const re = /^(\+?880|0)1[3-9]\d{8}$/; return re.test(mobile); }
 
 async function handleSignup() {
-    const username = document.getElementById('signupUsername').value.trim(); const email = document.getElementById('signupEmail').value.trim(); const mobile = document.getElementById('signupMobile').value.trim(); const password = document.getElementById('signupPassword').value.trim();
+    const username = document.getElementById('signupUsername').value.trim().toLowerCase(); const email = document.getElementById('signupEmail').value.trim(); const mobile = document.getElementById('signupMobile').value.trim(); const password = document.getElementById('signupPassword').value.trim();
     if (!username || !email || !mobile || !password) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; }
     if (!validateEmail(email) || !validateMobile(mobile)) { showToast('সঠিক ইমেইল ও মোবাইল নম্বর দিন', 'error'); return; }
     if (password.length < 6) { showToast('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে', 'error'); return; }
@@ -206,13 +206,14 @@ async function handleSignup() {
 }
 
 async function handleLogin() {
-    const identifier = document.getElementById('loginIdentifier').value.trim();
+    const identifierInput = document.getElementById('loginIdentifier').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
-    if (!identifier || !password) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; }
+    if (!identifierInput || !password) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; }
     setBtnLoading('loginBtn', true);
-    let email = identifier;
+    let email = identifierInput;
     try {
-        if (!identifier.includes('@')) {
+        if (!identifierInput.includes('@')) {
+            const identifier = identifierInput.toLowerCase();
             const userSnapshot = await db.collection('users').where('username', '==', identifier).limit(1).get();
             if (userSnapshot.empty) { showToast('ইউজারনেম খুঁজে পাওয়া যায়নি।', 'error'); setBtnLoading('loginBtn', false); return; }
             email = userSnapshot.docs[0].data().email;
@@ -220,7 +221,7 @@ async function handleLogin() {
         await firebase.auth().signInWithEmailAndPassword(email, password);
         let savedUsers = [];
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
-        if (!savedUsers.includes(identifier)) { savedUsers.push(identifier); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
+        if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
     } catch(e) {
         let msg = 'ত্রুটি: ' + e.message;
         if(e.code === 'auth/user-not-found') msg = 'এই ইমেইল দিয়ে কোন অ্যাকাউন্ট নেই।';
@@ -231,12 +232,13 @@ async function handleLogin() {
 }
 
 async function handleForgotSend() {
-    let identifier = document.getElementById('forgotEmail').value.trim();
-    if (!identifier) { showToast('ইমেইল বা ইউজারনেম দিন', 'error'); return; }
+    let identifierInput = document.getElementById('forgotEmail').value.trim();
+    if (!identifierInput) { showToast('ইমেইল বা ইউজারনেম দিন', 'error'); return; }
     setBtnLoading('forgotBtn', true);
     try {
-        let email = identifier;
-        if (!identifier.includes('@')) {
+        let email = identifierInput;
+        if (!identifierInput.includes('@')) {
+            const identifier = identifierInput.toLowerCase();
             const userSnapshot = await db.collection('users').where('username', '==', identifier).limit(1).get();
             if (userSnapshot.empty) { showToast('এই ইউজারনেম বা ইমেইল খুঁজে পাওয়া যায়নি।', 'error'); setBtnLoading('forgotBtn', false); return; }
             email = userSnapshot.docs[0].data().email;
@@ -310,7 +312,15 @@ async function fetchFromTurso() {
                 return obj;
             });
         };
-        const getVal = (obj, ...keys) => { for(let k of keys) if(obj && obj[k] !== undefined) return obj[k]; return undefined; };
+        const getVal = (obj, ...keys) => { 
+            if (!obj) return undefined;
+            for(let k of keys) {
+                if(obj[k] !== undefined) return obj[k];
+                let foundKey = Object.keys(obj).find(key => key.toLowerCase() === k.toLowerCase());
+                if (foundKey) return obj[foundKey];
+            }
+            return undefined; 
+        };
         const getTbl = (name) => {
             const keys = Object.keys(tursoData);
             const found = keys.find(k => k.toLowerCase() === name.toLowerCase());
@@ -367,7 +377,6 @@ async function fetchFromTurso() {
         syncProgressBar.style.width = '40%';
         syncProgressText.innerText = '40% - ফায়ারবেজে চেক করা হচ্ছে...';
 
-        // ফায়ারবেজে আগে থেকে কী কী আছে তা বের করা হচ্ছে
         const fbBuildings = await db.collection('buildings').get();
         const fbRooms = await db.collection('rooms').get();
         const fbReports = await db.collection('reports').get();
@@ -397,47 +406,35 @@ async function fetchFromTurso() {
         const reportsData = getTbl('TroubleReport');
         const roomUsersData = getTbl('RoomUser');
         
-        const repairReplaceData = [];
-        for (const tbl of tableNames) {
-            let lt = tbl.toLowerCase();
-            if (lt.includes('repair') || lt.includes('replace') || lt.includes('history') || lt.includes('itemaction') || lt.includes('maintenance')) {
-                repairReplaceData.push(...tursoData[tbl]);
-            }
-        }
-        
+        const repairReplaceData = getTbl('InventoryRepairReplace') || [];
         const repairsByInventoryId = {};
         repairReplaceData.forEach(rr => {
-            const invId = String(getVal(rr, 'inventoryId', 'InventoryId', 'inventory_id', 'itemId', 'ItemId', 'item_id', 'InventoryID', 'inventoryID'));
+            const invId = String(getVal(rr, 'InventoryId', 'inventoryId'));
             if (!invId) return;
             if (!repairsByInventoryId[invId]) repairsByInventoryId[invId] = [];
             
-            let typeStr = String(getVal(rr, 'type', 'Type', 'repairType', 'actionType', 'action', 'Action')).toLowerCase();
+            let typeStr = String(getVal(rr, 'Type', 'type')).toLowerCase();
             let type = typeStr.includes('replace') ? 'Replace' : 'Repair';
-            
             let dateVal = undefined;
             for (let k in rr) {
                 let lk = k.toLowerCase();
                 if (['date', 'repairdate', 'replacedate', 'performeddate', 'actiondate', 'performedat', 'createdat', 'updatedat'].includes(lk)) {
-                    dateVal = rr[k];
-                    break;
+                    dateVal = rr[k]; break;
                 }
             }
             if (!dateVal) {
                 for (let k in rr) {
                     let lk = k.toLowerCase();
-                    if (lk.endsWith('at') || lk.includes('date') || lk.includes('time')) {
-                        dateVal = rr[k];
-                        break;
-                    }
+                    if (lk.endsWith('at') || lk.includes('date') || lk.includes('time')) { dateVal = rr[k]; break; }
                 }
             }
             
             repairsByInventoryId[invId].push({
                 type: type,
                 date: safeDate(dateVal),
-                note: getVal(rr, 'note', 'Note', 'description') || '',
-                condition: getVal(rr, 'condition', 'Condition') || 'ভাল',
-                quantity: getVal(rr, 'quantity', 'Quantity') || 1
+                note: getVal(rr, 'Note', 'note') || '',
+                condition: getVal(rr, 'Condition', 'condition') || 'ভাল',
+                quantity: getVal(rr, 'Quantity', 'quantity') || 1
             });
         });
 
@@ -459,15 +456,14 @@ async function fetchFromTurso() {
         };
 
         for (const b of buildingsData) {
-            const bId = String(getVal(b, 'id', 'Id', 'ID') || '');
+            const bId = String(getVal(b, 'Id', 'id') || '');
             if (!bId) continue;
-            
             if (!existingBuildings[bId]) {
-                const dataToSave = cleanData({ name: getVal(b, 'name', 'Name') || '', floorCount: getVal(b, 'totalFloors', 'TotalFloors', 'floorCount', 'FloorCount') || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                const dataToSave = cleanData({ name: getVal(b, 'Name', 'name') || '', floorCount: getVal(b, 'TotalFloors', 'FloorCount', 'floorCount') || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                 batch.set(db.collection('buildings').doc(bId), dataToSave, { merge: true });
-                const tpls = templatesData.filter(t => String(getVal(t, 'buildingId', 'BuildingId')) === bId);
+                const tpls = templatesData.filter(t => String(getVal(t, 'BuildingId', 'buildingId')) === bId);
                 if (tpls.length > 0) {
-                    const tplData = cleanData({ items: tpls.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'itemName', 'ItemName', 'name', 'Name') || '', quantity: getVal(t, 'quantity', 'Quantity') || 1 })) });
+                    const tplData = cleanData({ items: tpls.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'ItemName', 'Name', 'name') || '', quantity: getVal(t, 'Quantity', 'quantity') || 1 })) });
                     batch.set(db.collection('materialTemplates').doc(bId), tplData);
                 }
                 opsCount++; newCount++;
@@ -476,27 +472,27 @@ async function fetchFromTurso() {
         }
         
         for (const r of roomsData) {
-            const rId = String(getVal(r, 'id', 'Id', 'ID') || '');
+            const rId = String(getVal(r, 'Id', 'id') || '');
             if (!rId) continue;
-            const floor = floorsData.find(f => String(getVal(f, 'id', 'Id', 'ID')) === String(getVal(r, 'floorId', 'FloorId')));
-            const buildingId = floor ? String(getVal(floor, 'buildingId', 'BuildingId')) : null;
+            const floor = floorsData.find(f => String(getVal(f, 'Id', 'id')) === String(getVal(r, 'FloorId', 'floorId')));
+            const buildingId = floor ? String(getVal(floor, 'BuildingId', 'buildingId')) : null;
             if (!buildingId) continue;
 
-            const inventories = inventoryData.filter(inv => String(getVal(inv, 'roomId', 'RoomId')) === rId);
+            const inventories = inventoryData.filter(inv => String(getVal(inv, 'RoomId', 'roomId')) === rId);
             
             if (!existingRooms[rId]) {
-                const activeTenants = tenantsData.filter(t => String(getVal(t, 'roomId', 'RoomId')) === rId && getVal(t, 'isActive', 'IsActive'));
-                const prevTenants = tenantsData.filter(t => String(getVal(t, 'roomId', 'RoomId')) === rId && !getVal(t, 'isActive', 'IsActive'));
-                const occupants = roomUsersData.filter(u => String(getVal(u, 'roomId', 'RoomId')) === rId);
+                const activeTenants = tenantsData.filter(t => String(getVal(t, 'RoomId', 'roomId')) === rId && getVal(t, 'IsActive', 'isActive'));
+                const prevTenants = tenantsData.filter(t => String(getVal(t, 'RoomId', 'roomId')) === rId && !getVal(t, 'IsActive', 'isActive'));
+                const occupants = roomUsersData.filter(u => String(getVal(u, 'RoomId', 'roomId')) === rId);
                 
                 const mappedRoom = {
                     buildingId: buildingId,
-                    floor: floor ? String(getVal(floor, 'floorNumber', 'FloorNumber', 'floor', 'Floor')) : '1',
-                    number: getVal(r, 'roomNumber', 'RoomNumber', 'number', 'Number') || '',
-                    tenants: activeTenants.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'name', 'Name') || '', designation: getVal(t, 'designation', 'Designation') || '', phone: getVal(t, 'phone', 'Phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), type: 'bachelor', familyInfo: '' })),
-                    previousTenants: prevTenants.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'name', 'Name') || '', designation: getVal(t, 'designation', 'Designation') || '', phone: getVal(t, 'phone', 'Phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), endDate: safeDate(findKey(t, 'end', 'vacate')) })),
+                    floor: floor ? String(getVal(floor, 'FloorNumber', 'floorNumber', 'Floor', 'floor')) : '1',
+                    number: getVal(r, 'RoomNumber', 'Number', 'number') || '',
+                    tenants: activeTenants.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'Name', 'name') || '', designation: getVal(t, 'Designation', 'designation') || '', phone: getVal(t, 'Phone', 'phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), type: 'bachelor', familyInfo: '' })),
+                    previousTenants: prevTenants.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'Name', 'name') || '', designation: getVal(t, 'Designation', 'designation') || '', phone: getVal(t, 'Phone', 'phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), endDate: safeDate(findKey(t, 'end', 'vacate')) })),
                     items: inventories.map(inv => {
-                        const invId = String(getVal(inv, 'id', 'Id'));
+                        const invId = String(getVal(inv, 'Id', 'id'));
                         let history = repairsByInventoryId[invId] || [];
                         const directDates = extractDatesFromInv(inv);
                         
@@ -509,82 +505,45 @@ async function fetchFromTurso() {
                             const key = `${h.type}-${h.date}`;
                             if (!seen.has(key)) { seen.add(key); uniqueHistory.push(h); }
                         });
-                        uniqueHistory.sort((a, b) => new Date(a.date) - new Date(b.date()));
+                        uniqueHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
 
                         const lastRepair = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'repair').pop();
                         const lastReplace = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'replace').pop();
 
                         return { 
                             id: invId, 
-                            name: getVal(inv, 'itemName', 'ItemName', 'name', 'Name') || '', 
-                            quantity: getVal(inv, 'quantity', 'Quantity') || 1, 
-                            condition: getVal(inv, 'condition', 'Condition') || 'ভাল', 
+                            name: getVal(inv, 'ItemName', 'Name', 'name') || '', 
+                            quantity: getVal(inv, 'Quantity', 'quantity') || 1, 
+                            condition: getVal(inv, 'Condition', 'condition') || 'ভাল', 
                             lastRepairDate: lastRepair ? lastRepair.date : null, 
                             lastReplaceDate: lastReplace ? lastReplace.date : null, 
                             history: uniqueHistory 
                         };
                     }),
                     guests: [],
-                    occupants: occupants.map(u => ({ id: String(getVal(u, 'id', 'Id')), name: getVal(u, 'name', 'Name', 'userName', 'UserName') || '', relation: getVal(u, 'relation', 'Relation', 'userRelation', 'UserRelation') || '', phone: getVal(u, 'phone', 'Phone', 'userPhone', 'UserPhone') || '' }))
+                    occupants: occupants.map(u => ({ id: String(getVal(u, 'Id', 'id')), name: getVal(u, 'Name', 'UserName', 'name') || '', relation: getVal(u, 'Relation', 'UserRelation', 'relation') || '', phone: getVal(u, 'Phone', 'UserPhone', 'phone') || '' }))
                 };
                 batch.set(db.collection('rooms').doc(rId), cleanData(mappedRoom), { merge: true });
                 opsCount++; newCount++;
-            } else {
-                // রুম আগে থেকেই আছে, কিন্তু তারিখ না থাকলে শুধু তারিখ আপডেট করা হবে
-                const fbRoom = existingRooms[rId];
-                let needsUpdate = false;
-                const updatedItems = (fbRoom.items || []).map(fbItem => {
-                    const tursoInv = inventories.find(inv => String(getVal(inv, 'id', 'Id')) === fbItem.id);
-                    if (tursoInv) {
-                        const tursoDates = extractDatesFromInv(tursoInv);
-                        const tursoHistory = repairsByInventoryId[fbItem.id] || [];
-                        
-                        let history = [...(fbItem.history || [])];
-                        if (tursoDates.repairDate) history.push({ type: 'Repair', date: safeDate(tursoDates.repairDate), note: '', condition: 'ভাল', quantity: 1 });
-                        if (tursoDates.replaceDate) history.push({ type: 'Replace', date: safeDate(tursoDates.replaceDate), note: '', condition: 'ভাল', quantity: 1 });
-                        tursoHistory.forEach(h => history.push(h));
-
-                        const uniqueHistory = [];
-                        const seen = new Set();
-                        history.forEach(h => {
-                            const key = `${h.type}-${h.date}`;
-                            if (!seen.has(key)) { seen.add(key); uniqueHistory.push(h); }
-                        });
-                        uniqueHistory.sort((a, b) => new Date(a.date) - new Date(b.date()));
-
-                        const lastRepair = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'repair').pop();
-                        const lastReplace = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'replace').pop();
-
-                        if ((!fbItem.lastRepairDate && lastRepair) || (!fbItem.lastReplaceDate && lastReplace) || (fbItem.history || []).length < uniqueHistory.length) {
-                            needsUpdate = true;
-                            return { ...fbItem, lastRepairDate: lastRepair ? lastRepair.date : fbItem.lastRepairDate, lastReplaceDate: lastReplace ? lastReplace.date : fbItem.lastReplaceDate, history: uniqueHistory };
-                        }
-                    }
-                    return fbItem;
-                });
-                if (needsUpdate) {
-                    batch.set(db.collection('rooms').doc(rId), { items: cleanData(updatedItems) }, { merge: true });
-                    opsCount++; newCount++;
-                }
             }
             if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
 
         for (const rep of reportsData) {
-            const repId = String(getVal(rep, 'id', 'Id', 'ID') || '');
+            const repId = String(getVal(rep, 'Id', 'id') || '');
             if (!repId) continue;
             if (!existingReports[repId]) {
-                const room = roomsData.find(rm => String(getVal(rm, 'id', 'Id')) === String(getVal(rep, 'roomId', 'RoomId')));
-                const floor = room ? floorsData.find(f => String(getVal(f, 'id', 'Id')) === String(getVal(room, 'floorId', 'FloorId'))) : null;
-                const building = floor ? buildingsData.find(b => String(getVal(b, 'id', 'Id')) === String(getVal(floor, 'buildingId', 'BuildingId'))) : null;
+                const room = roomsData.find(rm => String(getVal(rm, 'Id', 'id')) === String(getVal(rep, 'RoomId', 'roomId')));
+                const floor = room ? floorsData.find(f => String(getVal(f, 'Id', 'id')) === String(getVal(room, 'FloorId', 'floorId'))) : null;
+                const building = floor ? buildingsData.find(b => String(getVal(b, 'Id', 'id')) === String(getVal(floor, 'BuildingId', 'buildingId'))) : null;
                 const reportData = {
-                    building: building ? getVal(building, 'name', 'Name') : 'Unknown',
-                    floor: floor ? String(getVal(floor, 'floorNumber', 'FloorNumber')) : '-',
-                    room: room ? getVal(room, 'roomNumber', 'RoomNumber') : '-',
-                    description: getVal(rep, 'description', 'Description') || '',
-                    reporter: getVal(rep, 'reportedBy', 'ReportedBy') || '',
-                    status: getVal(rep, 'status', 'Status') === "সমাধান হয়েছে" ? "resolved" : "pending",
-                    createdAt: { seconds: getVal(rep, 'reportedAt', 'ReportedAt') ? new Date(getVal(rep, 'reportedAt', 'ReportedAt')).getTime() / 1000 : Date.now() / 1000 }
+                    building: building ? getVal(building, 'Name', 'name') : 'Unknown',
+                    floor: floor ? String(getVal(floor, 'FloorNumber', 'floorNumber')) : '-',
+                    room: room ? getVal(room, 'RoomNumber', 'Number', 'number') : '-',
+                    description: getVal(rep, 'Description', 'description') || '',
+                    reporter: getVal(rep, 'ReportedBy', 'reportedBy') || '',
+                    status: getVal(rep, 'Status', 'status') === "সমাধান হয়েছে" ? "resolved" : "pending",
+                    createdAt: { seconds: getVal(rep, 'ReportedAt', 'reportedAt') ? new Date(getVal(rep, 'ReportedAt', 'reportedAt')).getTime() / 1000 : Date.now() / 1000 }
                 };
                 batch.set(db.collection('reports').doc(repId), cleanData(reportData), { merge: true });
                 opsCount++; newCount++;
@@ -828,7 +787,7 @@ function showAddReportModal() { openModal('নতুন ট্রাবল র�
 function loadRptFloors() { const bId = document.getElementById('rptBuilding').value; const b = state.buildings.find(x=>x.id===bId); const fS = document.getElementById('rptFloor'); fS.innerHTML = '-সিলেক্ট করুন-'; for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; document.getElementById('rptRoom').disabled = true; document.getElementById('rptRoom').innerHTML = '-সিলেক্ট করুন-'; }
 function loadRptRooms() { const bId = document.getElementById('rptBuilding').value; const fId = document.getElementById('rptFloor').value; const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); const rS = document.getElementById('rptRoom'); rS.innerHTML = '-সিলেক্ট করুন-'; rs.forEach(r=>rS.innerHTML += `<option value="${r.number}">${escapeHtml(r.number)}</option>`); rS.disabled = false; }
 async function saveReport() { const b = document.getElementById('rptBuilding').selectedOptions[0]?.text; const f = document.getElementById('rptFloor').value; const r = document.getElementById('rptRoom').value; const d = document.getElementById('rptDesc').value.trim(); const n = document.getElementById('rptName').value.trim(); if(!b || !f || !r || !d || !n) { showToast('সব তথ্য দিন', 'error'); return; } const newReport = { id: genId('rep'), building: b, floor: f, room: r, description: d, reporter: n, status: 'pending', createdAt: { seconds: Date.now()/1000 } }; state.reports.unshift(newReport); forceCloseModal(); renderPage(); try { await Store.saveReport(newReport); showToast('রিপোর্ট জমা হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
-async function editReport(id) { const r = state.reports.find(x=>x.id===id); openModal('রিপোর্ট এডিট', `<div class="form-group"><label>সমস্যার বিবরণ</label><textarea id="erDesc" rows=3>${escapeHtml(r.description)}</textarea></div><div class="form-group"><label>রিপোর্টকারীর নাম</label><input type="text" id="erName" value="${escapeHtml(r.reporter)}"></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveEditReport('${id}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
+async function editReport(id) { const r = state.reports.find(x=>x.id===id); openModal('রিপোর্ট এডিট', `<div class="form-group"><label>সমস্যার বিবরণ</label><textarea id="erDesc" rows="3">${escapeHtml(r.description)}</textarea></div><div class="form-group"><label>রিপোর্টকারীর নাম</label><input type="text" id="erName" value="${escapeHtml(r.reporter)}"></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveEditReport('${id}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveEditReport(id) { const r = state.reports.find(x=>x.id===id); r.description = document.getElementById('erDesc').value.trim(); r.reporter = document.getElementById('erName').value.trim(); forceCloseModal(); renderPage(); try { await Store.saveReport(r); showToast('আপডেট হয়েছে'); } catch(e) { renderPage(); showToast('আপডেট করতে সমস্যা', 'error'); } }
 async function resolveReport(id) { const r = state.reports.find(x=>x.id===id); r.status = 'resolved'; renderPage(); try { await Store.saveReport(r); showToast('সমাধান হিসেবে চিহ্নিত করা হয়েছে'); } catch(e) { r.status = 'pending'; renderPage(); showToast('আপডেট করতে সমস্যা', 'error'); } }
 async function deleteReport(id) { checkPassword(async () => { state.reports = state.reports.filter(r => r.id !== id); renderPage(); try { await Store.deleteReport(id); showToast('ডিলিট হয়েছে'); } catch(e) { renderPage(); showToast('ডিলিট করতে সমস্যা', 'error'); } }); }
