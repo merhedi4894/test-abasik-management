@@ -660,7 +660,7 @@ function renderPage() {
 }
 
 function renderDashboard(c) {
-    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><button class="btn btn-primary mt-16" onclick="fetchFromTurso()">Turso থেকে ডাটা আনুন</button></div></div>`; return; }
+    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><p class="text-sm text-light mt-8">প্রথমবার ব্যবহার করলে নিচের বাটনে ক্লিক করে ডাটা আনুন।</p><button class="btn btn-primary mt-16" onclick="fetchFromTurso()">Turso থেকে ডাটা আনুন</button></div></div>`; return; }
     const roomsByBuilding = {};
     state.rooms.forEach(r => {
         if (!roomsByBuilding[r.buildingId]) roomsByBuilding[r.buildingId] = [];
@@ -839,9 +839,9 @@ function initApp() {
             state.isLoading = true;
             renderPage(); // লোডিং স্পিনার দেখাবে
             
-            await user.getIdToken(true);
-            
             try {
+                await user.getIdToken(true); // টোকেন রিফ্রেশ (এখন এটি try ব্লকের ভেতরে আছে)
+                
                 const [buildings, rooms, reports] = await Promise.all([
                     fetchWithRetry('buildings'),
                     fetchWithRetry('rooms'),
@@ -853,7 +853,9 @@ function initApp() {
                 state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             } catch(e) {
                 let errMsg = "ডাটা লোডে সমস্যা: " + e.message;
-                if (e.code === 'permission-denied') errMsg = "Firebase Rules এ ডাটা পড়া বন্ধ! Rules ঠিক করুন।";
+                if (e.code === 'permission-denied') {
+                    errMsg = "Firebase Rules এ ডাটা পড়া বন্ধ! Firebase Console এ গিয়ে Rules এ `allow read, write: if request.auth != null;` দিন।";
+                }
                 showToast(errMsg, "error");
             } finally {
                 state.isLoading = false;
