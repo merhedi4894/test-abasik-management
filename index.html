@@ -153,7 +153,6 @@ const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOj
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
 let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
-let buildingsUnsub = null, roomsUnsub = null, reportsUnsub = null;
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -252,9 +251,6 @@ let idleTimeout;
 function resetIdleTimer() { clearTimeout(idleTimeout); if (firebase.auth().currentUser) { idleTimeout = setTimeout(() => { showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 300000); } }
 function handleLogout() { 
     clearTimeout(idleTimeout); 
-    if (buildingsUnsub) { buildingsUnsub(); buildingsUnsub = null; }
-    if (roomsUnsub) { roomsUnsub(); roomsUnsub = null; }
-    if (reportsUnsub) { reportsUnsub(); reportsUnsub = null; }
     state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     setBtnLoading('loginBtn', false); 
     firebase.auth().signOut(); 
@@ -408,8 +404,9 @@ async function fetchFromTurso() {
                 tenants: activeTenants.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'name', 'Name') || '', designation: getVal(t, 'designation', 'Designation') || '', phone: getVal(t, 'phone', 'Phone') || '', startDate: safeDate(getVal(t, 'startDate', 'StartDate')), type: 'bachelor', familyInfo: '' })),
                 previousTenants: prevTenants.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'name', 'Name') || '', designation: getVal(t, 'designation', 'Designation') || '', phone: getVal(t, 'phone', 'Phone') || '', startDate: safeDate(getVal(t, 'startDate', 'StartDate')), endDate: safeDate(getVal(t, 'endDate', 'EndDate')) })),
                 items: inventories.map(inv => {
-                    const rDate = safeDate(getVal(inv, 'lastRepairDate', 'LastRepairDate'));
-                    const repDate = safeDate(getVal(inv, 'lastReplaceDate', 'LastReplaceDate'));
+                    // 🟢 তারিখের ফিল্ডগুলো আরও নিখুঁতভাবে খুঁজে বের করার জন্য কি-ওয়ার্ড বাড়ানো হলো
+                    const rDate = safeDate(getVal(inv, 'lastRepairDate', 'LastRepairDate', 'repairDate', 'RepairDate', 'repair_date'));
+                    const repDate = safeDate(getVal(inv, 'lastReplaceDate', 'LastReplaceDate', 'replaceDate', 'ReplaceDate', 'replace_date'));
                     const history = [];
                     if (rDate) history.push({ type: 'Repair', date: rDate, note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
                     if (repDate) history.push({ type: 'Replace', date: repDate, note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
@@ -479,26 +476,28 @@ async function fetchFromTurso() {
 function normalizeRoomNumber(num) { if (!num) return ''; const l = String(num).toLowerCase().trim(); return (l.match(/[a-z\u0980-\u09ff]/g) || []).sort().join('') + (l.match(/[0-9]/g) || []).sort().join(''); }
 function roomMatchesSearch(s, n) { return normalizeRoomNumber(s) === normalizeRoomNumber(n); }
 function getConditionBadge(c) { const m = { 'ভাল':'badge-good', 'খারাপ':'badge-bad', 'আছে':'badge-exists', 'ভাঙ্গা':'badge-broken', 'নেই':'badge-bad', 'নতুন':'badge-new', 'পুরাতন':'badge-old' }; return `<span class="badge ${m[c] || 'badge-exists'}">${c}</span>`; }
+
+// 🟢 ১০০% ক্র্যাশ-প্রুফ বাংলা তারিখ ফরম্যাটার
 function formatDate(d) {
     if (!d) return '-';
+    let dateObj;
     if (typeof d === 'object' && d !== null && d.seconds !== undefined) {
-        return new Date(d.seconds * 1000).toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
+        dateObj = new Date(d.seconds * 1000);
+    } else if (typeof d === 'string' && d.length === 10 && d.includes('-')) {
+        dateObj = new Date(d + 'T00:00:00');
+    } else {
+        dateObj = new Date(d);
     }
-    if (typeof d === 'number') {
-        const dt = new Date(d);
-        if (!isNaN(dt)) return dt.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
-    }
-    if (typeof d === 'string' && d.includes('T')) {
-        const dt = new Date(d);
-        if (!isNaN(dt)) return dt.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
-    }
-    if (typeof d === 'string' && d.length === 10 && d.includes('-')) {
-        const dt = new Date(d + 'T00:00:00'); 
-        if (!isNaN(dt)) return dt.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
-    }
-    const dt = new Date(d);
-    if (isNaN(dt)) return String(d);
-    return dt.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
+    
+    if (isNaN(dateObj.getTime())) return String(d);
+    
+    const day = dateObj.getDate().toString().padStart(2, '0');
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const year = dateObj.getFullYear();
+    const engDate = `${day}/${month}/${year}`;
+    
+    const bengaliNumerals = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return engDate.replace(/[0-9]/g, (digit) => bengaliNumerals[digit]);
 }
 function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function genId(p) { return (p || 'id') + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5); }
@@ -671,31 +670,6 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
 
-function setupRealtimeListeners() {
-    if (buildingsUnsub) buildingsUnsub();
-    if (roomsUnsub) roomsUnsub();
-    if (reportsUnsub) reportsUnsub();
-    
-    buildingsUnsub = db.collection('buildings').onSnapshot(snapshot => {
-        state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.isLoading = false;
-        renderPage();
-    }, error => { console.error("Buildings listener error:", error); });
-    
-    roomsUnsub = db.collection('rooms').onSnapshot(snapshot => {
-        state.rooms = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.isLoading = false;
-        renderPage();
-    }, error => { console.error("Rooms listener error:", error); });
-    
-    reportsUnsub = db.collection('reports').onSnapshot(snapshot => {
-        state.reports = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        state.isLoading = false;
-        renderPage();
-    }, error => { console.error("Reports listener error:", error); });
-}
-
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
 
@@ -711,6 +685,9 @@ function initApp() {
         hideLoader();
 
         if (user) {
+            // 🟢 লগইনের সাথে সাথে টোকেন রিফ্রেশ করে ডাটাবেস পারমিশন একটিভ করা হলো
+            await user.getIdToken(true);
+            
             currentUser = { id: user.uid, email: user.email };
             try { const doc = await db.collection('users').doc(user.uid).get(); currentUser = { id: user.uid, ...(doc.exists ? doc.data() : { email: user.email, username: user.email.split('@')[0] }) }; } catch(e) { console.error("User fetch error:", e); }
             document.getElementById('authContainer').style.display = 'none'; 
@@ -737,19 +714,13 @@ function initApp() {
             } finally {
                 state.isLoading = false;
                 renderPage();
-                setupRealtimeListeners();
             }
         } else {
             currentUser = null;
-            if (buildingsUnsub) { buildingsUnsub(); buildingsUnsub = null; }
-            if (roomsUnsub) { roomsUnsub(); roomsUnsub = null; }
-            if (reportsUnsub) { reportsUnsub(); reportsUnsub = null; }
-            
             state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'flex';
             
-            // 🟢 লগআউট হওয়ার পর ইমেইল ও পাসওয়ার্ড ফিল্ড ফাঁকা করে দেওয়া হলো
             document.getElementById('loginIdentifier').value = '';
             document.getElementById('loginPassword').value = '';
             document.getElementById('forgotEmail').value = '';
