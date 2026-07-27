@@ -61,7 +61,8 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:2000;padding:0}.modal-overlay.active{display:flex}.modal{background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:92vh;overflow-y:auto;animation:slideUp .3s}.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}.modal-header h3{font-size:18px;font-weight:700}.modal-close{background:var(--bg);border:none;font-size:20px;cursor:pointer;color:var(--text-light);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .form-group{margin-bottom:14px}.form-group label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#f8fafc}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);background:#fff}
 .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}.badge-good{background:#dcfce7;color:#166534}.badge-bad{background:#fee2e2;color:#991b1b}.badge-exists{background:#e2e8f0;color:#475569}.badge-broken{background:#ffedd5;color:#9a3412}.badge-new{background:#dbeafe;color:#1e40af}.badge-old{background:#fef9c3;color:#854d0e}
-.date-repair{color:var(--danger);font-weight:600;font-size:10px;display:block;white-space:nowrap}.date-replace{color:#2563eb;font-weight:600;font-size:10px;display:block;white-space:nowrap}
+.date-repair{color:var(--danger);font-weight:700;font-size:10px;display:block;margin-bottom:2px;}
+.date-replace{color:#2563eb;font-weight:700;font-size:10px;display:block;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:30px;color:#fff;font-size:13px;z-index:4000;animation:fadeIn .3s;text-align:center;max-width:90%;box-shadow:0 4px 12px rgba(0,0,0,.2)}.toast.success{background:var(--success)}.toast.error{background:var(--danger)}.toast.info{background:var(--primary)}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}@keyframes fadeIn{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
 .tabs{display:flex;gap:8px;border-bottom:none;margin-bottom:16px;flex-wrap:nowrap;overflow-x:auto;background:#f1f5f9;padding:6px;border-radius:12px}.tab{padding:8px 14px;cursor:pointer;border:none;margin-bottom:0;font-size:13px;font-weight:600;color:var(--text-light);white-space:nowrap;flex:1;text-align:center;border-radius:8px;transition:all 0.2s}.tab:hover{background:#e2e8f0}.tab.active{color:#fff;background:var(--primary);box-shadow:0 2px 4px rgba(0,0,0,0.1)}
@@ -315,6 +316,7 @@ async function fetchFromTurso() {
             const found = keys.find(k => k.toLowerCase() === name.toLowerCase());
             return found ? tursoData[found] : [];
         };
+        
         // 🟢 স্মার্ট কি-ফাইন্ডার: যেকোনো নামের তারিখ ফিল্ড খুঁজে বের করবে
         const findKey = (obj, ...patterns) => {
             if (!obj) return undefined;
@@ -326,6 +328,26 @@ async function fetchFromTurso() {
             }
             return undefined;
         };
+
+        // 🟢 InventoryRepairReplace এর জন্য আরও শক্তিশালী ডেট ফাইন্ডার
+        const getRRDate = (obj) => {
+            if (!obj) return undefined;
+            const keys = Object.keys(obj);
+            for (let k of keys) {
+                let lk = k.toLowerCase();
+                if (lk === 'date' || lk === 'repairdate' || lk === 'replacedate' || lk === 'performeddate' || lk === 'actiondate' || lk === 'performedat') return obj[k];
+            }
+            for (let k of keys) {
+                let lk = k.toLowerCase();
+                if (lk.endsWith('at') || lk.includes('date')) return obj[k];
+            }
+            for (let k of keys) {
+                let lk = k.toLowerCase();
+                if (lk.includes('date') || lk.includes('repair') || lk.includes('replace') || lk.includes('action') || lk.includes('performed')) return obj[k];
+            }
+            return undefined;
+        };
+
         const safeDate = (val) => {
             if (val === null || val === undefined || val === '') return null;
             if (typeof val === 'string') {
@@ -393,15 +415,15 @@ async function fetchFromTurso() {
         const roomUsersData = getTbl('RoomUser');
         
         // 🟢 InventoryRepairReplace টেবিল থেকে রিপেয়ার/রিপ্লেস ডাটা আনা হচ্ছে
-        const repairReplaceData = getTbl('InventoryRepairReplace') || getTbl('InventoryRepair') || getTbl('RepairReplace') || [];
+        const repairReplaceData = getTbl('InventoryRepairReplace') || getTbl('InventoryRepair') || getTbl('RepairReplace') || getTbl('ItemHistory') || getTbl('RepairHistory') || [];
         const repairsByInventoryId = {};
         repairReplaceData.forEach(rr => {
-            const invId = String(getVal(rr, 'inventoryId', 'InventoryId', 'inventory_id', 'itemId', 'ItemId', 'item_id'));
+            const invId = String(getVal(rr, 'inventoryId', 'InventoryId', 'inventory_id', 'itemId', 'ItemId', 'item_id', 'InventoryID', 'inventoryID'));
             if (!invId) return;
             if (!repairsByInventoryId[invId]) repairsByInventoryId[invId] = [];
             repairsByInventoryId[invId].push({
-                type: (String(getVal(rr, 'type', 'Type', 'repairType', 'actionType')).toLowerCase().includes('replace') ? 'Replace' : 'Repair'),
-                date: safeDate(findKey(rr, 'date', 'performed', 'created', 'repair', 'replace', 'action')),
+                type: (String(getVal(rr, 'type', 'Type', 'repairType', 'actionType', 'action', 'Action')).toLowerCase().includes('replace') ? 'Replace' : 'Repair'),
+                date: safeDate(getRRDate(rr)),
                 note: getVal(rr, 'note', 'Note', 'description') || '',
                 condition: getVal(rr, 'condition', 'Condition') || 'ভাল',
                 quantity: getVal(rr, 'quantity', 'Quantity') || 1
@@ -416,9 +438,11 @@ async function fetchFromTurso() {
         const existingBuildingIds = new Set(fbBuildings.docs.map(d => d.id));
         const existingRoomIds = new Set(fbRooms.docs.map(d => d.id));
         const existingReportIds = new Set(fbReports.docs.map(d => d.id));
+        
+        // 🟢 বিল্ডিং আপডেট বা ইনসার্ট
         for (const b of buildingsData) {
             const bId = String(getVal(b, 'id', 'Id', 'ID') || '');
-            if (!bId || existingBuildingIds.has(bId)) continue;
+            if (!bId) continue; // এখানে existingBuildingIds স্কিপ করা হয়নি যাতে আপডেট হয়
             const dataToSave = cleanData({ name: getVal(b, 'name', 'Name') || '', floorCount: getVal(b, 'totalFloors', 'TotalFloors', 'floorCount', 'FloorCount') || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
             batch.set(db.collection('buildings').doc(bId), dataToSave, { merge: true });
             const tpls = templatesData.filter(t => String(getVal(t, 'buildingId', 'BuildingId')) === bId);
@@ -429,9 +453,11 @@ async function fetchFromTurso() {
             opsCount++;
             if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
+        
+        // 🟢 রুম আপডেট বা ইনসার্ট
         for (const r of roomsData) {
             const rId = String(getVal(r, 'id', 'Id', 'ID') || '');
-            if (!rId || existingRoomIds.has(rId)) continue;
+            if (!rId) continue; // এখানে existingRoomIds স্কিপ করা হয়নি যাতে রিপেয়ার ডাটা আপডেট হয়
             const floor = floorsData.find(f => String(getVal(f, 'id', 'Id', 'ID')) === String(getVal(r, 'floorId', 'FloorId')));
             const buildingId = floor ? String(getVal(floor, 'buildingId', 'BuildingId')) : null;
             if (!buildingId) continue;
@@ -449,11 +475,12 @@ async function fetchFromTurso() {
                     const invId = String(getVal(inv, 'id', 'Id'));
                     let history = repairsByInventoryId[invId] || [];
                     
-                    if (getVal(inv, 'lastRepairDate', 'LastRepairDate')) {
-                        history.push({ type: 'Repair', date: safeDate(getVal(inv, 'lastRepairDate', 'LastRepairDate')), note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
+                    // 🟢 Inventory টেবিলে সরাসরি তারিখ থাকলে সেটি হিস্ট্রিতে যুক্ত করা
+                    if (getVal(inv, 'lastRepairDate', 'LastRepairDate', 'repairDate', 'RepairDate', 'repairedAt', 'RepairedAt', 'last_repair_date')) {
+                        history.push({ type: 'Repair', date: safeDate(getVal(inv, 'lastRepairDate', 'LastRepairDate', 'repairDate', 'RepairDate', 'repairedAt', 'RepairedAt', 'last_repair_date')), note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
                     }
-                    if (getVal(inv, 'lastReplaceDate', 'LastReplaceDate')) {
-                        history.push({ type: 'Replace', date: safeDate(getVal(inv, 'lastReplaceDate', 'LastReplaceDate')), note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
+                    if (getVal(inv, 'lastReplaceDate', 'LastReplaceDate', 'replaceDate', 'ReplaceDate', 'replacedAt', 'ReplacedAt', 'last_replace_date')) {
+                        history.push({ type: 'Replace', date: safeDate(getVal(inv, 'lastReplaceDate', 'LastReplaceDate', 'replaceDate', 'ReplaceDate', 'replacedAt', 'ReplacedAt', 'last_replace_date')), note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
                     }
                     
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -480,7 +507,7 @@ async function fetchFromTurso() {
         }
         for (const rep of reportsData) {
             const repId = String(getVal(rep, 'id', 'Id', 'ID') || '');
-            if (!repId || existingReportIds.has(repId)) continue;
+            if (!repId) continue; // আপডেটের জন্য স্কিপ করা হয়নি
             const room = roomsData.find(rm => String(getVal(rm, 'id', 'Id')) === String(getVal(rep, 'roomId', 'RoomId')));
             const floor = room ? floorsData.find(f => String(getVal(f, 'id', 'Id')) === String(getVal(room, 'floorId', 'FloorId'))) : null;
             const building = floor ? buildingsData.find(b => String(getVal(b, 'id', 'Id')) === String(getVal(floor, 'buildingId', 'BuildingId'))) : null;
@@ -517,7 +544,7 @@ async function fetchFromTurso() {
         setTimeout(() => {
             syncModal.style.display = 'none';
             if(newCount === 0) { showToast(`Turso-তে নতুন কোনো ডাটা নেই।`, "info"); } 
-            else { showToast(`🎉 সফল! ${newCount} টি নতুন ডাটা সেভ হয়েছে।`, "success"); }
+            else { showToast(`🎉 সফল! ${newCount} টি ডাটা সেভ হয়েছে।`, "success"); }
         }, 500);
     } catch (error) {
         console.error("Fetch/Sync Error:", error);
