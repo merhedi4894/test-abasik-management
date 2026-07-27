@@ -449,7 +449,6 @@ async function fetchFromTurso() {
                     const invId = String(getVal(inv, 'id', 'Id'));
                     let history = repairsByInventoryId[invId] || [];
                     
-                    // যদি Inventory টেবিলেই তারিখ থাকে, সেটাও যুক্ত করা
                     if (getVal(inv, 'lastRepairDate', 'LastRepairDate')) {
                         history.push({ type: 'Repair', date: safeDate(getVal(inv, 'lastRepairDate', 'LastRepairDate')), note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
                     }
@@ -457,7 +456,6 @@ async function fetchFromTurso() {
                         history.push({ type: 'Replace', date: safeDate(getVal(inv, 'lastReplaceDate', 'LastReplaceDate')), note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
                     }
                     
-                    // তারিখ অনুযায়ী সর্ট করা
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
 
                     const lastRepair = history.filter(h => h.type === 'Repair').pop();
@@ -739,6 +737,20 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
 
+// 🟢 অটো-রিট্রাই ফাংশন: পারমিশন এরর হলে ১ সেকেন্ড পর আবার চেষ্টা করবে
+const fetchWithRetry = async (collectionName, retries = 3) => {
+    try {
+        const snap = await db.collection(collectionName).get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (e) {
+        if (retries > 0 && (e.code === 'permission-denied' || e.message.includes('permission-denied'))) {
+            await new Promise(r => setTimeout(r, 1000));
+            return fetchWithRetry(collectionName, retries - 1);
+        }
+        throw e;
+    }
+};
+
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
 
@@ -761,23 +773,18 @@ function initApp() {
             state.isLoading = true;
             renderPage(); // Show spinner immediately
             
-            // 🟢 লগইনের সাথে সাথে টোকেন রিফ্রেশ করে ডাটাবেস পারমিশন একটিভ করা হলো
             await user.getIdToken(true);
-            
-            // 🟢 ফায়ারবেজ সার্ভারকে ৫০০ মিলিসেকেন্ড সময় দেওয়া হলো যাতে নতুন ইউজারের পারমিশন সম্পূর্ণ রেডি হয়
-            // এটি লগইন করার পর রিফ্রেশ না দিয়েই সরাসরি ডাটা আনার জন্য সবচেয়ে গুরুত্বপূর্ণ অংশ
-            await new Promise(r => setTimeout(r, 500));
             
             // 🟢 সরাসরি ফায়ারবেজ থেকে নতুন ডাটা আনুন (কোনো ক্যাশ নেই)
             try {
-                const [bSnap, rSnap, repSnap] = await Promise.all([
-                    db.collection('buildings').get(),
-                    db.collection('rooms').get(),
-                    db.collection('reports').get()
+                const [buildings, rooms, reports] = await Promise.all([
+                    fetchWithRetry('buildings'),
+                    fetchWithRetry('rooms'),
+                    fetchWithRetry('reports')
                 ]);
-                state.buildings = bSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                state.rooms = rSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                state.reports = repSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                state.buildings = buildings;
+                state.rooms = rooms;
+                state.reports = reports;
                 state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             } catch(e) {
                 let errMsg = "ডাটা লোডে সমস্যা: " + e.message;
