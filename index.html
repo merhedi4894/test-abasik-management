@@ -251,7 +251,7 @@ let idleTimeout;
 function resetIdleTimer() { clearTimeout(idleTimeout); if (firebase.auth().currentUser) { idleTimeout = setTimeout(() => { showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 300000); } }
 function handleLogout() { 
     clearTimeout(idleTimeout); 
-    localStorage.removeItem('rms_app_cache');
+    // ক্যাশ ক্লিয়ার করার দরকার নেই কারণ আমরা ক্যাশ ব্যবহার করছি না
     state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     setBtnLoading('loginBtn', false); 
     firebase.auth().signOut(); 
@@ -315,6 +315,16 @@ async function fetchFromTurso() {
             const keys = Object.keys(tursoData);
             const found = keys.find(k => k.toLowerCase() === name.toLowerCase());
             return found ? tursoData[found] : [];
+        };
+        const findKey = (obj, ...patterns) => {
+            if (!obj) return undefined;
+            for (let key in obj) {
+                const lowerKey = key.toLowerCase();
+                for (let p of patterns) {
+                    if (lowerKey.includes(p)) return obj[key];
+                }
+            }
+            return undefined;
         };
         const safeDate = (val) => {
             if (val === null || val === undefined || val === '') return null;
@@ -381,6 +391,23 @@ async function fetchFromTurso() {
         const templatesData = getTbl('BelongingTemplate');
         const reportsData = getTbl('TroubleReport');
         const roomUsersData = getTbl('RoomUser');
+        
+        // 🟢 InventoryRepairReplace টেবিল থেকে রিপেয়ার/রিপ্লেস ডাটা আনা হচ্ছে
+        const repairReplaceData = getTbl('InventoryRepairReplace') || getTbl('InventoryRepair') || getTbl('RepairReplace') || [];
+        const repairsByInventoryId = {};
+        repairReplaceData.forEach(rr => {
+            const invId = String(getVal(rr, 'inventoryId', 'InventoryId', 'itemId', 'ItemId'));
+            if (!invId) return;
+            if (!repairsByInventoryId[invId]) repairsByInventoryId[invId] = [];
+            repairsByInventoryId[invId].push({
+                type: (getVal(rr, 'type', 'Type', 'repairType', 'actionType') || '').toLowerCase().includes('replace') ? 'Replace' : 'Repair',
+                date: safeDate(findKey(rr, 'date', 'performed', 'created')),
+                note: getVal(rr, 'note', 'Note', 'description') || '',
+                condition: getVal(rr, 'condition', 'Condition') || 'ভাল',
+                quantity: getVal(rr, 'quantity', 'Quantity') || 1
+            });
+        });
+        
         syncProgressBar.style.width = '70%';
         syncProgressText.innerText = '70% - রুম ম্যাপ করা হচ্ছে...';
         const fbBuildings = await db.collection('buildings').get();
@@ -416,15 +443,35 @@ async function fetchFromTurso() {
                 buildingId: buildingId,
                 floor: floor ? String(getVal(floor, 'floorNumber', 'FloorNumber', 'floor', 'Floor')) : '1',
                 number: getVal(r, 'roomNumber', 'RoomNumber', 'number', 'Number') || '',
-                tenants: activeTenants.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'name', 'Name') || '', designation: getVal(t, 'designation', 'Designation') || '', phone: getVal(t, 'phone', 'Phone') || '', startDate: safeDate(getVal(t, 'startDate', 'StartDate')), type: 'bachelor', familyInfo: '' })),
-                previousTenants: prevTenants.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'name', 'Name') || '', designation: getVal(t, 'designation', 'Designation') || '', phone: getVal(t, 'phone', 'Phone') || '', startDate: safeDate(getVal(t, 'startDate', 'StartDate')), endDate: safeDate(getVal(t, 'endDate', 'EndDate')) })),
+                tenants: activeTenants.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'name', 'Name') || '', designation: getVal(t, 'designation', 'Designation') || '', phone: getVal(t, 'phone', 'Phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), type: 'bachelor', familyInfo: '' })),
+                previousTenants: prevTenants.map(t => ({ id: String(getVal(t, 'id', 'Id')), name: getVal(t, 'name', 'Name') || '', designation: getVal(t, 'designation', 'Designation') || '', phone: getVal(t, 'phone', 'Phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), endDate: safeDate(findKey(t, 'end', 'vacate')) })),
                 items: inventories.map(inv => {
-                    const rDate = safeDate(getVal(inv, 'lastRepairDate', 'LastRepairDate', 'repairDate', 'RepairDate', 'repair_date', 'last_repair', 'repairedAt', 'RepairedAt'));
-                    const repDate = safeDate(getVal(inv, 'lastReplaceDate', 'LastReplaceDate', 'replaceDate', 'ReplaceDate', 'replace_date', 'last_replace', 'replacedAt', 'ReplacedAt'));
-                    const history = [];
-                    if (rDate) history.push({ type: 'Repair', date: rDate, note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
-                    if (repDate) history.push({ type: 'Replace', date: repDate, note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
-                    return { id: String(getVal(inv, 'id', 'Id')), name: getVal(inv, 'itemName', 'ItemName', 'name', 'Name') || '', quantity: getVal(inv, 'quantity', 'Quantity') || 1, condition: getVal(inv, 'condition', 'Condition') || 'ভাল', lastRepairDate: rDate, lastReplaceDate: repDate, history: history };
+                    const invId = String(getVal(inv, 'id', 'Id'));
+                    let history = repairsByInventoryId[invId] || [];
+                    
+                    // যদি Inventory টেবিলেই তারিখ থাকে, সেটাও যুক্ত করা
+                    if (getVal(inv, 'lastRepairDate', 'LastRepairDate')) {
+                        history.push({ type: 'Repair', date: safeDate(getVal(inv, 'lastRepairDate', 'LastRepairDate')), note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
+                    }
+                    if (getVal(inv, 'lastReplaceDate', 'LastReplaceDate')) {
+                        history.push({ type: 'Replace', date: safeDate(getVal(inv, 'lastReplaceDate', 'LastReplaceDate')), note: getVal(inv, 'note', 'Note') || '', condition: getVal(inv, 'condition', 'Condition') || 'ভাল', quantity: getVal(inv, 'quantity', 'Quantity') || 1 });
+                    }
+                    
+                    // তারিখ অনুযায়ী সর্ট করা
+                    history.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                    const lastRepair = history.filter(h => h.type === 'Repair').pop();
+                    const lastReplace = history.filter(h => h.type === 'Replace').pop();
+
+                    return { 
+                        id: invId, 
+                        name: getVal(inv, 'itemName', 'ItemName', 'name', 'Name') || '', 
+                        quantity: getVal(inv, 'quantity', 'Quantity') || 1, 
+                        condition: getVal(inv, 'condition', 'Condition') || 'ভাল', 
+                        lastRepairDate: lastRepair ? lastRepair.date : null, 
+                        lastReplaceDate: lastReplace ? lastReplace.date : null, 
+                        history: history 
+                    };
                 }),
                 guests: [],
                 occupants: occupants.map(u => ({ id: String(getVal(u, 'id', 'Id')), name: getVal(u, 'name', 'Name', 'userName', 'UserName') || '', relation: getVal(u, 'relation', 'Relation', 'userRelation', 'UserRelation') || '', phone: getVal(u, 'phone', 'Phone', 'userPhone', 'UserPhone') || '' }))
@@ -455,6 +502,8 @@ async function fetchFromTurso() {
         if (opsCount > 0) await commitBatch();
         syncProgressBar.style.width = '90%';
         syncProgressText.innerText = '90% - ডাটা রিফ্রেশ করা হচ্ছে...';
+        
+        // 🟢 ফায়ারবেজ থেকে সরাসরি নতুন ডাটা আনা হচ্ছে
         const [bSnap, rSnap, repSnap] = await Promise.all([
             db.collection('buildings').get(),
             db.collection('rooms').get(),
@@ -464,12 +513,6 @@ async function fetchFromTurso() {
         state.rooms = rSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         state.reports = repSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        
-        localStorage.setItem('rms_app_cache', JSON.stringify({
-            buildings: state.buildings,
-            rooms: state.rooms,
-            reports: state.reports
-        }));
         
         renderPage();
         syncProgressBar.style.width = '100%';
@@ -501,38 +544,23 @@ function getConditionBadge(c) { const m = { 'ভাল':'badge-good', 'খার
 // 🟢 ১০০% ক্র্যাশ-প্রুফ এবং নিশ্চিত বাংলা তারিখ ফরম্যাটার
 function formatDate(d) {
     if (!d) return '-';
-    
     try {
         let dateObj;
         if (typeof d === 'string') {
             if (d.length === 10 && d.includes('-')) {
                  const parts = d.split('-');
-                 const day = parts[2].padStart(2, '0');
-                 const month = parts[1].padStart(2, '0');
-                 const year = parts[0];
-                 return convertToBengali(`${day}/${month}/${year}`);
+                 return convertToBengali(`${parts[2].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[0]}`);
             }
             dateObj = new Date(d);
-        } else if (typeof d === 'object' && d !== null) {
-            if (d.seconds !== undefined) {
-                dateObj = new Date(d.seconds * 1000);
-            } else if (d.toDate) { 
-                dateObj = d.toDate();
-            } else {
-                dateObj = new Date(d);
-            }
+        } else if (typeof d === 'object' && d !== null && d.seconds !== undefined) {
+            dateObj = new Date(d.seconds * 1000);
         } else if (typeof d === 'number') {
             dateObj = new Date(d > 100000000000 ? d : d * 1000);
         } else {
             dateObj = new Date(d);
         }
-        
         if (isNaN(dateObj.getTime())) return String(d);
-        
-        const day = dateObj.getDate().toString().padStart(2, '0');
-        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-        const year = dateObj.getFullYear();
-        return convertToBengali(`${day}/${month}/${year}`);
+        return convertToBengali(`${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`);
     } catch (e) {
         return String(d);
     }
@@ -735,22 +763,10 @@ function initApp() {
             state.isLoading = true;
             renderPage(); // Show spinner immediately
             
-            // 🟢 500ms delay to ensure Firebase Auth token is fully propagated to Firestore
-            await new Promise(r => setTimeout(r, 500));
+            // 🟢 লগইনের সাথে সাথে টোকেন রিফ্রেশ করে ডাটাবেস পারমিশন একটিভ করা হলো
+            await user.getIdToken(true);
             
-            // Also load from cache immediately while we wait for Firebase
-            const cachedState = localStorage.getItem('rms_app_cache');
-            if (cachedState) {
-                try {
-                    const parsed = JSON.parse(cachedState);
-                    state.buildings = parsed.buildings || [];
-                    state.rooms = parsed.rooms || [];
-                    state.reports = parsed.reports || [];
-                    state.isLoading = false;
-                    renderPage(); // Show cached data immediately
-                } catch(e) {}
-            }
-            
+            // 🟢 সরাসরি ফায়ারবেজ থেকে নতুন ডাটা আনুন (কোনো ক্যাশ নেই)
             try {
                 const [bSnap, rSnap, repSnap] = await Promise.all([
                     db.collection('buildings').get(),
@@ -761,13 +777,6 @@ function initApp() {
                 state.rooms = rSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                 state.reports = repSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                 state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                
-                // Save to local storage
-                localStorage.setItem('rms_app_cache', JSON.stringify({
-                    buildings: state.buildings,
-                    rooms: state.rooms,
-                    reports: state.reports
-                }));
             } catch(e) {
                 let errMsg = "ডাটা লোডে সমস্যা: " + e.message;
                 if (e.code === 'permission-denied') errMsg = "Firebase Rules এ ডাটা পড়া বন্ধ! Rules ঠিক করুন।";
@@ -778,7 +787,6 @@ function initApp() {
             }
         } else {
             currentUser = null;
-            localStorage.removeItem('rms_app_cache');
             state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'flex';
