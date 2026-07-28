@@ -158,10 +158,30 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 <div class="modal-overlay" id="customAlertOverlay" style="z-index:3000"></div>
 <div id="toastContainer"></div>
 
+<!-- 🟢 ফায়ারবেজ লোড হওয়ার আগেই UI দেখানোর লজিক -->
+<script>
+    (function() {
+        var isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
+        var loader = document.getElementById('loader');
+        var auth = document.getElementById('authContainer');
+        var app = document.getElementById('appContainer');
+        
+        if (isLogged) {
+            // রিফ্রেশ দিলে লগইন পেজ না দেখিয়ে সরাসরি হোম পেজের জন্য অপেক্ষা করবে
+            if (auth) auth.style.display = 'none';
+            if (app) app.style.display = 'block';
+        } else {
+            // নতুন ট্যাব বা ব্রাউজারে সাথে সাথে লগইন পেজ দেখাবে
+            if (loader) loader.style.display = 'none';
+            if (auth) auth.style.display = 'flex';
+            if (app) app.style.display = 'none';
+        }
+    })();
+</script>
+
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
 let db = null, useFirebase = false;
-// 🟢 Persistence.SESSION: ব্রাউজার বা ট্যাব বন্ধ করলে লগআউট হবে, কিন্তু রিফ্রেশ দিলে লগইন থাকবে।
 try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth().Persistence.SESSION).catch(err => console.warn("Auth Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
 const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.turso.io";
@@ -241,6 +261,7 @@ async function handleLogin() {
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
         
         await loadAppData(userCredential.user);
+        sessionStorage.setItem('rms_is_logged_in', 'true'); // রিফ্রেশ দিলে লগইন থাকার জন্য
         setBtnLoading('loginBtn', false);
     } catch(e) {
         let msg = 'ত্রুটি: ' + e.message;
@@ -294,6 +315,7 @@ async function loadAppData(user) {
     const hasCache = loadStateFromCache();
     state.isLoading = !hasCache; 
     renderPage(); 
+    hideLoader(); // ডাটা লোড হলে স্পিনার হাইড করা হলো
     
     try {
         await user.getIdToken(true);
@@ -362,8 +384,8 @@ function handleLogout() {
     if (unsubBuildings) unsubBuildings();
     if (unsubRooms) unsubRooms();
     if (unsubReports) unsubReports();
+    sessionStorage.removeItem('rms_is_logged_in'); // লগআউট হলে সেশন ক্লিয়ার করা হলো
     state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
-    // 🟢 লগআউট করলে লগইন ফিল্ড ফাঁকা করে দেওয়া হলো
     document.getElementById('loginIdentifier').value = '';
     document.getElementById('loginPassword').value = '';
     document.getElementById('forgotEmail').value = '';
@@ -816,7 +838,6 @@ function showRoomDetail(rId, activeTab = 'tenant', replace = false) {
     const getCard = (t, isOcc = false, isPrev = false) => { let bodyContent = isOcc ? `<p>সম্পর্ক: ${escapeHtml(t.relation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p>` : `<p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p><p>📅 বরাদ্ক: ${formatDate(t.startDate)}</p>${t.endDate ? `<p>📅 ছাড়া: ${formatDate(t.endDate)}</p>` : ''}${t.type === 'family' ? `<p><strong>পরিবার:</strong> ${escapeHtml(t.familyInfo || '-')}</p>` : ''}`; let actions = ''; if (isPrev) actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div>`; else if (isOcc) actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editOccupantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteOccupant('${rId}','${t.id}')">${delIcon}</button></div>`; else actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editSpecificTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteSpecificTenant('${rId}','${t.id}')">${delIcon}</button></div>`; return `<div class="expandable-3d-card ${isOcc ? 'occupant' : ''}" onclick="toggleCard(event, this)"><div class="card-header"><span>${isOcc ? '🏠' : (t.type === 'family' ? '👪' : '👤')} <strong>${escapeHtml(t.name)}</strong></span><span class="text-sm">বিস্তারিত ▼</span></div><div class="card-body">${bodyContent}${actions}</div></div>`; };
     let tHtml = `<div class="flex-between mb-16"><h4 style="margin:0; font-size:15px;">👤 বরাদ্দ পাওয়া ব্যক্তি</h4><button class="btn btn-primary btn-sm" onclick="showAssignTenantModal('${rId}', true)">+ যোগ</button></div>`;
     if (tArr.length === 0) tHtml = `<div class="card" style="text-align:center;border:1px dashed var(--border)"><p style="font-size:32px">🚪</p><p class="text-light">রুম খালি আছে</p><button class="btn btn-primary mt-16" onclick="showAssignTenantModal('${rId}', false)">+ নতুন ভাড়াটে</button></div>`;
-    // 🟢 এক কলামে তালিকা দেখানোর জন্য `grid gap-12` ব্যবহার করা হয়েছে
     if (tArr.length > 0) { tHtml += `<div class="grid gap-12">${tArr.map(t => getCard(t, false)).join('')}</div>`; tHtml += `<div class="flex gap-8 mt-16"><button class="btn btn-danger btn-sm" onclick="showVacateModal('${rId}')">📤 রুম ছাড়ুন</button></div>`; }
     let oHtml = `<div class="flex-between mt-16 mb-16"><h4 style="margin:0; font-size:15px;">🏠 ব্যবহারকারী</h4><button class="btn btn-primary btn-sm" onclick="addOccupantModal('${rId}')">+ যোগ</button></div>`;
     if (oArr.length > 0) { oHtml += `<div class="grid gap-12">${oArr.map(t => getCard(t, true)).join('')}</div>`; } else { oHtml += `<p class="text-light text-sm mb-8">কোন ব্যবহারকারী নেই।</p>`; }
@@ -849,7 +870,7 @@ function renderItemsTab(rId, page = 1) {
 function toggleCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
 function toggleHistoryCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.thin-bright-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
 function addOccupantModal(rId) { openModal('নতুন ব্যবহারকারী', `<div class="form-group"><label>নাম</label><input type="text" id="o_name"></div><div class="grid grid-2"><div class="form-group"><label>সম্পর্ক</label><input type="text" id="o_rel"></div><div class="form-group"><label>ফোন</label><input type="text" id="o_phone"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveSingleOccupant('${rId}')">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
-async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, relation: document.getElementById('o_rel').value.trim(), phone = document.getElementById('o_phone').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
+async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, relation: document.getElementById('o_rel').value.trim(), phone: document.getElementById('o_phone').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 async function saveBulkEdit(rId) { const r = state.rooms.find(x => x.id === rId); r.items.forEach(i => { const s = document.getElementById(`bc_${i.id}`); const q = document.getElementById(`bq_${i.id}`); if (s) i.condition = s.value; if (q) i.quantity = parseInt(q.value) || 1; }); document.getElementById('saveBulkBtn').disabled = true; showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 function switchRoomTab(e, tab, rId) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); e.target.classList.add('active'); const c = document.getElementById('roomTabContent'); if (tab === 'history') renderRoomHistoryTab(rId, c); else if (tab === 'guests') renderGuestsTab(rId, c); else if (tab === 'items') renderItemsTab(rId, 1); else c.innerHTML = state.roomTabs[rId][tab]; }
 function renderRoomHistoryTab(rId, c) { const r = state.rooms.find(x => x.id === rId); const p = r.previousTenants || []; c.innerHTML = `<h4 class="mb-16">📜 পূর্বের ভাড়াটে (${p.length})</h4>${p.length === 0 ? `<div class="empty-state"><p>কেউ নেই।</p></div>` : `<div class="grid gap-12">${p.slice().reverse().map(t => `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${escapeHtml(t.name)}</strong><span class="text-sm">ছাড়া: ${formatDate(t.endDate)}</span></div><div class="card-body"><p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>ফোন: ${escapeHtml(t.phone || '-')}</p><p>বরাদ্ক: ${formatDate(t.startDate)}</p><div class="flex gap-8 mt-8"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); viewTenantSnapshot('${rId}','${t.id}')">📦 মালামাল</button><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div></div></div>`).join('')}</div>`}`; }
@@ -1048,11 +1069,6 @@ function hideLoader() { const loader = document.getElementById('loader'); if (lo
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
 
-    // 🟢 ফায়ারবেজ লোড হওয়ার আগেই লগইন পেজ সাথে সাথে দেখিয়ে দেওয়া হলো
-    hideLoader();
-    document.getElementById('authContainer').style.display = 'flex';
-    showLoginView();
-
     if (typeof firebase === 'undefined' || !firebase.auth) {
         showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error");
         return;
@@ -1065,6 +1081,7 @@ function initApp() {
             }
         } else {
             currentUser = null;
+            sessionStorage.removeItem('rms_is_logged_in');
             if (unsubBuildings) unsubBuildings();
             if (unsubRooms) unsubRooms();
             if (unsubReports) unsubReports();
@@ -1072,7 +1089,6 @@ function initApp() {
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'flex';
             showLoginView();
-            // 🟢 লগআউট হলে লগইন ফিল্ড ফাঁকা করে দেওয়া হলো
             document.getElementById('loginIdentifier').value = '';
             document.getElementById('loginPassword').value = '';
             document.getElementById('forgotEmail').value = '';
