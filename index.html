@@ -41,9 +41,15 @@ body{font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif;background:var(-
 .search-dropdown{position:absolute;top:100%;left:0;right:0;margin-top:8px;background:#ecfdf5;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.15);z-index:50;display:none;max-height:300px;overflow-y:auto;border:1px solid #bbf7d0}.search-item{padding:10px 16px;border-bottom:1px solid #d1fae5;cursor:pointer;color:#14532d}.search-item:hover{background:#dcfce7}
 .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 2px 4px rgba(0,0,0,.03);margin-bottom:16px;border:1px solid #f1f5f9}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
-.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}.btn-danger{background:#fee2e2;color:var(--danger)}.btn-danger:hover{background:var(--danger);color:#fff}.btn-success{background:#dcfce7;color:var(--success)}.btn-success:hover{background:var(--success);color:#fff}.btn-outline{background:var(--bg);border:1px solid var(--border);color:var(--text)}.btn-outline:hover{background:#e2e8f0}.btn-sm{padding:6px 10px;font-size:12px}.btn-warning{background:#fef3c7;color:var(--warning)}.btn-warning:hover{background:var(--warning);color:#fff}
-.btn-icon{background:transparent;border:none;width:18px;height:18px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;justify-content:center;color:#94a3b8;padding:0;transition:all .2s}.btn-icon:hover{color:#475569}.btn-icon.danger{color:var(--danger)}.btn-icon.danger:hover{color:#be123c}.btn-icon svg{width:14px;height:14px}.btn:disabled{opacity:0.5;cursor:not-allowed}
-.grid{display:grid;gap:12px}.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}@media(max-width:767px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover:not(:disabled){background:var(--primary-dark)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover:not(:disabled){background:#be123c}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover:not(:disabled){background:#15803d}
+.btn-outline{background:var(--bg);border:1px solid var(--border);color:var(--text)}.btn-outline:hover:not(:disabled){background:#e2e8f0}
+.btn-sm{padding:6px 10px;font-size:12px}
+.btn:disabled{background:#cbd5e1;color:#64748b;opacity:1;cursor:not-allowed;box-shadow:none}
+.btn-icon{background:transparent;border:none;width:18px;height:18px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;justify-content:center;color:#94a3b8;padding:0;transition:all .2s}.btn-icon:hover{color:#475569}.btn-icon.danger{color:var(--danger)}.btn-icon.danger:hover{color:#be123c}.btn-icon svg{width:14px;height:14px}
+.grid{display:grid;gap:12px}.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:767px){.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(2,1fr)}.form-group{margin-bottom:10px}.form-group input,.form-group select,.form-group textarea{padding:8px 10px;font-size:13px}}
 .building-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;justify-content:center;position:relative}
 .building-card{background:linear-gradient(145deg,#dbeafe,#eff6ff);border-radius:16px;box-shadow:6px 6px 12px #c7d2fe,-6px -6px 12px #ffffff;border:1px solid #bfdbfe;overflow:hidden;transition:all 0.3s;aspect-ratio:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;cursor:pointer;position:relative;z-index:1}.building-card:hover{transform:translateY(-4px);box-shadow:8px 8px 16px #c7d2fe,-8px -8px 16px #ffffff}.building-card.expanded{grid-column:1/-1;aspect-ratio:auto;display:block;text-align:left;cursor:default;z-index:10}
 .building-card-header{padding:16px;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:6px;position:relative;width:100%;height:100%}.building-card.expanded .building-card-header{flex-direction:row;justify-content:flex-start;padding:20px;height:auto;border-bottom:1px solid #bfdbfe;cursor:pointer}.building-card-header h3{font-size:17px;font-weight:700;color:#1e3a8a;display:flex;align-items:center;gap:8px}.building-card-header .b-stats{font-size:12px;color:var(--text-light);font-weight:500}
@@ -60,7 +66,15 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 @media(min-width:768px){.material-table th,.material-table td{font-size:14px;padding:8px}.material-table th{font-size:13px}}
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:2000;padding:0}.modal-overlay.active{display:flex}.modal{background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:92vh;overflow-y:auto;animation:slideUp .3s}.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}.modal-header h3{font-size:18px;font-weight:700}.modal-close{background:var(--bg);border:none;font-size:20px;cursor:pointer;color:var(--text-light);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .form-group{margin-bottom:14px}.form-group label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;outline:none;background:#f8fafc}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);background:#fff}
-.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}.badge-good{background:#dcfce7;color:#166534}.badge-bad{background:#fee2e2;color:#991b1b}.badge-exists{background:#e2e8f0;color:#475569}.badge-broken{background:#ffedd5;color:#9a3412}.badge-new{background:#dbeafe;color:#1e40af}.badge-old{background:#fef9c3;color:#854d0e}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}
+.badge-good{background:#dcfce7;color:#166534}
+.badge-bad{background:#fee2e2;color:#991b1b}
+.badge-exists{background:#e2e8f0;color:#475569}
+.badge-destroyed{background:#7f1d1d;color:#fff}
+.badge-broken{background:#ffedd5;color:#9a3412}
+.badge-missing{background:#f3f4f6;color:#6b7280;border:1px dashed #cbd5e1}
+.badge-new{background:#dbeafe;color:#1e40af}
+.badge-old{background:#fef9c3;color:#854d0e}
 .date-repair{color:var(--danger);font-weight:700;font-size:11px;display:block;margin-bottom:2px;white-space:nowrap;}
 .date-replace{color:#2563eb;font-weight:700;font-size:11px;display:block;white-space:nowrap;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:30px;color:#fff;font-size:13px;z-index:4000;animation:fadeIn .3s;text-align:center;max-width:90%;box-shadow:0 4px 12px rgba(0,0,0,.2)}.toast.success{background:var(--success)}.toast.error{background:var(--danger)}.toast.info{background:var(--primary)}
@@ -147,6 +161,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
 let db = null, useFirebase = false;
+// 🟢 Persistence.NONE: ব্রাউজার বন্ধ করলে বা ট্যাব বন্ধ করলে সাথে সাথে লগআউট হয়ে যাবে, কোনো ক্যাশ থাকবে না।
 try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth().Persistence.NONE).catch(err => console.warn("Auth Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
 const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.turso.io";
@@ -225,23 +240,21 @@ async function handleLogin() {
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
         
-        // ০ সেকেন্ডে লগইনের জন্য সরাসরি ওয়েব পেজে নিয়ে যাওয়া হচ্ছে
         await loadAppData(userCredential.user);
         setBtnLoading('loginBtn', false);
     } catch(e) {
         let msg = 'ত্রুটি: ' + e.message;
         if(e.code === 'auth/user-not-found') msg = 'এই ইমেইল দিয়ে কোন অ্যাকাউন্ট নেই।';
         else if(e.code === 'auth/wrong-password') msg = 'ভুল পাসওয়ার্ড।';
-        else if(e.code === 'permission-denied') msg = 'Firebase Rules ঠিক নেই! Console এ গিয়ে ঠিক করুন।';
+        else if(e.code === 'permission-denied') msg = 'Firebase Rules ঠিক নেই! Console এ গিয়ে ঠিক করুন।';
         showToast(msg, 'error');
         setBtnLoading('loginBtn', false);
     }
 }
 
-// 🟢 লোকাল ক্যাশ সেভ ও লোড করার ফাংশন (০ সেকেন্ডে লোডিং এর জন্য)
+// 🟢 লোকাল ক্যাশ সেভ ও লোড করার ফাংশন (ডাটা দ্রুত লোড হওয়ার জন্য)
 function saveStateToCache() {
     try {
-        // ডাটা খালি না হলেই ক্যাশে সেভ করবে
         if (state.buildings.length > 0 || state.rooms.length > 0 || state.reports.length > 0) {
             localStorage.setItem('rms_state_cache', JSON.stringify({
                 buildings: state.buildings,
@@ -279,29 +292,24 @@ async function loadAppData(user) {
     document.getElementById('appContainer').style.display = 'block'; 
     resetIdleTimer();
     
-    // ১. প্রথমে লোকাল ক্যাশ থেকে ডাটা লোড করো (০ সেকেন্ডে)
     const hasCache = loadStateFromCache();
-    
-    // ২. ক্যাশে ডাটা থাকলে সাথে সাথে রেন্ডার করো (স্পিনার ছাড়া), না থাকলে স্পিনার দেখাও
     state.isLoading = !hasCache; 
     renderPage(); 
     
     try {
         await user.getIdToken(true);
         
-        // আগের লিসেনার বাতিল করা
         if (unsubBuildings) unsubBuildings();
         if (unsubRooms) unsubRooms();
         if (unsubReports) unsubReports();
         
-        // ৩. সার্ভার থেকে রিয়েল-টাইম আপডেট নাও
         unsubBuildings = db.collection('buildings').onSnapshot(snapshot => {
             state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            saveStateToCache(); // সার্ভার থেকে আসা ডাটা ক্যাশে সেভ করো
+            saveStateToCache(); 
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') showToast("Firebase Rules ঠিক নেই! Console এ গিয়ে ঠিক করুন।", "error");
+            if (err.code === 'permission-denied') showToast("Firebase Rules ঠিক নেই! Console এ গিয়ে ঠিক করুন।", "error");
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
@@ -349,13 +357,13 @@ async function handleForgotSend() {
 }
 
 let idleTimeout;
+// 🟢 ৫ মিনিট (৩০০,০০০ মিলিসেকেন্ড) নিষ্ক্রিয় থাকলে অটো লগআউট
 function resetIdleTimer() { clearTimeout(idleTimeout); if (firebase.auth().currentUser) { idleTimeout = setTimeout(() => { showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 300000); } }
 function handleLogout() { 
     clearTimeout(idleTimeout); 
     if (unsubBuildings) unsubBuildings();
     if (unsubRooms) unsubRooms();
     if (unsubReports) unsubReports();
-    // লগআউটের সময় ক্যাশ মুছব না, যাতে পরবর্তী লগইনে ০ সেকেন্ডে ডাটা চলে আসে
     state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     setBtnLoading('loginBtn', false); 
     firebase.auth().signOut(); 
@@ -668,7 +676,7 @@ async function fetchFromTurso() {
         state.reports = repSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         
-        saveStateToCache(); // নতুন ডাটা ক্যাশে সেভ করা হলো
+        saveStateToCache(); 
         renderPage();
         syncProgressBar.style.width = '100%';
         syncProgressText.innerText = '100% - সম্পূর্ণ!';
@@ -681,7 +689,7 @@ async function fetchFromTurso() {
         console.error("Fetch/Sync Error:", error);
         let errMsg = "ডাটা আনতে বা সেভ করতে সমস্যা হয়েছে।";
         if (error.code === 'permission-denied' || error.message.includes('Permission denied') || error.message.includes('PERMISSION_DENIED')) {
-            errMsg = "Firebase Security Rules এ ডাটা সেভ করা বন্ধ আছে! Firebase Console এ গিয়ে Rules ঠিক করুন।";
+            errMsg = "Firebase Security Rules এ ডাটা সেভ করা বন্ধ আছে! Firebase Console এ গিয়ে Rules ঠিক করুন।";
         } else if (error.message.includes('Failed to fetch')) {
             errMsg = "ইন্টারনেট বা Turso সার্ভারে সমস্যার কারণে ডাটা আসছে না।";
         } else if (error.message) {
@@ -694,7 +702,8 @@ async function fetchFromTurso() {
 
 function normalizeRoomNumber(num) { if (!num) return ''; const l = String(num).toLowerCase().trim(); return (l.match(/[a-z\u0980-\u09ff]/g) || []).sort().join('') + (l.match(/[0-9]/g) || []).sort().join(''); }
 function roomMatchesSearch(s, n) { return normalizeRoomNumber(s) === normalizeRoomNumber(n); }
-function getConditionBadge(c) { const m = { 'ভাল':'badge-good', 'খারাপ':'badge-bad', 'আছে':'badge-exists', 'নষ্ট':'badge-broken', 'ভাঙ্গা':'badge-broken', 'নেই':'badge-bad', 'নতুন':'badge-new', 'পুরাতন':'badge-old' }; return `<span class="badge ${m[c] || 'badge-exists'}">${c}</span>`; }
+// 🟢 কালার ও ডাটাবেজ অনুযায়ী অবস্থা ম্যাপিং
+function getConditionBadge(c) { const m = { 'ভাল':'badge-good', 'খারাপ':'badge-bad', 'আছে':'badge-exists', 'নষ্ট':'badge-destroyed', 'ভাঙ্গা':'badge-broken', 'নেই':'badge-missing', 'নতুন':'badge-new', 'পুরাতন':'badge-old' }; return `<span class="badge ${m[c] || 'badge-exists'}">${c}</span>`; }
 
 function formatDate(d) {
     if (!d) return '-';
@@ -1013,16 +1022,17 @@ function hideLoader() { const loader = document.getElementById('loader'); if (lo
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
 
+    // 🟢 ফায়ারবেজ লোড হওয়ার আগেই লগইন পেজ সাথে সাথে দেখিয়ে দেওয়া হলো
+    hideLoader();
+    document.getElementById('authContainer').style.display = 'flex';
+    showLoginView();
+
     if (typeof firebase === 'undefined' || !firebase.auth) {
-        hideLoader();
-        document.getElementById('authContainer').style.display = 'flex';
-        showLoginView();
         showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error");
         return;
     }
     
     firebase.auth().onAuthStateChanged((user) => {
-        hideLoader();
         if (user) {
             if (!currentUser || currentUser.uid !== user.uid) {
                 loadAppData(user);
@@ -1035,9 +1045,6 @@ function initApp() {
             state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'flex';
-            document.getElementById('loginIdentifier').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('forgotEmail').value = '';
             showLoginView();
             setBtnLoading('loginBtn', false);
         }
