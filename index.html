@@ -219,16 +219,56 @@ async function handleLogin() {
             if (userSnapshot.empty) { showToast('ইউজারনেম খুঁজে পাওয়া যায়নি।', 'error'); setBtnLoading('loginBtn', false); return; }
             email = userSnapshot.docs[0].data().email;
         }
-        await firebase.auth().signInWithEmailAndPassword(email, password);
+        
+        // 🟢 ০ সেকেন্ডে লগইনের জন্য সরাসরি সাইন ইন করানো হচ্ছে এবং ডাটা লোড করা হচ্ছে
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         let savedUsers = [];
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
+        
+        // সাথে সাথে ওয়েব পেজে চলে যাওয়া হচ্ছে
+        await loadAppData(userCredential.user);
+        setBtnLoading('loginBtn', false);
     } catch(e) {
         let msg = 'ত্রুটি: ' + e.message;
         if(e.code === 'auth/user-not-found') msg = 'এই ইমেইল দিয়ে কোন অ্যাকাউন্ট নেই।';
         else if(e.code === 'auth/wrong-password') msg = 'ভুল পাসওয়ার্ড।';
         showToast(msg, 'error');
         setBtnLoading('loginBtn', false);
+    }
+}
+
+// 🟢 ডাটা সরাসরি সার্ভার থেকে আনার ফাংশন (০ সেকেন্ড ফিল)
+async function loadAppData(user) {
+    currentUser = user;
+    document.getElementById('authContainer').style.display = 'none'; 
+    document.getElementById('appContainer').style.display = 'block'; 
+    resetIdleTimer();
+    
+    state.isLoading = true;
+    renderPage(); 
+    
+    try {
+        await user.getIdToken(true);
+        const [buildingsSnap, roomsSnap, reportsSnap] = await Promise.all([
+            db.collection('buildings').get({ source: 'server' }),
+            db.collection('rooms').get({ source: 'server' }),
+            db.collection('reports').get({ source: 'server' })
+        ]);
+        state.buildings = buildingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.rooms = roomsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.reports = reportsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    } catch(e) {
+        console.error("Data Fetch Error:", e);
+        let errMsg = "ডাটা লোডে সমস্যা: " + e.message;
+        if (e.code === 'permission-denied') {
+            errMsg = "Firebase Rules এ ডাটা পড়া বন্ধ! Firebase Console এ গিয়ে Rules ঠিক করুন।";
+        }
+        showToast(errMsg, "error");
+    } finally {
+        state.isLoading = false;
+        renderPage();
     }
 }
 
@@ -896,18 +936,6 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
 
-const fetchFromServer = async (collectionName) => {
-    try {
-        const snap = await db.collection(collectionName).get({ source: 'server' });
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    } catch (e) {
-        if (e.code === 'permission-denied') {
-            showToast("Firebase Rules এ ডাটা পড়া বন্ধ! Rules ঠিক করুন।", "error");
-        }
-        throw e;
-    }
-};
-
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
 
@@ -919,46 +947,21 @@ function initApp() {
         return;
     }
     
-    firebase.auth().onAuthStateChanged(async (user) => {
+    firebase.auth().onAuthStateChanged((user) => {
         hideLoader();
-
         if (user) {
-            currentUser = user;
-            document.getElementById('authContainer').style.display = 'none'; 
-            document.getElementById('appContainer').style.display = 'block'; 
-            resetIdleTimer();
-            
-            state.isLoading = true;
-            renderPage(); 
-            
-            try {
-                await user.getIdToken(true);
-                
-                const [buildings, rooms, reports] = await Promise.all([
-                    fetchFromServer('buildings'),
-                    fetchFromServer('rooms'),
-                    fetchFromServer('reports')
-                ]);
-                state.buildings = buildings;
-                state.rooms = rooms;
-                state.reports = reports;
-                state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-            } catch(e) {
-                console.error("Login Data Fetch Error:", e);
-            } finally {
-                state.isLoading = false;
-                renderPage();
+            // যদি handleLogin থেকে আগে আসে, তবে এখানে আবার লোড করবে না
+            if (!currentUser || currentUser.uid !== user.uid) {
+                loadAppData(user);
             }
         } else {
             currentUser = null;
             state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'flex';
-            
             document.getElementById('loginIdentifier').value = '';
             document.getElementById('loginPassword').value = '';
             document.getElementById('forgotEmail').value = '';
-            
             showLoginView();
             setBtnLoading('loginBtn', false);
         }
