@@ -177,7 +177,14 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 </script>
 
 <script>
-const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
+const firebaseConfig = {
+  apiKey: "AIzaSyDvDbJtNvVgTc7iQKO4eIvZlU1TYxUolHM",
+  authDomain: "abasik-management.firebaseapp.com",
+  projectId: "abasik-management",
+  storageBucket: "abasik-management.firebasestorage.app",
+  messagingSenderId: "56549781664",
+  appId: "1:56549781664:web:b23921ba0b9004485bd9c5"
+};
 let db = null, useFirebase = false;
 try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth().Persistence.SESSION).catch(err => console.warn("Auth Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
