@@ -177,7 +177,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 </script>
 
 <script>
-// 🟢 নতুন ফায়ারবেজ কনফিগ এখানে যুক্ত করা হয়েছে
+// 🟢 নতুন ফায়ারবেজ কনফিগ
 const firebaseConfig = {
   apiKey: "AIzaSyDvDbJtNvVgTc7iQKO4eIvZlU1TYxUolHM",
   authDomain: "abasik-management.firebaseapp.com",
@@ -429,83 +429,84 @@ async function fetchFromTurso() {
     syncModal.style.display = 'block';
     syncProgressBar.style.width = '0%';
     syncProgressText.innerText = '0% - ডাটা ফেচ করা হচ্ছে...';
-    try {
-        const executeTursoQuery = async (sql) => {
-            const url = `${TURSO_URL}/v2/pipeline`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${TURSO_TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requests: [ { type: "execute", stmt: { sql: sql } }, { type: "close" } ] })
+    
+    const executeTursoQuery = async (sql) => {
+        const url = `${TURSO_URL}/v2/pipeline`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${TURSO_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requests: [ { type: "execute", stmt: { sql: sql } }, { type: "close" } ] })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Turso API Error");
+        if(!data.results || !data.results[0] || !data.results[0].response || !data.results[0].response.result) return [];
+        const result = data.results[0].response.result;
+        const cols = result.cols.map(c => c.name);
+        return (result.rows || []).map(row => {
+            let obj = {};
+            row.forEach((val, index) => {
+                let cellValue = (typeof val === 'object' && val !== null && 'value' in val) ? val.value : val;
+                obj[cols[index]] = cellValue;
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || "Turso API Error");
-            if(!data.results || !data.results[0] || !data.results[0].response || !data.results[0].response.result) return [];
-            const result = data.results[0].response.result;
-            const cols = result.cols.map(c => c.name);
-            return (result.rows || []).map(row => {
-                let obj = {};
-                row.forEach((val, index) => {
-                    let cellValue = (typeof val === 'object' && val !== null && 'value' in val) ? val.value : val;
-                    obj[cols[index]] = cellValue;
-                });
-                return obj;
-            });
-        };
-        const getVal = (obj, ...keys) => { 
-            if (!obj) return undefined;
-            for(let k of keys) {
-                if(obj[k] !== undefined) return obj[k];
-                let foundKey = Object.keys(obj).find(key => key.toLowerCase() === k.toLowerCase());
-                if (foundKey) return obj[foundKey];
-            }
-            return undefined; 
-        };
-        const getTbl = (name) => {
-            const keys = Object.keys(tursoData);
-            const found = keys.find(k => k.toLowerCase() === name.toLowerCase());
-            return found ? tursoData[found] : [];
-        };
-        
-        const findKey = (obj, ...patterns) => {
-            if (!obj) return undefined;
-            for (let key in obj) {
-                const lowerKey = key.toLowerCase();
-                for (let p of patterns) {
-                    if (lowerKey.includes(p)) return obj[key];
-                }
-            }
-            return undefined;
-        };
+            return obj;
+        });
+    };
 
-        const safeDate = (val) => {
-            if (val === null || val === undefined || val === '') return null;
-            if (typeof val === 'string') {
-                if (val.length === 10 && val.includes('-')) return val.split('T')[0]; 
-                const isoVal = val.replace(' ', 'T');
-                const d = new Date(isoVal);
-                if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-                return val; 
+    const getVal = (obj, ...keys) => { 
+        if (!obj) return undefined;
+        for(let k of keys) {
+            if(obj[k] !== undefined) return obj[k];
+            let foundKey = Object.keys(obj).find(key => key.toLowerCase() === k.toLowerCase());
+            if (foundKey) return obj[foundKey];
+        }
+        return undefined; 
+    };
+    const getTbl = (name) => {
+        const keys = Object.keys(tursoData);
+        const found = keys.find(k => k.toLowerCase() === name.toLowerCase());
+        return found ? tursoData[found] : [];
+    };
+    const findKey = (obj, ...patterns) => {
+        if (!obj) return undefined;
+        for (let key in obj) {
+            const lowerKey = key.toLowerCase();
+            for (let p of patterns) {
+                if (lowerKey.includes(p)) return obj[key];
             }
-            if (typeof val === 'number') {
-                const d = new Date(val > 100000000000 ? val : val * 1000);
-                if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-                return String(val);
-            }
-            if (typeof val === 'object' && val !== null) {
-                if (val.seconds !== undefined) {
-                    const d = new Date(val.seconds * 1000);
-                    if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-                }
-                if (val.value !== undefined) return safeDate(val.value);
-            }
+        }
+        return undefined;
+    };
+    const safeDate = (val) => {
+        if (val === null || val === undefined || val === '') return null;
+        if (typeof val === 'string') {
+            if (val.length === 10 && val.includes('-')) return val.split('T')[0]; 
+            const isoVal = val.replace(' ', 'T');
+            const d = new Date(isoVal);
+            if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+            return val; 
+        }
+        if (typeof val === 'number') {
+            const d = new Date(val > 100000000000 ? val : val * 1000);
+            if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
             return String(val);
-        };
+        }
+        if (typeof val === 'object' && val !== null) {
+            if (val.seconds !== undefined) {
+                const d = new Date(val.seconds * 1000);
+                if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+            }
+            if (val.value !== undefined) return safeDate(val.value);
+        }
+        return String(val);
+    };
 
+    let tursoData = {};
+    try {
         syncProgressBar.style.width = '5%';
         syncProgressText.innerText = '5% - টেবিল লিস্ট আসছে...';
         const schemaRes = await executeTursoQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'");
         const tableNames = schemaRes.map(r => r.name).filter(n => n);
-        const tursoData = {};
+        
         for (let i = 0; i < tableNames.length; i++) {
             const tbl = tableNames[i];
             const progress = 5 + Math.round(((i + 1) / tableNames.length) * 35);
@@ -513,18 +514,16 @@ async function fetchFromTurso() {
             syncProgressText.innerText = progress + '% - ' + tbl + ' টেবিল আসছে...';
             tursoData[tbl] = await executeTursoQuery(`SELECT * FROM "${tbl}"`);
         }
-        syncProgressBar.style.width = '40%';
-        syncProgressText.innerText = '40% - ফায়ারবেজে চেক করা হচ্ছে...';
+    } catch (error) {
+        console.error("Turso Fetch Error:", error);
+        showToast("Turso থেকে ডাটা আনতে সমস্যা: " + error.message, 'error');
+        syncModal.style.display = 'none';
+        return;
+    }
 
-        const fbBuildings = await db.collection('buildings').get();
-        const fbRooms = await db.collection('rooms').get();
-        const fbReports = await db.collection('reports').get();
-        const existingBuildings = {};
-        fbBuildings.docs.forEach(d => existingBuildings[d.id] = d.data());
-        const existingRooms = {};
-        fbRooms.docs.forEach(d => existingRooms[d.id] = d.data());
-        const existingReports = {};
-        fbReports.docs.forEach(d => existingReports[d.id] = d.data());
+    try {
+        syncProgressBar.style.width = '40%';
+        syncProgressText.innerText = '40% - ফায়ারবেজে সেভ হচ্ছে...';
 
         let batch = db.batch();
         let opsCount = 0, newCount = 0;
@@ -567,46 +566,34 @@ async function fetchFromTurso() {
                     if (lk.endsWith('at') || lk.includes('date') || lk.includes('time')) { dateVal = rr[k]; break; }
                 }
             }
-            
-            repairsByInventoryId[invId].push({
-                type: type,
-                date: safeDate(dateVal),
-                note: getVal(rr, 'Note', 'note') || '',
-                condition: getVal(rr, 'Condition', 'condition') || 'ভাল',
-                quantity: getVal(rr, 'Quantity', 'quantity') || 1
-            });
+            repairsByInventoryId[invId].push({ type: type, date: safeDate(dateVal), note: getVal(rr, 'Note', 'note') || '', condition: getVal(rr, 'Condition', 'condition') || 'ভাল', quantity: getVal(rr, 'Quantity', 'quantity') || 1 });
         });
 
         syncProgressBar.style.width = '70%';
-        syncProgressText.innerText = '70% - নতুন ডাটা ম্যাপ করা হচ্ছে...';
+        syncProgressText.innerText = '70% - ডাটা ম্যাপ ও সেভ করা হচ্ছে...';
 
         const extractDatesFromInv = (inv) => {
             let repairDate = undefined, replaceDate = undefined;
             for (let k in inv) {
                 let lk = k.toLowerCase();
-                if (lk.includes('repair') && (lk.includes('date') || lk.includes('at') || lk.includes('time'))) {
-                    repairDate = inv[k];
-                }
-                if (lk.includes('replace') && (lk.includes('date') || lk.includes('at') || lk.includes('time'))) {
-                    replaceDate = inv[k];
-                }
+                if (lk.includes('repair') && (lk.includes('date') || lk.includes('at') || lk.includes('time'))) repairDate = inv[k];
+                if (lk.includes('replace') && (lk.includes('date') || lk.includes('at') || lk.includes('time'))) replaceDate = inv[k];
             }
             return { repairDate, replaceDate };
         };
 
+        // 🟢 এখানে স্কিপ না করে সব ডাটা সরাসরি Upsert (set with merge) করা হচ্ছে যাতে কোনো ডাটা বাদ না যায়
         for (const b of buildingsData) {
             const bId = String(getVal(b, 'Id', 'id') || '');
             if (!bId) continue;
-            if (!existingBuildings[bId]) {
-                const dataToSave = cleanData({ name: getVal(b, 'Name', 'name') || '', floorCount: getVal(b, 'TotalFloors', 'FloorCount', 'floorCount') || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                batch.set(db.collection('buildings').doc(bId), dataToSave, { merge: true });
-                const tpls = templatesData.filter(t => String(getVal(t, 'BuildingId', 'buildingId')) === bId);
-                if (tpls.length > 0) {
-                    const tplData = cleanData({ items: tpls.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'ItemName', 'Name', 'name') || '', quantity: getVal(t, 'Quantity', 'quantity') || 1 })) });
-                    batch.set(db.collection('materialTemplates').doc(bId), tplData);
-                }
-                opsCount++; newCount++;
+            const dataToSave = cleanData({ name: getVal(b, 'Name', 'name') || '', floorCount: getVal(b, 'TotalFloors', 'FloorCount', 'floorCount') || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            batch.set(db.collection('buildings').doc(bId), dataToSave, { merge: true });
+            const tpls = templatesData.filter(t => String(getVal(t, 'BuildingId', 'buildingId')) === bId);
+            if (tpls.length > 0) {
+                const tplData = cleanData({ items: tpls.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'ItemName', 'Name', 'name') || '', quantity: getVal(t, 'Quantity', 'quantity') || 1 })) });
+                batch.set(db.collection('materialTemplates').doc(bId), tplData);
             }
+            opsCount++; newCount++;
             if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
         
@@ -618,77 +605,68 @@ async function fetchFromTurso() {
             if (!buildingId) continue;
 
             const inventories = inventoryData.filter(inv => String(getVal(inv, 'RoomId', 'roomId')) === rId);
+            const activeTenants = tenantsData.filter(t => String(getVal(t, 'RoomId', 'roomId')) === rId && getVal(t, 'IsActive', 'isActive'));
+            const prevTenants = tenantsData.filter(t => String(getVal(t, 'RoomId', 'roomId')) === rId && !getVal(t, 'IsActive', 'isActive'));
+            const occupants = roomUsersData.filter(u => String(getVal(u, 'RoomId', 'roomId')) === rId);
             
-            if (!existingRooms[rId]) {
-                const activeTenants = tenantsData.filter(t => String(getVal(t, 'RoomId', 'roomId')) === rId && getVal(t, 'IsActive', 'isActive'));
-                const prevTenants = tenantsData.filter(t => String(getVal(t, 'RoomId', 'roomId')) === rId && !getVal(t, 'IsActive', 'isActive'));
-                const occupants = roomUsersData.filter(u => String(getVal(u, 'RoomId', 'roomId')) === rId);
-                
-                const mappedRoom = {
-                    buildingId: buildingId,
-                    floor: floor ? String(getVal(floor, 'FloorNumber', 'floorNumber', 'Floor', 'floor')) : '1',
-                    number: getVal(r, 'RoomNumber', 'Number', 'number') || '',
-                    tenants: activeTenants.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'Name', 'name') || '', designation: getVal(t, 'Designation', 'designation') || '', phone: getVal(t, 'Phone', 'phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), type: 'bachelor', familyInfo: '' })),
-                    previousTenants: prevTenants.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'Name', 'name') || '', designation: getVal(t, 'Designation', 'designation') || '', phone: getVal(t, 'Phone', 'phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), endDate: safeDate(findKey(t, 'end', 'vacate')) })),
-                    items: inventories.map(inv => {
-                        const invId = String(getVal(inv, 'Id', 'id'));
-                        let history = repairsByInventoryId[invId] || [];
-                        const directDates = extractDatesFromInv(inv);
-                        
-                        if (directDates.repairDate) history.push({ type: 'Repair', date: safeDate(directDates.repairDate), note: '', condition: 'ভাল', quantity: 1 });
-                        if (directDates.replaceDate) history.push({ type: 'Replace', date: safeDate(directDates.replaceDate), note: '', condition: 'ভাল', quantity: 1 });
-                        
-                        const uniqueHistory = [];
-                        const seen = new Set();
-                        history.forEach(h => {
-                            const key = `${h.type}-${h.date}`;
-                            if (!seen.has(key)) { seen.add(key); uniqueHistory.push(h); }
-                        });
-                        uniqueHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const mappedRoom = {
+                buildingId: buildingId,
+                floor: floor ? String(getVal(floor, 'FloorNumber', 'floorNumber', 'Floor', 'floor')) : '1',
+                number: getVal(r, 'RoomNumber', 'Number', 'number') || '',
+                tenants: activeTenants.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'Name', 'name') || '', designation: getVal(t, 'Designation', 'designation') || '', phone: getVal(t, 'Phone', 'phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), type: 'bachelor', familyInfo: '' })),
+                previousTenants: prevTenants.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'Name', 'name') || '', designation: getVal(t, 'Designation', 'designation') || '', phone: getVal(t, 'Phone', 'phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), endDate: safeDate(findKey(t, 'end', 'vacate')) })),
+                items: inventories.map(inv => {
+                    const invId = String(getVal(inv, 'Id', 'id'));
+                    let history = repairsByInventoryId[invId] || [];
+                    const directDates = extractDatesFromInv(inv);
+                    if (directDates.repairDate) history.push({ type: 'Repair', date: safeDate(directDates.repairDate), note: '', condition: 'ভাল', quantity: 1 });
+                    if (directDates.replaceDate) history.push({ type: 'Replace', date: safeDate(directDates.replaceDate), note: '', condition: 'ভাল', quantity: 1 });
+                    
+                    const uniqueHistory = [];
+                    const seen = new Set();
+                    history.forEach(h => { const key = `${h.type}-${h.date}`; if (!seen.has(key)) { seen.add(key); uniqueHistory.push(h); } });
+                    uniqueHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                        const lastRepair = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'repair').pop();
-                        const lastReplace = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'replace').pop();
+                    const lastRepair = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'repair').pop();
+                    const lastReplace = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'replace').pop();
 
-                        return { 
-                            id: invId, 
-                            name: getVal(inv, 'ItemName', 'Name', 'name') || '', 
-                            quantity: getVal(inv, 'Quantity', 'quantity') || 1, 
-                            condition: getVal(inv, 'Condition', 'condition') || 'ভাল', 
-                            lastRepairDate: lastRepair ? lastRepair.date : null, 
-                            lastReplaceDate: lastReplace ? lastReplace.date : null, 
-                            history: uniqueHistory 
-                        };
-                    }),
-                    guests: [],
-                    occupants: occupants.map(u => ({ id: String(getVal(u, 'Id', 'id')), name: getVal(u, 'Name', 'UserName', 'name') || '', relation: getVal(u, 'Relation', 'UserRelation', 'relation') || '', phone: getVal(u, 'Phone', 'UserPhone', 'phone') || '' }))
-                };
-                batch.set(db.collection('rooms').doc(rId), cleanData(mappedRoom), { merge: true });
-                opsCount++; newCount++;
-            }
+                    return { 
+                        id: invId, 
+                        name: getVal(inv, 'ItemName', 'Name', 'name') || '', 
+                        quantity: getVal(inv, 'Quantity', 'quantity') || 1, 
+                        condition: getVal(inv, 'Condition', 'condition') || 'ভাল', 
+                        lastRepairDate: lastRepair ? lastRepair.date : null, 
+                        lastReplaceDate: lastReplace ? lastReplace.date : null, 
+                        history: uniqueHistory 
+                    };
+                }),
+                guests: [],
+                occupants: occupants.map(u => ({ id: String(getVal(u, 'Id', 'id')), name: getVal(u, 'Name', 'UserName', 'name') || '', relation: getVal(u, 'Relation', 'UserRelation', 'relation') || '', phone: getVal(u, 'Phone', 'UserPhone', 'phone') || '' }))
+            };
+            batch.set(db.collection('rooms').doc(rId), cleanData(mappedRoom), { merge: true });
+            opsCount++; newCount++;
             if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
 
         for (const rep of reportsData) {
             const repId = String(getVal(rep, 'Id', 'id') || '');
             if (!repId) continue;
-            if (!existingReports[repId]) {
-                const room = roomsData.find(rm => String(getVal(rm, 'Id', 'id')) === String(getVal(rep, 'RoomId', 'roomId')));
-                const floor = room ? floorsData.find(f => String(getVal(f, 'Id', 'id')) === String(getVal(room, 'FloorId', 'floorId'))) : null;
-                const building = floor ? buildingsData.find(b => String(getVal(b, 'Id', 'id')) === String(getVal(floor, 'BuildingId', 'buildingId'))) : null;
-                const reportData = {
-                    building: building ? getVal(building, 'Name', 'name') : 'Unknown',
-                    floor: floor ? String(getVal(floor, 'FloorNumber', 'floorNumber')) : '-',
-                    room: room ? getVal(room, 'RoomNumber', 'Number', 'number') : '-',
-                    description: getVal(rep, 'Description', 'description') || '',
-                    reporter: getVal(rep, 'ReportedBy', 'reportedBy') || '',
-                    department: getVal(rep, 'Department', 'department') || 'Civil',
-                    mistry: getVal(rep, 'Mistry', 'mistry') || '',
-                    status: getVal(rep, 'Status', 'status') === "সমাধান হয়েছে" ? "resolved" : "pending",
-                    createdAt: { seconds: getVal(rep, 'ReportedAt', 'reportedAt') ? new Date(getVal(rep, 'ReportedAt', 'reportedAt')).getTime() / 1000 : Date.now() / 1000 }
-                };
-                batch.set(db.collection('reports').doc(repId), cleanData(reportData), { merge: true });
-                opsCount++; newCount++;
-            }
+            const room = roomsData.find(rm => String(getVal(rm, 'Id', 'id')) === String(getVal(rep, 'RoomId', 'roomId')));
+            const floor = room ? floorsData.find(f => String(getVal(f, 'Id', 'id')) === String(getVal(room, 'FloorId', 'floorId'))) : null;
+            const building = floor ? buildingsData.find(b => String(getVal(b, 'Id', 'id')) === String(getVal(floor, 'BuildingId', 'buildingId'))) : null;
+            const reportData = {
+                building: building ? getVal(building, 'Name', 'name') : 'Unknown',
+                floor: floor ? String(getVal(floor, 'FloorNumber', 'floorNumber')) : '-',
+                room: room ? getVal(room, 'RoomNumber', 'Number', 'number') : '-',
+                description: getVal(rep, 'Description', 'description') || '',
+                reporter: getVal(rep, 'ReportedBy', 'reportedBy') || '',
+                department: getVal(rep, 'Department', 'department') || 'Civil',
+                mistry: getVal(rep, 'Mistry', 'mistry') || '',
+                status: getVal(rep, 'Status', 'status') === "সমাধান হয়েছে" ? "resolved" : "pending",
+                createdAt: { seconds: getVal(rep, 'ReportedAt', 'reportedAt') ? new Date(getVal(rep, 'ReportedAt', 'reportedAt')).getTime() / 1000 : Date.now() / 1000 }
+            };
+            batch.set(db.collection('reports').doc(repId), cleanData(reportData), { merge: true });
+            opsCount++; newCount++;
             if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
 
@@ -712,16 +690,14 @@ async function fetchFromTurso() {
         syncProgressText.innerText = '100% - সম্পূর্ণ!';
         setTimeout(() => {
             syncModal.style.display = 'none';
-            if(newCount === 0) { showToast(`Turso-তে নতুন কোনো ডাটা নেই।`, "info"); } 
+            if(newCount === 0) { showToast(`Turso-তে কোনো ডাটা পাওয়া যায়নি।`, "error"); } 
             else { showToast(`🎉 সফল! ${newCount} টি ডাটা সেভ হয়েছে।`, "success"); }
         }, 500);
     } catch (error) {
-        console.error("Fetch/Sync Error:", error);
-        let errMsg = "ডাটা আনতে বা সেভ করতে সমস্যা হয়েছে।";
+        console.error("Firebase Save Error:", error);
+        let errMsg = "ডাটা সেভ করতে সমস্যা হয়েছে।";
         if (error.code === 'permission-denied' || error.message.includes('Permission denied') || error.message.includes('PERMISSION_DENIED')) {
             errMsg = "Firebase Security Rules এ ডাটা সেভ করা বন্ধ আছে! Firebase Console এ গিয়ে Rules ঠিক করুন।";
-        } else if (error.message.includes('Failed to fetch')) {
-            errMsg = "ইন্টারনেট বা Turso সার্ভারে সমস্যার কারণে ডাটা আসছে না।";
         } else if (error.message) {
             errMsg = error.message;
         }
