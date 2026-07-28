@@ -225,7 +225,7 @@ async function handleLogin() {
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
         
-        // ০ সেকেন্ডে লগইন ও ডাটা লোডের জন্য সরাসরি ওয়েব পেজে নিয়ে যাওয়া হচ্ছে
+        // ০ সেকেন্ডে লগইনের জন্য সরাসরি ওয়েব পেজে নিয়ে যাওয়া হচ্ছে
         await loadAppData(userCredential.user);
         setBtnLoading('loginBtn', false);
     } catch(e) {
@@ -238,7 +238,35 @@ async function handleLogin() {
     }
 }
 
-// 🟢 রিয়েল-টাইম ডাটা লোডিং (onSnapshot) - স্পিনার আটকে থাকবে না
+// 🟢 লোকাল ক্যাশ সেভ ও লোড করার ফাংশন (০ সেকেন্ডে লোডিং এর জন্য)
+function saveStateToCache() {
+    try {
+        // ডাটা খালি না হলেই ক্যাশে সেভ করবে
+        if (state.buildings.length > 0 || state.rooms.length > 0 || state.reports.length > 0) {
+            localStorage.setItem('rms_state_cache', JSON.stringify({
+                buildings: state.buildings,
+                rooms: state.rooms,
+                reports: state.reports
+            }));
+        }
+    } catch(e) {}
+}
+
+function loadStateFromCache() {
+    try {
+        const saved = localStorage.getItem('rms_state_cache');
+        if (saved) {
+            const data = JSON.parse(saved);
+            state.buildings = data.buildings || [];
+            state.rooms = data.rooms || [];
+            state.reports = data.reports || [];
+            state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            return true;
+        }
+    } catch(e) {}
+    return false;
+}
+
 let isLoadingAppData = false;
 let unsubBuildings, unsubRooms, unsubReports;
 
@@ -251,7 +279,11 @@ async function loadAppData(user) {
     document.getElementById('appContainer').style.display = 'block'; 
     resetIdleTimer();
     
-    state.isLoading = true;
+    // ১. প্রথমে লোকাল ক্যাশ থেকে ডাটা লোড করো (০ সেকেন্ডে)
+    const hasCache = loadStateFromCache();
+    
+    // ২. ক্যাশে ডাটা থাকলে সাথে সাথে রেন্ডার করো (স্পিনার ছাড়া), না থাকলে স্পিনার দেখাও
+    state.isLoading = !hasCache; 
     renderPage(); 
     
     try {
@@ -262,42 +294,34 @@ async function loadAppData(user) {
         if (unsubRooms) unsubRooms();
         if (unsubReports) unsubReports();
         
-        let dataLoadCount = 0;
-        const onFirstData = () => {
-            dataLoadCount++;
-            if (dataLoadCount >= 3) {
-                state.isLoading = false;
-                renderPage();
-            }
-        };
-        
+        // ৩. সার্ভার থেকে রিয়েল-টাইম আপডেট নাও
         unsubBuildings = db.collection('buildings').onSnapshot(snapshot => {
             state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (state.isLoading) onFirstData(); else renderPage();
-        }, err => {
-            if (err.code === 'permission-denied') showToast("Firebase Rules এ ডাটা পড়া বন্ধ! Rules ঠিক করুন।", "error");
-            state.isLoading = false;
+            saveStateToCache(); // সার্ভার থেকে আসা ডাটা ক্যাশে সেভ করো
+            if (state.isLoading) { state.isLoading = false; }
             renderPage();
+        }, err => {
+            if (err.code === 'permission-denied') showToast("Firebase Rules ঠিক নেই! Console এ গিয়ে ঠিক করুন।", "error");
+            if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
         unsubRooms = db.collection('rooms').onSnapshot(snapshot => {
             state.rooms = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (state.isLoading) onFirstData(); else renderPage();
-        }, err => { /* handled in buildings */ });
+            saveStateToCache();
+            if (state.isLoading) { state.isLoading = false; }
+            renderPage();
+        }, err => {});
         
         unsubReports = db.collection('reports').onSnapshot(snapshot => {
             state.reports = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-            if (state.isLoading) onFirstData(); else renderPage();
-        }, err => { /* handled in buildings */ });
+            saveStateToCache();
+            if (state.isLoading) { state.isLoading = false; }
+            renderPage();
+        }, err => {});
         
     } catch(e) {
         console.error("Data Fetch Error:", e);
-        let errMsg = "ডাটা লোডে সমস্যা: " + e.message;
-        if (e.code === 'permission-denied') {
-            errMsg = "Firebase Rules এ ডাটা পড়া বন্ধ! Firebase Console এ গিয়ে Rules ঠিক করুন।";
-        }
-        showToast(errMsg, "error");
         state.isLoading = false;
         renderPage();
     } finally {
@@ -331,6 +355,7 @@ function handleLogout() {
     if (unsubBuildings) unsubBuildings();
     if (unsubRooms) unsubRooms();
     if (unsubReports) unsubReports();
+    // লগআউটের সময় ক্যাশ মুছব না, যাতে পরবর্তী লগইনে ০ সেকেন্ডে ডাটা চলে আসে
     state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     setBtnLoading('loginBtn', false); 
     firebase.auth().signOut(); 
@@ -643,6 +668,7 @@ async function fetchFromTurso() {
         state.reports = repSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         
+        saveStateToCache(); // নতুন ডাটা ক্যাশে সেভ করা হলো
         renderPage();
         syncProgressBar.style.width = '100%';
         syncProgressText.innerText = '100% - সম্পূর্ণ!';
@@ -738,7 +764,7 @@ function renderPage() {
 }
 
 function renderDashboard(c) {
-    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><p class="text-sm text-light mt-8">প্রথমবার ব্যবহার করলে নিচের বাটনে ক্লিক করে ডাটা আনুন।</p><button class="btn btn-primary mt-16" onclick="fetchFromTurso()">Turso থেকে ডাটা আনুন</button></div></div>`; return; }
+    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><p class="text-sm text-light mt-8">আপনার যদি Turso ডাটাবেসে ডাটা থাকে, তবে নিচের বাটনে ক্লিক করে ডাটা ফায়ারবেজে নিয়ে আসুন।</p><button class="btn btn-primary mt-16" onclick="fetchFromTurso()">Turso থেকে ডাটা আনুন</button></div></div>`; return; }
     const roomsByBuilding = {};
     state.rooms.forEach(r => {
         if (!roomsByBuilding[r.buildingId]) roomsByBuilding[r.buildingId] = [];
@@ -998,12 +1024,14 @@ function initApp() {
     firebase.auth().onAuthStateChanged((user) => {
         hideLoader();
         if (user) {
-            // যদি handleLogin থেকে আগে আসে, তবে এখানে আবার লোড করবে না
             if (!currentUser || currentUser.uid !== user.uid) {
                 loadAppData(user);
             }
         } else {
             currentUser = null;
+            if (unsubBuildings) unsubBuildings();
+            if (unsubRooms) unsubRooms();
+            if (unsubReports) unsubReports();
             state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'flex';
