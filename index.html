@@ -177,7 +177,6 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 </script>
 
 <script>
-// 🟢 নতুন ফায়ারবেজ কনফিগ
 const firebaseConfig = {
   apiKey: "AIzaSyDvDbJtNvVgTc7iQKO4eIvZlU1TYxUolHM",
   authDomain: "abasik-management.firebaseapp.com",
@@ -189,7 +188,6 @@ const firebaseConfig = {
 let db = null, useFirebase = false;
 try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth().Persistence.SESSION).catch(err => console.warn("Auth Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
 
-// 🟢 নতুন Turso URL এবং Token (https ফরম্যাটে রূপান্তর করা হয়েছে)
 const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.turso.io";
 const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODUyNDY4NzUsImlkIjoiMDE5ZDk1ZjctODcwMS03YTg1LWE5ZDMtMTZkMTQ5YTg2ZTM0Iiwia2lkIjoiSERvdFg3bzEwclVaY1lJdk1QMm9kUGxES051QjF0VmNDTTd1b3pDMUVjMCIsInJpZCI6IjYxNzk0NDk2LWFiNzctNGRjYy1hZGQ2LTQ4ODkwZjU5OGZhNiJ9.jNJw4KS-uoe2vy_s-wPXZkwpBbTGs4BuCqmEPb-iwzzdpGqA_de1py4mS_quYA3FNNwkCldbm4GY_3NDv7qHDA";
 
@@ -502,40 +500,44 @@ async function fetchFromTurso() {
     };
 
     let tursoData = {};
+    let batch = db.batch();
+    let opsCount = 0, newCount = 0;
+    const MAX_BATCH_SIZE = 400; 
+    const commitBatch = async () => {
+        if (opsCount > 0) {
+            try { await batch.commit(); } catch (batchErr) { throw new Error("Firebase-এ সেভ করতে সমস্যা! Rules ঠিক আছে কিনা চেক করুন।"); }
+            batch = db.batch(); opsCount = 0;
+        }
+    };
+
     try {
+        // ১. সব টেবিলের নাম আনুন
         syncProgressBar.style.width = '5%';
         syncProgressText.innerText = '5% - টেবিল লিস্ট আসছে...';
         const schemaRes = await executeTursoQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'");
         const tableNames = schemaRes.map(r => r.name).filter(n => n);
         
+        // ২. সব টেবিলের ডাটা আনুন এবং সরাসরি ফায়ারবেজে সেভ করুন (Direct Sync)
         for (let i = 0; i < tableNames.length; i++) {
             const tbl = tableNames[i];
-            const progress = 5 + Math.round(((i + 1) / tableNames.length) * 35);
+            const progress = 5 + Math.round(((i + 1) / tableNames.length) * 45);
             syncProgressBar.style.width = progress + '%';
-            syncProgressText.innerText = progress + '% - ' + tbl + ' টেবিল আসছে...';
+            syncProgressText.innerText = progress + '% - ' + tbl + ' টেবিল আসছে ও সেভ হচ্ছে...';
             tursoData[tbl] = await executeTursoQuery(`SELECT * FROM "${tbl}"`);
-        }
-    } catch (error) {
-        console.error("Turso Fetch Error:", error);
-        showToast("Turso থেকে ডাটা আনতে সমস্যা: " + error.message, 'error');
-        syncModal.style.display = 'none';
-        return;
-    }
-
-    try {
-        syncProgressBar.style.width = '40%';
-        syncProgressText.innerText = '40% - ফায়ারবেজে সেভ হচ্ছে...';
-
-        let batch = db.batch();
-        let opsCount = 0, newCount = 0;
-        const MAX_BATCH_SIZE = 400; 
-        const commitBatch = async () => {
-            if (opsCount > 0) {
-                try { await batch.commit(); } catch (batchErr) { throw new Error("Firebase-এ সেভ করতে সমস্যা! Rules ঠিক আছে কিনা চেক করুন।"); }
-                batch = db.batch(); opsCount = 0;
+            
+            for (const row of tursoData[tbl]) {
+                const rowId = String(getVal(row, 'id', 'Id', 'ID') || `auto_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`);
+                batch.set(db.collection(tbl).doc(rowId), cleanData(row), { merge: true });
+                opsCount++; newCount++;
+                if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
             }
-        };
+        }
+        if (opsCount > 0) await commitBatch();
 
+        syncProgressBar.style.width = '50%';
+        syncProgressText.innerText = '50% - ওয়েব অ্যাপের জন্য ডাটা ম্যাপ করা হচ্ছে...';
+
+        // ৩. ওয়েব অ্যাপের UI-এর জন্য রিলেশনাল ম্যাপিং (ঐচ্ছিক কিন্তু UI ঠিক রাখার জন্য দরকারি)
         const buildingsData = getTbl('Building');
         const roomsData = getTbl('Room');
         const tenantsData = getTbl('Tenant');
@@ -571,7 +573,7 @@ async function fetchFromTurso() {
         });
 
         syncProgressBar.style.width = '70%';
-        syncProgressText.innerText = '70% - ডাটা ম্যাপ ও সেভ করা হচ্ছে...';
+        syncProgressText.innerText = '70% - রুম ও বিল্ডিং ম্যাপ করা হচ্ছে...';
 
         const extractDatesFromInv = (inv) => {
             let repairDate = undefined, replaceDate = undefined;
@@ -583,7 +585,6 @@ async function fetchFromTurso() {
             return { repairDate, replaceDate };
         };
 
-        // 🟢 এখানে স্কিপ না করে সব ডাটা সরাসরি Upsert (set with merge) করা হচ্ছে যাতে কোনো ডাটা বাদ না যায়
         for (const b of buildingsData) {
             const bId = String(getVal(b, 'Id', 'id') || '');
             if (!bId) continue;
@@ -594,7 +595,7 @@ async function fetchFromTurso() {
                 const tplData = cleanData({ items: tpls.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'ItemName', 'Name', 'name') || '', quantity: getVal(t, 'Quantity', 'quantity') || 1 })) });
                 batch.set(db.collection('materialTemplates').doc(bId), tplData);
             }
-            opsCount++; newCount++;
+            opsCount++;
             if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
         
@@ -645,7 +646,7 @@ async function fetchFromTurso() {
                 occupants: occupants.map(u => ({ id: String(getVal(u, 'Id', 'id')), name: getVal(u, 'Name', 'UserName', 'name') || '', relation: getVal(u, 'Relation', 'UserRelation', 'relation') || '', phone: getVal(u, 'Phone', 'UserPhone', 'phone') || '' }))
             };
             batch.set(db.collection('rooms').doc(rId), cleanData(mappedRoom), { merge: true });
-            opsCount++; newCount++;
+            opsCount++;
             if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
 
@@ -667,7 +668,7 @@ async function fetchFromTurso() {
                 createdAt: { seconds: getVal(rep, 'ReportedAt', 'reportedAt') ? new Date(getVal(rep, 'ReportedAt', 'reportedAt')).getTime() / 1000 : Date.now() / 1000 }
             };
             batch.set(db.collection('reports').doc(repId), cleanData(reportData), { merge: true });
-            opsCount++; newCount++;
+            opsCount++;
             if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
         }
 
