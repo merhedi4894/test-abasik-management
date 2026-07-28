@@ -225,20 +225,27 @@ async function handleLogin() {
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
         
-        // ০ সেকেন্ডে লগইনের জন্য সরাসরি ওয়েব পেজে নিয়ে যাওয়া হচ্ছে এবং ডাটা লোড করা হচ্ছে
+        // ০ সেকেন্ডে লগইন ও ডাটা লোডের জন্য সরাসরি ওয়েব পেজে নিয়ে যাওয়া হচ্ছে
         await loadAppData(userCredential.user);
         setBtnLoading('loginBtn', false);
     } catch(e) {
         let msg = 'ত্রুটি: ' + e.message;
         if(e.code === 'auth/user-not-found') msg = 'এই ইমেইল দিয়ে কোন অ্যাকাউন্ট নেই।';
         else if(e.code === 'auth/wrong-password') msg = 'ভুল পাসওয়ার্ড।';
+        else if(e.code === 'permission-denied') msg = 'Firebase Rules ঠিক নেই! Console এ গিয়ে ঠিক করুন।';
         showToast(msg, 'error');
         setBtnLoading('loginBtn', false);
     }
 }
 
-// ডাটা সরাসরি সার্ভার থেকে আনার ফাংশন
+// 🟢 রিয়েল-টাইম ডাটা লোডিং (onSnapshot) - স্পিনার আটকে থাকবে না
+let isLoadingAppData = false;
+let unsubBuildings, unsubRooms, unsubReports;
+
 async function loadAppData(user) {
+    if (isLoadingAppData) return;
+    isLoadingAppData = true;
+    
     currentUser = user;
     document.getElementById('authContainer').style.display = 'none'; 
     document.getElementById('appContainer').style.display = 'block'; 
@@ -249,15 +256,41 @@ async function loadAppData(user) {
     
     try {
         await user.getIdToken(true);
-        const [buildingsSnap, roomsSnap, reportsSnap] = await Promise.all([
-            db.collection('buildings').get({ source: 'server' }),
-            db.collection('rooms').get({ source: 'server' }),
-            db.collection('reports').get({ source: 'server' })
-        ]);
-        state.buildings = buildingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.rooms = roomsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.reports = reportsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        
+        // আগের লিসেনার বাতিল করা
+        if (unsubBuildings) unsubBuildings();
+        if (unsubRooms) unsubRooms();
+        if (unsubReports) unsubReports();
+        
+        let dataLoadCount = 0;
+        const onFirstData = () => {
+            dataLoadCount++;
+            if (dataLoadCount >= 3) {
+                state.isLoading = false;
+                renderPage();
+            }
+        };
+        
+        unsubBuildings = db.collection('buildings').onSnapshot(snapshot => {
+            state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            if (state.isLoading) onFirstData(); else renderPage();
+        }, err => {
+            if (err.code === 'permission-denied') showToast("Firebase Rules এ ডাটা পড়া বন্ধ! Rules ঠিক করুন।", "error");
+            state.isLoading = false;
+            renderPage();
+        });
+        
+        unsubRooms = db.collection('rooms').onSnapshot(snapshot => {
+            state.rooms = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            if (state.isLoading) onFirstData(); else renderPage();
+        }, err => { /* handled in buildings */ });
+        
+        unsubReports = db.collection('reports').onSnapshot(snapshot => {
+            state.reports = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            if (state.isLoading) onFirstData(); else renderPage();
+        }, err => { /* handled in buildings */ });
+        
     } catch(e) {
         console.error("Data Fetch Error:", e);
         let errMsg = "ডাটা লোডে সমস্যা: " + e.message;
@@ -265,9 +298,10 @@ async function loadAppData(user) {
             errMsg = "Firebase Rules এ ডাটা পড়া বন্ধ! Firebase Console এ গিয়ে Rules ঠিক করুন।";
         }
         showToast(errMsg, "error");
-    } finally {
         state.isLoading = false;
         renderPage();
+    } finally {
+        isLoadingAppData = false;
     }
 }
 
@@ -294,6 +328,9 @@ let idleTimeout;
 function resetIdleTimer() { clearTimeout(idleTimeout); if (firebase.auth().currentUser) { idleTimeout = setTimeout(() => { showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 300000); } }
 function handleLogout() { 
     clearTimeout(idleTimeout); 
+    if (unsubBuildings) unsubBuildings();
+    if (unsubRooms) unsubRooms();
+    if (unsubReports) unsubReports();
     state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     setBtnLoading('loginBtn', false); 
     firebase.auth().signOut(); 
