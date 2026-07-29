@@ -180,7 +180,7 @@ try {
     firebase.initializeApp(firebaseConfig); 
     db = firebase.firestore(); 
     useFirebase = true; 
-    firebase.auth().setPersistence(firebase.auth().Persistence.SESSION).catch(err => console.warn("Auth Persistence error:", err)); 
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(err => console.warn("Auth Persistence error:", err)); 
     if (db.enablePersistence) {
         db.enablePersistence().catch(err => {
             if (err.code == 'failed-precondition') {
@@ -195,7 +195,7 @@ try {
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
 let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
-let isLoggingOut = false; // Flag to prevent loops
+let isLoggingOut = false;
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -261,13 +261,14 @@ async function handleLogin() {
             email = userSnapshot.docs[0].data().email;
         }
         
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        await firebase.auth().signInWithEmailAndPassword(email, password);
+        
         let savedUsers = [];
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
         
-        await loadAppData(userCredential.user);
         sessionStorage.setItem('rms_is_logged_in', 'true');
+        // onAuthStateChanged will automatically trigger loadAppData(user)
         setBtnLoading('loginBtn', false);
     } catch(e) {
         let msg = 'ত্রুটি: ' + e.message;
@@ -339,7 +340,7 @@ async function loadAppData(user) {
         }, err => {
             if (err.code === 'permission-denied' && !isLoggingOut) {
                 showToast("সেশন শেষ হয়েছে! আবার লগইন করুন।", "error");
-                handleLogout();
+                handleLogout(true);
             }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
@@ -350,7 +351,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout();
+            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout(true);
         });
         
         unsubReports = db.collection('reports').onSnapshot(snapshot => {
@@ -360,7 +361,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout();
+            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout(true);
         });
 
         unsubTemplates = db.collection('materialTemplates').onSnapshot(snapshot => {
@@ -372,7 +373,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             if (state.currentPage === 'templates') renderPage();
         }, err => { 
-            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout();
+            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout(true);
         });
         
     } catch(e) {
@@ -408,12 +409,13 @@ function resetIdleTimer() {
     clearTimeout(idleTimeout); 
     if (firebase.auth().currentUser) { 
         idleTimeout = setTimeout(() => { 
-            showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); 
+            showToast('১০ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); 
             handleLogout(); 
-        }, 300000); // 5 minutes
+        }, 600000); // 10 minutes = 600,000 ms
     } 
 }
-function handleLogout() { 
+
+function handleLogout(silent = false) { 
     if (isLoggingOut) return;
     isLoggingOut = true;
     
@@ -436,9 +438,13 @@ function handleLogout() {
     document.getElementById('authContainer').style.display = 'flex';
     showLoginView();
     
-    firebase.auth().signOut().catch(err => console.error("Sign out error:", err)).finally(() => {
+    if (!silent) {
+        firebase.auth().signOut().catch(err => console.error("Sign out error:", err)).finally(() => {
+            isLoggingOut = false;
+        });
+    } else {
         isLoggingOut = false;
-    });
+    }
 }
 
 const Store = {
@@ -836,7 +842,6 @@ function initApp() {
         return;
     }
     
-    // PROACTIVE CACHE LOAD ON REFRESH
     var isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
     if (isLogged) {
         if (loadStateFromCache()) {
@@ -847,7 +852,6 @@ function initApp() {
         }
         hideLoader();
     } else {
-        // Show login screen explicitly to load suggestions
         document.getElementById('authContainer').style.display = 'flex';
         document.getElementById('appContainer').style.display = 'none';
         showLoginView();
@@ -860,11 +864,8 @@ function initApp() {
                 loadAppData(user);
             }
         } else {
-            // Only logout if we actually had a user/session.
-            // Do NOT logout if we are already on the login screen, 
-            // otherwise it wipes the input fields while the user is typing or logging in.
             if (currentUser) {
-                handleLogout();
+                handleLogout(true);
             }
         }
     });
