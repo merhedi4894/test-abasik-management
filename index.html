@@ -180,7 +180,6 @@ try {
     firebase.initializeApp(firebaseConfig); 
     db = firebase.firestore(); 
     useFirebase = true; 
-    // Set to SESSION so it stays logged in on refresh but logs out when browser is closed
     firebase.auth().setPersistence(firebase.auth().Persistence.SESSION).catch(err => console.warn("Auth Persistence error:", err)); 
     if (db.enablePersistence) {
         db.enablePersistence().catch(err => {
@@ -196,7 +195,7 @@ try {
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
 let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
-let isLoggingOut = false; // Flag to handle logout properly
+let isLoggingOut = false; // Flag to prevent loops
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -338,7 +337,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') {
+            if (err.code === 'permission-denied' && !isLoggingOut) {
                 showToast("সেশন শেষ হয়েছে! আবার লগইন করুন।", "error");
                 handleLogout();
             }
@@ -351,7 +350,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') handleLogout();
+            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout();
         });
         
         unsubReports = db.collection('reports').onSnapshot(snapshot => {
@@ -361,7 +360,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') handleLogout();
+            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout();
         });
 
         unsubTemplates = db.collection('materialTemplates').onSnapshot(snapshot => {
@@ -373,7 +372,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             if (state.currentPage === 'templates') renderPage();
         }, err => { 
-            if (err.code === 'permission-denied') handleLogout();
+            if (err.code === 'permission-denied' && !isLoggingOut) handleLogout();
         });
         
     } catch(e) {
@@ -414,15 +413,17 @@ function resetIdleTimer() {
         }, 300000); // 5 minutes
     } 
 }
-function handleLogout(silent = false) { 
+function handleLogout() { 
+    if (isLoggingOut) return;
     isLoggingOut = true;
+    
     clearTimeout(idleTimeout); 
     if (unsubBuildings) unsubBuildings();
     if (unsubRooms) unsubRooms();
     if (unsubReports) unsubReports();
     if (unsubTemplates) unsubTemplates();
     sessionStorage.removeItem('rms_is_logged_in');
-    localStorage.removeItem('rms_state_cache'); // Clear cache so data doesn't show up next time
+    localStorage.removeItem('rms_state_cache');
     state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     
     document.getElementById('loginIdentifier').value = '';
@@ -435,11 +436,9 @@ function handleLogout(silent = false) {
     document.getElementById('authContainer').style.display = 'flex';
     showLoginView();
     
-    if (!silent) {
-        firebase.auth().signOut().finally(() => { isLoggingOut = false; });
-    } else {
+    firebase.auth().signOut().catch(err => console.error("Sign out error:", err)).finally(() => {
         isLoggingOut = false;
-    }
+    });
 }
 
 const Store = {
@@ -848,8 +847,10 @@ function initApp() {
         }
         hideLoader();
     } else {
+        // Show login screen explicitly to load suggestions
         document.getElementById('authContainer').style.display = 'flex';
         document.getElementById('appContainer').style.display = 'none';
+        showLoginView();
         hideLoader();
     }
 
@@ -859,10 +860,11 @@ function initApp() {
                 loadAppData(user);
             }
         } else {
-            // If the user is explicitly logging out or session has expired (permission denied trigger)
-            // OR if there is no login session at all.
-            if (!isLoggingOut && !sessionStorage.getItem('rms_is_logged_in')) {
-                handleLogout(true);
+            // Only logout if we actually had a user/session.
+            // Do NOT logout if we are already on the login screen, 
+            // otherwise it wipes the input fields while the user is typing or logging in.
+            if (currentUser) {
+                handleLogout();
             }
         }
     });
