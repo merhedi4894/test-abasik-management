@@ -261,18 +261,16 @@ async function handleLogin() {
             email = userSnapshot.docs[0].data().email;
         }
         
-        // লগইন সফল হওয়ার আগেই সেশন ফ্ল্যাগ সেট করে দেওয়া হলো, যাতে onAuthStateChanged এটিকে নতুন ট্যাব ভেবে লগআউট না করে
         sessionStorage.setItem('rms_is_logged_in', 'true');
-        
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         let savedUsers = [];
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
         
-        // loadAppData এখন onAuthStateChanged দ্বারা অটোমেটিক কল হবে, তাই এখানে আলাদা করে কল করার প্রয়োজন নেই
+        await loadAppData(userCredential.user); // Explicitly call loadAppData for instant loading
         setBtnLoading('loginBtn', false);
     } catch(e) {
-        sessionStorage.removeItem('rms_is_logged_in'); // লগইন ব্যর্থ হলে ফ্ল্যাগ রিমুভ করা
+        sessionStorage.removeItem('rms_is_logged_in');
         let msg = 'ত্রুটি: ' + e.message;
         if(e.code === 'auth/user-not-found') msg = 'এই ইমেইল দিয়ে কোন অ্যাকাউন্ট নেই।';
         else if(e.code === 'auth/wrong-password') msg = 'ভুল পাসওয়ার্ড।';
@@ -329,7 +327,7 @@ async function loadAppData(user) {
     hideLoader();
     
     try {
-        await user.getIdToken(true);
+        // Removed getIdToken(true) as it was blocking data load sometimes
         
         if (unsubBuildings) unsubBuildings();
         if (unsubRooms) unsubRooms();
@@ -818,7 +816,6 @@ function initApp() {
                     loadAppData(user);
                 }
             } else {
-                // যদি নতুন ট্যাবে ঢোকা হয়, তবে লোকাল ইউজার থাকলেও সেশন না থাকলে লগআউট করে লগইন পেজ দেখাবে
                 firebase.auth().signOut();
             }
         } else {
