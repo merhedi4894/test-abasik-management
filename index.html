@@ -87,15 +87,12 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .pagination{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:12px;color:var(--text-light)}.footer{text-align:center;margin-top:auto;padding:20px 10px;color:#64748b;font-size:12px;background:transparent;border:none}.footer strong{font-size:14px;color:#64748b;font-weight:600}
 @media(min-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{padding:24px}.building-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));max-width:900px;margin:0 auto}.room-grid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}.modal-overlay{align-items:center;padding:20px}.modal{border-radius:20px;max-width:600px;padding:24px;animation:scaleIn .3s}.modal.large{max-width:800px}@keyframes scaleIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}.desktop-logout{display:inline-flex!important;margin-left:20px;right:24px}}
 @media(max-width:767px){.topbar{padding-bottom:5px;margin-bottom:10px;gap:8px}.main{padding:10px}.footer{padding:10px;font-size:11px}}
-#syncModal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:5000;text-align:center;min-width:300px}
-#syncProgressBar{width:0%;background:var(--success);height:10px;border-radius:5px;margin-top:15px}
-#syncProgressText{font-size:14px;font-weight:600;margin-top:10px;color:var(--text)}
 .dept-badge { background: #e0e7ff; color: #3730a3; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
 </style>
 </head>
 <body>
 <div id="loader"><div class="spinner"><div></div><div></div><div></div><div></div></div></div>
-<div id="syncModal"><h3 style="margin-bottom:10px;">Turso থেকে ডাটা আসছে...</h3><div style="width:100%; background:#f1f5f9; border-radius:8px; overflow:hidden; height:12px;"><div id="syncProgressBar"></div></div><p id="syncProgressText">0%</p></div>
+
 <div id="authContainer" class="auth-container" style="display:none">
     <div class="auth-box-wrapper">
         <div id="loginView" class="auth-box">
@@ -124,6 +121,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
     </div>
     <div class="footer">আবাসিক ম্যানেজমেন্ট ©2026<br>Created by<br><strong>Md.Mehedi Hasan</strong></div>
 </div>
+
 <div id="appContainer" style="display:none">
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
@@ -133,7 +131,6 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
         <div class="nav-item" data-page="troubleReport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>ট্রাবল রিপোর্ট</div>
         <div class="nav-item" data-page="templates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>মালামাল টেম্পলেট</div>
         <div class="nav-item" data-page="download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>ডাউনলোড</div>
-        <div class="nav-item" onclick="fetchFromTurso()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9-3-9m-9 9a9 9 0 0 1 9-9"></path></svg>ডাটা আনুন</div>
         <div class="nav-item logout" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>লগ আউট</div>
     </div>
     <div class="app-wrapper">
@@ -179,13 +176,25 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
 let db = null, useFirebase = false;
-try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); useFirebase = true; firebase.auth().setPersistence(firebase.auth().Persistence.SESSION).catch(err => console.warn("Auth Persistence error:", err)); } catch(e) { console.warn("Firebase Error:", e); }
-
-const TURSO_URL = "https://residential-management-merhedi4894.aws-ap-south-1.turso.io";
-const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODUwNTk4NzgsImlkIjoiMDE5ZDk1ZjctODcwMS03YTg1LWE5ZDMtMTZkMTQ5YTg2ZTM0Iiwia2lkIjoiSERvdFg3bzEwclVaY1lJdk1QMm9kUGxES051QjF0VmNDTTd1b3pDMUVjMCIsInJpZCI6IjYxNzk0NDk2LWFiNzctNGRjYy1hZGQ2LTQ4ODkwZjU5OGZhNiJ9.3YG3zvpa51WIQrm_VdV1xd02miBd7uoZ1x0Nfax7SIlTUnJsaAG-bmftZ0yy72Fsfedf-SF9uAWCuA1quzvRDw";
+try { 
+    firebase.initializeApp(firebaseConfig); 
+    db = firebase.firestore(); 
+    useFirebase = true; 
+    firebase.auth().setPersistence(firebase.auth().Persistence.SESSION).catch(err => console.warn("Auth Persistence error:", err)); 
+    // Enable Firestore Offline Persistence to load data instantly and prevent disappearing on refresh
+    if (db.enablePersistence) {
+        db.enablePersistence().catch(err => {
+            if (err.code == 'failed-precondition') {
+                console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+            } else if (err.code == 'unimplemented') {
+                console.warn('The current browser does not support offline persistence');
+            }
+        });
+    }
+} catch(e) { console.warn("Firebase Error:", e); }
 
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
-let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
+let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
@@ -298,7 +307,7 @@ function loadStateFromCache() {
 }
 
 let isLoadingAppData = false;
-let unsubBuildings, unsubRooms, unsubReports;
+let unsubBuildings, unsubRooms, unsubReports, unsubTemplates;
 
 async function loadAppData(user) {
     if (isLoadingAppData) return;
@@ -320,6 +329,7 @@ async function loadAppData(user) {
         if (unsubBuildings) unsubBuildings();
         if (unsubRooms) unsubRooms();
         if (unsubReports) unsubReports();
+        if (unsubTemplates) unsubTemplates();
         
         unsubBuildings = db.collection('buildings').onSnapshot(snapshot => {
             state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -345,6 +355,14 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {});
+
+        // Fetch templates once and keep in state for instant rendering
+        const templatesSnap = await db.collection('materialTemplates').get();
+        state.templates = {};
+        templatesSnap.forEach(doc => {
+            state.templates[doc.id] = doc.data().items || [];
+        });
+        renderPage();
         
     } catch(e) {
         console.error("Data Fetch Error:", e);
@@ -381,8 +399,9 @@ function handleLogout() {
     if (unsubBuildings) unsubBuildings();
     if (unsubRooms) unsubRooms();
     if (unsubReports) unsubReports();
+    if (unsubTemplates) unsubTemplates();
     sessionStorage.removeItem('rms_is_logged_in');
-    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
+    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     document.getElementById('loginIdentifier').value = '';
     document.getElementById('loginPassword').value = '';
     document.getElementById('forgotEmail').value = '';
@@ -395,332 +414,17 @@ const Store = {
     async deleteBuilding(id) { await db.collection('buildings').doc(id).delete(); const r = await db.collection('rooms').where('buildingId', '==', id).get(); const b = db.batch(); r.docs.forEach(d => b.delete(d.ref)); await b.commit(); },
     async saveRoom(r) { if (r.id) { await db.collection('rooms').doc(r.id).set(r, { merge: true }); return r; } else { const ref = await db.collection('rooms').add(r); return { id: ref.id, ...r }; } },
     async deleteRoom(id) { await db.collection('rooms').doc(id).delete(); },
-    async getTemplates(bId) { const d = await db.collection('materialTemplates').doc(bId).get(); if (d.exists) return d.data().items || []; return []; },
-    async saveTemplates(bId, items) { await db.collection('materialTemplates').doc(bId).set({ items }); },
+    async getTemplates(bId) { return state.templates?.[bId] || []; },
+    async saveTemplates(bId, items) { 
+        await db.collection('materialTemplates').doc(bId).set({ items });
+        if (!state.templates) state.templates = {};
+        state.templates[bId] = items;
+    },
     async getPayments() { const s = await db.collection('payments').get(); return s.docs.map(d => ({id: d.id, ...d.data()})); },
     async savePayment(p) { await db.collection('payments').add(p); },
     async saveReport(r) { if(r.id) { await db.collection('reports').doc(r.id).set(r, {merge:true}); return r; } else { r.createdAt = firebase.firestore.FieldValue.serverTimestamp(); const ref = await db.collection('reports').add(r); return {id: ref.id, ...r}; } },
     async deleteReport(id) { await db.collection('reports').doc(id).delete(); }
 };
-
-function cleanData(obj) {
-    if (obj === null || obj === undefined) return null;
-    if (typeof obj !== 'object' || obj instanceof Date || (obj.seconds !== undefined && obj.nanoseconds !== undefined) || (obj._methodName !== undefined)) return obj;
-    if (Array.isArray(obj)) return obj.map(cleanData);
-    const cleaned = {};
-    for (const key in obj) { if (obj[key] !== undefined) { cleaned[key] = cleanData(obj[key]); } }
-    return cleaned;
-}
-
-async function fetchFromTurso() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('active');
-    const syncModal = document.getElementById('syncModal');
-    const syncProgressBar = document.getElementById('syncProgressBar');
-    const syncProgressText = document.getElementById('syncProgressText');
-    syncModal.style.display = 'block';
-    syncProgressBar.style.width = '0%';
-    syncProgressText.innerText = '0% - ডাটা ফেচ করা হচ্ছে...';
-    try {
-        const executeTursoQuery = async (sql) => {
-            const url = `${TURSO_URL}/v2/pipeline`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${TURSO_TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requests: [ { type: "execute", stmt: { sql: sql } }, { type: "close" } ] })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || "Turso API Error");
-            if(!data.results || !data.results[0] || !data.results[0].response || !data.results[0].response.result) return [];
-            const result = data.results[0].response.result;
-            const cols = result.cols.map(c => c.name);
-            return (result.rows || []).map(row => {
-                let obj = {};
-                row.forEach((val, index) => {
-                    let cellValue = (typeof val === 'object' && val !== null && 'value' in val) ? val.value : val;
-                    obj[cols[index]] = cellValue;
-                });
-                return obj;
-            });
-        };
-        const getVal = (obj, ...keys) => { 
-            if (!obj) return undefined;
-            for(let k of keys) {
-                if(obj[k] !== undefined) return obj[k];
-                let foundKey = Object.keys(obj).find(key => key.toLowerCase() === k.toLowerCase());
-                if (foundKey) return obj[foundKey];
-            }
-            return undefined; 
-        };
-        const getTbl = (name) => {
-            const keys = Object.keys(tursoData);
-            const found = keys.find(k => k.toLowerCase() === name.toLowerCase());
-            return found ? tursoData[found] : [];
-        };
-        
-        const findKey = (obj, ...patterns) => {
-            if (!obj) return undefined;
-            for (let key in obj) {
-                const lowerKey = key.toLowerCase();
-                for (let p of patterns) {
-                    if (lowerKey.includes(p)) return obj[key];
-                }
-            }
-            return undefined;
-        };
-
-        const safeDate = (val) => {
-            if (val === null || val === undefined || val === '') return null;
-            if (typeof val === 'string') {
-                if (val.length === 10 && val.includes('-')) return val.split('T')[0]; 
-                const isoVal = val.replace(' ', 'T');
-                const d = new Date(isoVal);
-                if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-                return val; 
-            }
-            if (typeof val === 'number') {
-                const d = new Date(val > 100000000000 ? val : val * 1000);
-                if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-                return String(val);
-            }
-            if (typeof val === 'object' && val !== null) {
-                if (val.seconds !== undefined) {
-                    const d = new Date(val.seconds * 1000);
-                    if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-                }
-                if (val.value !== undefined) return safeDate(val.value);
-            }
-            return String(val);
-        };
-
-        syncProgressBar.style.width = '5%';
-        syncProgressText.innerText = '5% - টেবিল লিস্ট আসছে...';
-        const schemaRes = await executeTursoQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'");
-        const tableNames = schemaRes.map(r => r.name).filter(n => n);
-        const tursoData = {};
-        for (let i = 0; i < tableNames.length; i++) {
-            const tbl = tableNames[i];
-            const progress = 5 + Math.round(((i + 1) / tableNames.length) * 35);
-            syncProgressBar.style.width = progress + '%';
-            syncProgressText.innerText = progress + '% - ' + tbl + ' টেবিল আসছে...';
-            tursoData[tbl] = await executeTursoQuery(`SELECT * FROM "${tbl}"`);
-        }
-        syncProgressBar.style.width = '40%';
-        syncProgressText.innerText = '40% - ফায়ারবেজে চেক করা হচ্ছে...';
-
-        const fbBuildings = await db.collection('buildings').get();
-        const fbRooms = await db.collection('rooms').get();
-        const fbReports = await db.collection('reports').get();
-        const existingBuildings = {};
-        fbBuildings.docs.forEach(d => existingBuildings[d.id] = d.data());
-        const existingRooms = {};
-        fbRooms.docs.forEach(d => existingRooms[d.id] = d.data());
-        const existingReports = {};
-        fbReports.docs.forEach(d => existingReports[d.id] = d.data());
-
-        let batch = db.batch();
-        let opsCount = 0, newCount = 0;
-        const MAX_BATCH_SIZE = 400; 
-        const commitBatch = async () => {
-            if (opsCount > 0) {
-                try { await batch.commit(); } catch (batchErr) { throw new Error("Firebase-এ সেভ করতে সমস্যা! Rules ঠিক আছে কিনা চেক করুন।"); }
-                batch = db.batch(); opsCount = 0;
-            }
-        };
-
-        const buildingsData = getTbl('Building');
-        const roomsData = getTbl('Room');
-        const tenantsData = getTbl('Tenant');
-        const floorsData = getTbl('Floor');
-        const inventoryData = getTbl('Inventory');
-        const templatesData = getTbl('BelongingTemplate');
-        const reportsData = getTbl('TroubleReport');
-        const roomUsersData = getTbl('RoomUser');
-        
-        const repairReplaceData = getTbl('InventoryRepairReplace') || [];
-        const repairsByInventoryId = {};
-        repairReplaceData.forEach(rr => {
-            const invId = String(getVal(rr, 'InventoryId', 'inventoryId'));
-            if (!invId) return;
-            if (!repairsByInventoryId[invId]) repairsByInventoryId[invId] = [];
-            
-            let typeStr = String(getVal(rr, 'Type', 'type')).toLowerCase();
-            let type = typeStr.includes('replace') ? 'Replace' : 'Repair';
-            let dateVal = undefined;
-            for (let k in rr) {
-                let lk = k.toLowerCase();
-                if (['date', 'repairdate', 'replacedate', 'performeddate', 'actiondate', 'performedat', 'createdat', 'updatedat'].includes(lk)) {
-                    dateVal = rr[k]; break;
-                }
-            }
-            if (!dateVal) {
-                for (let k in rr) {
-                    let lk = k.toLowerCase();
-                    if (lk.endsWith('at') || lk.includes('date') || lk.includes('time')) { dateVal = rr[k]; break; }
-                }
-            }
-            
-            repairsByInventoryId[invId].push({
-                type: type,
-                date: safeDate(dateVal),
-                note: getVal(rr, 'Note', 'note') || '',
-                condition: getVal(rr, 'Condition', 'condition') || 'ভাল',
-                quantity: getVal(rr, 'Quantity', 'quantity') || 1
-            });
-        });
-
-        syncProgressBar.style.width = '70%';
-        syncProgressText.innerText = '70% - নতুন ডাটা ম্যাপ করা হচ্ছে...';
-
-        const extractDatesFromInv = (inv) => {
-            let repairDate = undefined, replaceDate = undefined;
-            for (let k in inv) {
-                let lk = k.toLowerCase();
-                if (lk.includes('repair') && (lk.includes('date') || lk.includes('at') || lk.includes('time'))) {
-                    repairDate = inv[k];
-                }
-                if (lk.includes('replace') && (lk.includes('date') || lk.includes('at') || lk.includes('time'))) {
-                    replaceDate = inv[k];
-                }
-            }
-            return { repairDate, replaceDate };
-        };
-
-        for (const b of buildingsData) {
-            const bId = String(getVal(b, 'Id', 'id') || '');
-            if (!bId) continue;
-            if (!existingBuildings[bId]) {
-                const dataToSave = cleanData({ name: getVal(b, 'Name', 'name') || '', floorCount: getVal(b, 'TotalFloors', 'FloorCount', 'floorCount') || 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                batch.set(db.collection('buildings').doc(bId), dataToSave, { merge: true });
-                const tpls = templatesData.filter(t => String(getVal(t, 'BuildingId', 'buildingId')) === bId);
-                if (tpls.length > 0) {
-                    const tplData = cleanData({ items: tpls.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'ItemName', 'Name', 'name') || '', quantity: getVal(t, 'Quantity', 'quantity') || 1 })) });
-                    batch.set(db.collection('materialTemplates').doc(bId), tplData);
-                }
-                opsCount++; newCount++;
-            }
-            if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
-        }
-        
-        for (const r of roomsData) {
-            const rId = String(getVal(r, 'Id', 'id') || '');
-            if (!rId) continue;
-            const floor = floorsData.find(f => String(getVal(f, 'Id', 'id')) === String(getVal(r, 'FloorId', 'floorId')));
-            const buildingId = floor ? String(getVal(floor, 'BuildingId', 'buildingId')) : null;
-            if (!buildingId) continue;
-
-            const inventories = inventoryData.filter(inv => String(getVal(inv, 'RoomId', 'roomId')) === rId);
-            
-            if (!existingRooms[rId]) {
-                const activeTenants = tenantsData.filter(t => String(getVal(t, 'RoomId', 'roomId')) === rId && getVal(t, 'IsActive', 'isActive'));
-                const prevTenants = tenantsData.filter(t => String(getVal(t, 'RoomId', 'roomId')) === rId && !getVal(t, 'IsActive', 'isActive'));
-                const occupants = roomUsersData.filter(u => String(getVal(u, 'RoomId', 'roomId')) === rId);
-                
-                const mappedRoom = {
-                    buildingId: buildingId,
-                    floor: floor ? String(getVal(floor, 'FloorNumber', 'floorNumber', 'Floor', 'floor')) : '1',
-                    number: getVal(r, 'RoomNumber', 'Number', 'number') || '',
-                    tenants: activeTenants.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'Name', 'name') || '', designation: getVal(t, 'Designation', 'designation') || '', phone: getVal(t, 'Phone', 'phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), type: 'bachelor', familyInfo: '' })),
-                    previousTenants: prevTenants.map(t => ({ id: String(getVal(t, 'Id', 'id')), name: getVal(t, 'Name', 'name') || '', designation: getVal(t, 'Designation', 'designation') || '', phone: getVal(t, 'Phone', 'phone') || '', startDate: safeDate(findKey(t, 'start', 'assign')), endDate: safeDate(findKey(t, 'end', 'vacate')) })),
-                    items: inventories.map(inv => {
-                        const invId = String(getVal(inv, 'Id', 'id'));
-                        let history = repairsByInventoryId[invId] || [];
-                        const directDates = extractDatesFromInv(inv);
-                        
-                        if (directDates.repairDate) history.push({ type: 'Repair', date: safeDate(directDates.repairDate), note: '', condition: 'ভাল', quantity: 1 });
-                        if (directDates.replaceDate) history.push({ type: 'Replace', date: safeDate(directDates.replaceDate), note: '', condition: 'ভাল', quantity: 1 });
-                        
-                        const uniqueHistory = [];
-                        const seen = new Set();
-                        history.forEach(h => {
-                            const key = `${h.type}-${h.date}`;
-                            if (!seen.has(key)) { seen.add(key); uniqueHistory.push(h); }
-                        });
-                        uniqueHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                        const lastRepair = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'repair').pop();
-                        const lastReplace = uniqueHistory.filter(h => String(h.type).toLowerCase() === 'replace').pop();
-
-                        return { 
-                            id: invId, 
-                            name: getVal(inv, 'ItemName', 'Name', 'name') || '', 
-                            quantity: getVal(inv, 'Quantity', 'quantity') || 1, 
-                            condition: getVal(inv, 'Condition', 'condition') || 'ভাল', 
-                            lastRepairDate: lastRepair ? lastRepair.date : null, 
-                            lastReplaceDate: lastReplace ? lastReplace.date : null, 
-                            history: uniqueHistory 
-                        };
-                    }),
-                    guests: [],
-                    occupants: occupants.map(u => ({ id: String(getVal(u, 'Id', 'id')), name: getVal(u, 'Name', 'UserName', 'name') || '', relation: getVal(u, 'Relation', 'UserRelation', 'relation') || '', phone: getVal(u, 'Phone', 'UserPhone', 'phone') || '' }))
-                };
-                batch.set(db.collection('rooms').doc(rId), cleanData(mappedRoom), { merge: true });
-                opsCount++; newCount++;
-            }
-            if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
-        }
-
-        for (const rep of reportsData) {
-            const repId = String(getVal(rep, 'Id', 'id') || '');
-            if (!repId) continue;
-            if (!existingReports[repId]) {
-                const room = roomsData.find(rm => String(getVal(rm, 'Id', 'id')) === String(getVal(rep, 'RoomId', 'roomId')));
-                const floor = room ? floorsData.find(f => String(getVal(f, 'Id', 'id')) === String(getVal(room, 'FloorId', 'floorId'))) : null;
-                const building = floor ? buildingsData.find(b => String(getVal(b, 'Id', 'id')) === String(getVal(floor, 'BuildingId', 'buildingId'))) : null;
-                const reportData = {
-                    building: building ? getVal(building, 'Name', 'name') : 'Unknown',
-                    floor: floor ? String(getVal(floor, 'FloorNumber', 'floorNumber')) : '-',
-                    room: room ? getVal(room, 'RoomNumber', 'Number', 'number') : '-',
-                    description: getVal(rep, 'Description', 'description') || '',
-                    reporter: getVal(rep, 'ReportedBy', 'reportedBy') || '',
-                    department: getVal(rep, 'Department', 'department') || 'Civil',
-                    mistry: getVal(rep, 'Mistry', 'mistry') || '',
-                    status: getVal(rep, 'Status', 'status') === "সমাধান হয়েছে" ? "resolved" : "pending",
-                    createdAt: { seconds: getVal(rep, 'ReportedAt', 'reportedAt') ? new Date(getVal(rep, 'ReportedAt', 'reportedAt')).getTime() / 1000 : Date.now() / 1000 }
-                };
-                batch.set(db.collection('reports').doc(repId), cleanData(reportData), { merge: true });
-                opsCount++; newCount++;
-            }
-            if (opsCount >= MAX_BATCH_SIZE) await commitBatch();
-        }
-
-        if (opsCount > 0) await commitBatch();
-        syncProgressBar.style.width = '90%';
-        syncProgressText.innerText = '90% - ডাটা রিফ্রেশ করা হচ্ছে...';
-        
-        const [bSnap, rSnap, repSnap] = await Promise.all([
-            db.collection('buildings').get(),
-            db.collection('rooms').get(),
-            db.collection('reports').get()
-        ]);
-        state.buildings = bSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.rooms = rSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.reports = repSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        
-        saveStateToCache(); 
-        renderPage();
-        syncProgressBar.style.width = '100%';
-        syncProgressText.innerText = '100% - সম্পূর্ণ!';
-        setTimeout(() => {
-            syncModal.style.display = 'none';
-            if(newCount === 0) { showToast(`Turso-তে নতুন কোনো ডাটা নেই।`, "info"); } 
-            else { showToast(`🎉 সফল! ${newCount} টি ডাটা সেভ হয়েছে।`, "success"); }
-        }, 500);
-    } catch (error) {
-        console.error("Fetch/Sync Error:", error);
-        let errMsg = "ডাটা আনতে বা সেভ করতে সমস্যা হয়েছে।";
-        if (error.code === 'permission-denied' || error.message.includes('Permission denied') || error.message.includes('PERMISSION_DENIED')) {
-            errMsg = "Firebase Security Rules এ ডাটা সেভ করা বন্ধ আছে! Firebase Console এ গিয়ে Rules ঠিক করুন।";
-        } else if (error.message.includes('Failed to fetch')) {
-            errMsg = "ইন্টারনেট বা Turso সার্ভারে সমস্যার কারণে ডাটা আসছে না।";
-        } else if (error.message) {
-            errMsg = error.message;
-        }
-        showToast(errMsg, "error");
-        syncModal.style.display = 'none';
-    }
-}
 
 function normalizeRoomNumber(num) { if (!num) return ''; const l = String(num).toLowerCase().trim(); return (l.match(/[a-z\u0980-\u09ff]/g) || []).sort().join('') + (l.match(/[0-9]/g) || []).sort().join(''); }
 function roomMatchesSearch(s, n) { return normalizeRoomNumber(s) === normalizeRoomNumber(n); }
@@ -794,7 +498,7 @@ function renderPage() {
 }
 
 function renderDashboard(c) {
-    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><p class="text-sm text-light mt-8">আপনার যদি Turso ডাটাবেসে ডাটা থাকে, তবে নিচের বাটনে ক্লিক করে ডাটা ফায়ারবেজে নিয়ে আসুন।</p><button class="btn btn-primary mt-16" onclick="fetchFromTurso()">Turso থেকে ডাটা আনুন</button></div></div>`; return; }
+    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><p class="text-sm text-light mt-8">নতুন বিল্ডিং যোগ করতে নিচের বাটনে ক্লিক করুন।</p><button class="btn btn-primary mt-16" onclick="showAddBuildingModal()">+ বিল্ডিং যোগ করুন</button></div></div>`; return; }
     const roomsByBuilding = {};
     state.rooms.forEach(r => {
         if (!roomsByBuilding[r.buildingId]) roomsByBuilding[r.buildingId] = [];
@@ -907,7 +611,6 @@ async function confirmVacate(rId) {
     const vacateTenantId = document.getElementById('vacateTenantId').value; 
     if (!eD || !vacateTenantId) { showToast('তারিখ ও ব্যক্তি নির্বাচন করুন', 'error'); return; } 
     const r = state.rooms.find(x => x.id === rId); 
-    // 🟢 লজিক্যাল ভুল ঠিক করা হয়েছে: `t.id !== vacateTenantId` এর বদলে `t.id === vacateTenantId` হবে
     const tenantToVacate = (r.tenants || []).find(t => t.id === vacateTenantId); 
     if (!tenantToVacate) { showToast('ভাড়াটে খুঁজে পাওয়া যায়নি', 'error'); return; } 
     const iSnap = (r.items || []).map(i => { const q = document.getElementById(`vq_${i.id}`); const s = document.getElementById(`vs_${i.id}`); i.quantity = q ? parseInt(q.value) : i.quantity; i.condition = s ? s.value : i.condition; return { id: i.id, name: i.name, quantity: i.quantity, condition: i.condition }; }); 
@@ -934,14 +637,27 @@ async function saveItem(rId) { const n = document.getElementById('iName').value.
 async function deleteItem(rId, iId) { checkPassword(async () => { const r = state.rooms.find(x => x.id === rId); r.items = r.items.filter(i => i.id !== iId); forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); showRoomDetail(rId, 'items', true); } }); }
 function repairReplaceModal(rId, iId) { const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); let historyHtml = ''; if (i.history && i.history.length > 0) { historyHtml = `<h4 class="mt-16 mb-8" style="font-size:14px; font-weight:700;">📜 রেকর্ড তালিকা</h4><div class="grid gap-12">`; i.history.slice().reverse().map(h => { historyHtml += `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${h.type === 'Repair' ? '🔧 রিপেয়ার' : '🔄 রিপ্লেস'}</strong><span class="text-sm">${formatDate(h.date)}</span></div><div class="card-body"><p>পরিমাণ: ${h.quantity || '-'}</p><p>অবস্থা: ${getConditionBadge(h.condition)}</p><p>মন্তব্য: ${escapeHtml(h.note || '-')}</p></div></div>`; }); historyHtml += `</div>`; } else { historyHtml = `<p class="text-light text-sm mt-16 text-center">কোন পূর্বের রেকর্ড নেই।</p>`; } openModal(`রিপেয়ার/রিপ্লেস - ${escapeHtml(i.name)}`, `<div class="grid grid-2"><div class="form-group"><label>প্রকার</label><select id="rType"><option value="Repair">Repair</option><option value="Replace">Replace</option></select></div><div class="form-group"><label>তারিখ *</label><input type="date" id="rDate" value="${new Date().toISOString().split('T')[0]}"></div></div><div class="grid grid-2"><div class="form-group"><label>পরিমাণ</label><input type="number" id="rQty" value="${i.quantity || 1}" min="1"></div><div class="form-group"><label>অবস্থা</label><select id="rCond">${getConditionOptions(i.condition)}</select></div></div><div class="form-group"><label>মন্তব্য</label><input type="text" id="rNote" placeholder="মন্তব্য লিখুন"></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveRepair('${rId}','${iId}')">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>${historyHtml}`, true); }
 async function saveRepair(rId, iId) { const t = document.getElementById('rType').value; const d = document.getElementById('rDate').value; const c = document.getElementById('rCond').value; const q = parseInt(document.getElementById('rQty').value) || 1; const n = document.getElementById('rNote').value.trim(); if (!d) { showToast('তারিখ দিন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); if (!i.history) i.history = []; i.history.push({ type: t, date: d, note: n, condition: c, quantity: q }); if (t === 'Repair') i.lastRepairDate = d; else i.lastReplaceDate = d; i.condition = c; i.quantity = q; forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('রেকর্ড সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
-async function addItemsFromTemplate(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = await Store.getTemplates(r.buildingId); if (tpls.length === 0) { openModal('টেম্পলেট', `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div><button class="btn btn-outline mt-16" style="width:100%" onclick="closeModal()">বন্ধ</button>`, true); return; } const exN = (r.items || []).map(i => i.name); const miss = tpls.filter(t => !exN.includes(t.name)); if (miss.length === 0) { showToast('সব মালামাল আছে', 'error'); closeModal(); return; } openModal('টেম্পলেট থেকে যোগ', `<p class="text-sm text-light mb-16">পরিমাণ ও অবস্থা এডিট করে নিচের বাটনে ক্লিক করুন।</p><div class="card" style="margin:0;max-height:300px;overflow-y:auto;background:#f8fafc">${miss.map(t => `<div class="flex-between" style="padding:4px 0;border-bottom:1px solid var(--border)"><span class="text-sm">${escapeHtml(t.name)}</span><div class="flex gap-8"><input type="number" value="${t.quantity || 1}" id="tq_${t.id}" style="width:50px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px"><select id="tc_${t.id}" style="width:auto;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px">${getConditionOptions('আছে')}</select></div></div>`).join('')}</div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateItems('${rId}')">সবগুলো যোগ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
-async function saveTemplateItems(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = await Store.getTemplates(r.buildingId); const exN = (r.items || []).map(i => i.name); let cnt = 0; if (!r.items) r.items = []; tpls.forEach(t => { if (!exN.includes(t.name)) { const q = document.getElementById(`tq_${t.id}`); const c = document.getElementById(`tc_${t.id}`); r.items.push({ id: genId('i'), name: t.name, quantity: q ? parseInt(q.value) : 1, condition: c ? c.value : 'আছে', lastRepairDate: null, lastReplaceDate: null, history: [] }); cnt++; } }); forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast(`${cnt} টি যোগ হয়েছে`); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
-async function renderTemplates(c) { if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } const bId = state.selectedBuilding || state.buildings[0].id; const tpls = await Store.getTemplates(bId); const renderTable = (arr) => { return `<div class="table-wrapper"><table class="material-table"><thead><tr><th>নাম</th><th>পরিমাণ</th><th>অ্যাকশন</th></tr></thead><tbody>${arr.map(t => `<tr><td>${escapeHtml(t.name)}</td><td>${t.quantity || 1}</td><td><button class="btn-icon" onclick="editTemplateModal('${t.id}')">${editIcon}</button> <button class="btn-icon danger" onclick="deleteTemplate('${t.id}')">${delIcon}</button></td></tr>`).join('')}</tbody></table></div>`; }; let tableHtml = ''; const isDesktop = window.innerWidth >= 768; if (isDesktop && tpls.length > 4) { const half = Math.ceil(tpls.length / 2); const leftTpls = tpls.slice(0, half); const rightTpls = tpls.slice(half); tableHtml = `<div class="grid grid-2">${renderTable(leftTpls)}${renderTable(rightTpls)}</div>`; } else { tableHtml = renderTable(tpls); } c.innerHTML = `<div class="flex gap-12 mb-16 flex-wrap"><select style="padding:8px 12px;border-radius:8px;border:1px solid var(--border)" onchange="state.selectedBuilding=this.value;renderPage()">${state.buildings.map(b => `<option value="${b.id}" ${b.id === bId ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}</select><button class="btn btn-primary btn-sm" onclick="showAddTemplateModal()">+ টেম্পলেট</button></div><div class="card"><h3 class="mb-16">মালামাল টেম্পলেট (${tpls.length})</h3>${tpls.length === 0 ? `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div>` : tableHtml}</div>`; }
+async function addItemsFromTemplate(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = state.templates?.[r.buildingId] || []; if (tpls.length === 0) { openModal('টেম্পলেট', `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div><button class="btn btn-outline mt-16" style="width:100%" onclick="closeModal()">বন্ধ</button>`, true); return; } const exN = (r.items || []).map(i => i.name); const miss = tpls.filter(t => !exN.includes(t.name)); if (miss.length === 0) { showToast('সব মালামাল আছে', 'error'); closeModal(); return; } openModal('টেম্পলেট থেকে যোগ', `<p class="text-sm text-light mb-16">পরিমাণ ও অবস্থা এডিট করে নিচের বাটনে ক্লিক করুন।</p><div class="card" style="margin:0;max-height:300px;overflow-y:auto;background:#f8fafc">${miss.map(t => `<div class="flex-between" style="padding:4px 0;border-bottom:1px solid var(--border)"><span class="text-sm">${escapeHtml(t.name)}</span><div class="flex gap-8"><input type="number" value="${t.quantity || 1}" id="tq_${t.id}" style="width:50px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px"><select id="tc_${t.id}" style="width:auto;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px">${getConditionOptions('আছে')}</select></div></div>`).join('')}</div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateItems('${rId}')">সবগুলো যোগ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
+async function saveTemplateItems(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = state.templates?.[r.buildingId] || []; const exN = (r.items || []).map(i => i.name); let cnt = 0; if (!r.items) r.items = []; tpls.forEach(t => { if (!exN.includes(t.name)) { const q = document.getElementById(`tq_${t.id}`); const c = document.getElementById(`tc_${t.id}`); r.items.push({ id: genId('i'), name: t.name, quantity: q ? parseInt(q.value) : 1, condition: c ? c.value : 'আছে', lastRepairDate: null, lastReplaceDate: null, history: [] }); cnt++; } }); forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast(`${cnt} টি যোগ হয়েছে`); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
+
+// Modified Templates rendering to use local state for instant load
+async function renderTemplates(c) { 
+    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } 
+    const bId = state.selectedBuilding || state.buildings[0].id; 
+    const tpls = state.templates?.[bId] || []; 
+    const renderTable = (arr) => { return `<div class="table-wrapper"><table class="material-table"><thead><tr><th>নাম</th><th>পরিমাণ</th><th>অ্যাকশন</th></tr></thead><tbody>${arr.map(t => `<tr><td>${escapeHtml(t.name)}</td><td>${t.quantity || 1}</td><td><button class="btn-icon" onclick="editTemplateModal('${t.id}')">${editIcon}</button> <button class="btn-icon danger" onclick="deleteTemplate('${t.id}')">${delIcon}</button></td></tr>`).join('')}</tbody></table></div>`; }; 
+    let tableHtml = ''; 
+    const isDesktop = window.innerWidth >= 768; 
+    if (isDesktop && tpls.length > 4) { const half = Math.ceil(tpls.length / 2); const leftTpls = tpls.slice(0, half); const rightTpls = tpls.slice(half); tableHtml = `<div class="grid grid-2">${renderTable(leftTpls)}${renderTable(rightTpls)}</div>`; } 
+    else { tableHtml = renderTable(tpls); } 
+    c.innerHTML = `<div class="flex gap-12 mb-16 flex-wrap"><select style="padding:8px 12px;border-radius:8px;border:1px solid var(--border)" onchange="state.selectedBuilding=this.value;renderPage()">${state.buildings.map(b => `<option value="${b.id}" ${b.id === bId ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}</select><button class="btn btn-primary btn-sm" onclick="showAddTemplateModal()">+ টেম্পলেট</button></div><div class="card"><h3 class="mb-16">মালামাল টেম্পলেট (${tpls.length})</h3>${tpls.length === 0 ? `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div>` : tableHtml}</div>`; 
+}
 function showAddTemplateModal() { openModal('নতুন টেম্পলেট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="tName"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="tQty" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplate()">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
-async function saveTemplate() { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('tName').value.trim(); const q = parseInt(document.getElementById('tQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } const tpls = await Store.getTemplates(bId); if (!tpls.find(t => t.name === n)) tpls.push({ id: genId('t'), name: n, quantity: q }); await Store.saveTemplates(bId, tpls); showToast('যোগ হয়েছে'); forceCloseModal(); renderPage(); }
-async function editTemplateModal(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = await Store.getTemplates(bId); const t = tpls.find(x => x.id === tId); openModal('টেম্পলেট এডিট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="etName" value="${escapeHtml(t.name)}"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="etQty" value="${t.quantity || 1}" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateEdit('${tId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
-async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } const tpls = await Store.getTemplates(bId); const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'); forceCloseModal(); renderPage(); }
-async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = await Store.getTemplates(bId); await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
+async function saveTemplate() { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('tName').value.trim(); const q = parseInt(document.getElementById('tQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; if (!tpls.find(t => t.name === n)) tpls.push({ id: genId('t'), name: n, quantity: q }); await Store.saveTemplates(bId, tpls); showToast('যোগ হয়েছে'); forceCloseModal(); renderPage(); }
+async function editTemplateModal(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); openModal('টেম্পলেট এডিট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="etName" value="${escapeHtml(t.name)}"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="etQty" value="${t.quantity || 1}" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateEdit('${tId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
+async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'); forceCloseModal(); renderPage(); }
+async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding || state.buildings[0].id; let tpls = state.templates?.[bId] || []; await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
+
 async function renderPayment(c) { if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } c.innerHTML = `<div class="card"><h3 class="mb-16">💵 পেমেন্ট রেকর্ড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="payBuilding" onchange="loadPayFloors()"><option value="">সিলেক্ট করুন</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা</label><select id="payFloor" onchange="loadPayRooms()" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম নম্বর</label><select id="payRoom" onchange="loadPayPersons()" disabled><option value="">সিলেক্ট করুন</option></select></div><div class="form-group"><label>ব্যক্তি</label><select id="payPerson" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-3"><div class="form-group"><label>জমা টাকার পরিমাণ</label><input type="number" id="payAmount" placeholder="৳"></div><div class="form-group"><label>মাস</label><select id="payMonth">${['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'].map(m=>`<option value="${m}">${m}</option>`).join('')}</select></div><div class="form-group"><label>বছর</label><input type="number" id="payYear" value="${new Date().getFullYear()}"></div></div><button class="btn btn-primary" style="width:100%" onclick="savePayment()">পেমেন্ট সেভ করুন</button></div>`; }
 function loadPayFloors() { const bId = document.getElementById('payBuilding').value; const b = state.buildings.find(x=>x.id===bId); const fS = document.getElementById('payFloor'); fS.innerHTML = '-সিলেক্ট করুন-'; for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; document.getElementById('payRoom').disabled = true; document.getElementById('payPerson').disabled = true; document.getElementById('payRoom').innerHTML = '-সিলেক্ট করুন-'; document.getElementById('payPerson').innerHTML = '-সিলেক্ট করুন-'; }
 function loadPayRooms() { const bId = document.getElementById('payBuilding').value; const fId = document.getElementById('payFloor').value; const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); const rS = document.getElementById('payRoom'); rS.innerHTML = '-সিলেক্ট করুন-'; rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; document.getElementById('payPerson').disabled = true; document.getElementById('payPerson').innerHTML = '-সিলেক্ট করুন-'; }
@@ -1098,7 +814,8 @@ function initApp() {
             if (unsubBuildings) unsubBuildings();
             if (unsubRooms) unsubRooms();
             if (unsubReports) unsubReports();
-            state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
+            if (unsubTemplates) unsubTemplates();
+            state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'flex';
             showLoginView();
