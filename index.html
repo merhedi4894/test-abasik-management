@@ -181,7 +181,6 @@ try {
     firebase.initializeApp(firebaseConfig); 
     db = firebase.firestore(); 
     useFirebase = true; 
-    // LOCAL persistence is much more stable than SESSION. We will manually handle showing login page on new tab via sessionStorage check.
     firebase.auth().setPersistence(firebase.auth().Persistence.LOCAL).catch(err => console.warn("Auth Persistence error:", err)); 
     if (db.enablePersistence) {
         db.enablePersistence().catch(err => {
@@ -262,15 +261,18 @@ async function handleLogin() {
             email = userSnapshot.docs[0].data().email;
         }
         
+        // লগইন সফল হওয়ার আগেই সেশন ফ্ল্যাগ সেট করে দেওয়া হলো, যাতে onAuthStateChanged এটিকে নতুন ট্যাব ভেবে লগআউট না করে
+        sessionStorage.setItem('rms_is_logged_in', 'true');
+        
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         let savedUsers = [];
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
         
-        sessionStorage.setItem('rms_is_logged_in', 'true'); // Set session flag for current tab
-        await loadAppData(userCredential.user);
+        // loadAppData এখন onAuthStateChanged দ্বারা অটোমেটিক কল হবে, তাই এখানে আলাদা করে কল করার প্রয়োজন নেই
         setBtnLoading('loginBtn', false);
     } catch(e) {
+        sessionStorage.removeItem('rms_is_logged_in'); // লগইন ব্যর্থ হলে ফ্ল্যাগ রিমুভ করা
         let msg = 'ত্রুটি: ' + e.message;
         if(e.code === 'auth/user-not-found') msg = 'এই ইমেইল দিয়ে কোন অ্যাকাউন্ট নেই।';
         else if(e.code === 'auth/wrong-password') msg = 'ভুল পাসওয়ার্ড।';
@@ -287,7 +289,7 @@ function saveStateToCache() {
                 buildings: state.buildings,
                 rooms: state.rooms,
                 reports: state.reports,
-                templates: state.templates || {} // Templates are now cached!
+                templates: state.templates || {}
             }));
         }
     } catch(e) {}
@@ -301,7 +303,7 @@ function loadStateFromCache() {
             state.buildings = data.buildings || [];
             state.rooms = data.rooms || [];
             state.reports = data.reports || [];
-            state.templates = data.templates || {}; // Load templates from cache
+            state.templates = data.templates || {};
             state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             return true;
         }
@@ -359,13 +361,12 @@ async function loadAppData(user) {
             renderPage();
         }, err => {});
 
-        // Real-time listener for templates
         unsubTemplates = db.collection('materialTemplates').onSnapshot(snapshot => {
             state.templates = {};
             snapshot.docs.forEach(doc => {
                 state.templates[doc.id] = doc.data().items || [];
             });
-            saveStateToCache(); // Save templates to cache when they load
+            saveStateToCache();
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => { console.warn("Templates fetch error:", err); });
@@ -399,7 +400,6 @@ async function handleForgotSend() {
 }
 
 let idleTimeout;
-// Increased idle timer to 30 minutes to prevent unexpected logouts
 function resetIdleTimer() { clearTimeout(idleTimeout); if (firebase.auth().currentUser) { idleTimeout = setTimeout(() => { showToast('৩০ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 1800000); } }
 function handleLogout() { 
     clearTimeout(idleTimeout); 
@@ -426,7 +426,7 @@ const Store = {
         await db.collection('materialTemplates').doc(bId).set({ items });
         if (!state.templates) state.templates = {};
         state.templates[bId] = items;
-        saveStateToCache(); // Save to cache immediately on save
+        saveStateToCache();
     },
     async getPayments() { const s = await db.collection('payments').get(); return s.docs.map(d => ({id: d.id, ...d.data()})); },
     async savePayment(p) { await db.collection('payments').add(p); },
@@ -818,7 +818,7 @@ function initApp() {
                     loadAppData(user);
                 }
             } else {
-                // If user exists in Firebase local cache but session is not valid, force logout
+                // যদি নতুন ট্যাবে ঢোকা হয়, তবে লোকাল ইউজার থাকলেও সেশন না থাকলে লগআউট করে লগইন পেজ দেখাবে
                 firebase.auth().signOut();
             }
         } else {
