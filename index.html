@@ -92,6 +92,68 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .text-success { color: var(--success); }
 .text-danger { color: var(--danger); }
 .highlight-bg { background-color: #fff8e1; border-left: 4px solid #ffa000; padding: 8px; border-radius: 6px; margin: 8px 0; font-weight: 600; }
+
+/* Mobile UI Enhancements */
+@media (max-width: 767px) {
+    .modal {
+        border-radius: 20px 20px 0 0;
+        padding: 16px;
+        padding-bottom: 40px; /* extra space at bottom */
+    }
+    .tabs {
+        padding: 4px;
+        gap: 4px;
+        background: #e2e8f0;
+    }
+    .tab {
+        padding: 10px 8px;
+        font-size: 12px;
+        border-radius: 6px;
+    }
+    .thin-bright-card {
+        background: #f8fafc;
+        border-left: 5px solid var(--primary);
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        border-left: 5px solid var(--primary);
+    }
+    .expandable-3d-card {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-left: 5px solid #3b82f6;
+        border-radius: 8px;
+    }
+    .expandable-3d-card.occupant {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-left: 5px solid #f97316;
+    }
+    .btn {
+        padding: 10px 16px;
+        font-size: 14px;
+        border-radius: 10px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        padding: 12px;
+        font-size: 15px;
+        border-radius: 10px;
+    }
+    /* Better contrast for table on mobile */
+    .table-wrapper {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+    }
+    .material-table th {
+        background: #1e293b;
+        color: #fff;
+    }
+    .material-table tr:nth-child(even) {
+        background: #f8fafc;
+    }
+}
 </style>
 </head>
 <body>
@@ -379,8 +441,7 @@ async function loadAppData(user) {
             renderPage();
         }, err => {
             if (err.code === 'permission-denied') {
-                showToast("সেশন মেয়াদ শেষ বা অনুমতি নেই। দয়া করে আবার লগ ইন করুন।", "error");
-                if (!isExplicitLogout) handleLogout();
+                showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
             }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
@@ -391,7 +452,8 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied' && !isExplicitLogout) handleLogout();
+            if (err.code === 'permission-denied') showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+            if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
         unsubReports = db.collection('reports').onSnapshot(snapshot => {
@@ -401,7 +463,8 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied' && !isExplicitLogout) handleLogout();
+            if (err.code === 'permission-denied') showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+            if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
 
         unsubTemplates = db.collection('materialTemplates').onSnapshot(snapshot => {
@@ -413,7 +476,8 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => { 
-            if (err.code === 'permission-denied' && !isExplicitLogout) handleLogout();
+            if (err.code === 'permission-denied') showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+            if (state.isLoading) { state.isLoading = false; renderPage(); }
             console.warn("Templates fetch error:", err); 
         });
         
