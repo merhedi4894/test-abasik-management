@@ -169,28 +169,26 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 
 <script>
 // 1. Synchronous Security Check: If not logged in, show login page IMMEDIATELY.
-// This prevents anyone from seeing the home page if they just enter the URL.
 (function() {
     var isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
     var loader = document.getElementById('loader');
-    var auth = document.getElementById('authContainer');
-    var app = document.getElementById('appContainer');
+    var authEl = document.getElementById('authContainer');
+    var appEl = document.getElementById('appContainer');
     
     if (isLogged) {
         if (loader) loader.style.display = 'flex';
-        if (auth) auth.style.display = 'none';
-        if (app) app.style.display = 'none';
+        if (authEl) authEl.style.display = 'none';
+        if (appEl) appEl.style.display = 'none';
     } else {
         if (loader) loader.style.display = 'none';
-        if (auth) auth.style.display = 'flex';
-        if (app) app.style.display = 'none';
+        if (authEl) authEl.style.display = 'flex';
+        if (appEl) appEl.style.display = 'none';
     }
 })();
 </script>
 
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
-
 let db = null, auth = null;
 try { 
     firebase.initializeApp(firebaseConfig); 
@@ -237,7 +235,7 @@ function showLoginView() { document.getElementById('loginView').style.display='b
 function showSignupView() { document.getElementById('loginView').style.display='none'; document.getElementById('signupView').style.display='block'; document.getElementById('forgotView').style.display='none'; }
 function showForgotView() { document.getElementById('loginView').style.display='none'; document.getElementById('signupView').style.display='none'; document.getElementById('forgotView').style.display='block'; }
 function setBtnLoading(btnId, isLoading) { const btn = document.getElementById(btnId); if(!btn) return; if(isLoading) { btn.disabled = true; btn.dataset.originalHtml = btn.innerHTML; btn.innerHTML = `<span class="spinner-small"></span> অপেক্ষা করুন...`; } else { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || 'Submit'; } }
-function loadUserSuggestions() { let users = []; try { const saved = localStorage.getItem('rms_logged_users'); if (saved) users = JSON.parse(saved); } catch(e) {} document.getElementById('usernameList').innerHTML = users.map(u => `<option value="${u}">`).join(''); }
+function loadUserSuggestions() { let users = []; try { const saved = localStorage.getItem('rms_logged_users'); if (saved) users = JSON.parse(saved); } catch(e) {} const list = document.getElementById('usernameList'); if (list) list.innerHTML = users.map(u => `<option value="${u}">`).join(''); }
 
 function validateEmail(email) { const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; return re.test(email); }
 function validateMobile(mobile) { const re = /^(\+?880|0)1[3-9]\d{8}$/; return re.test(mobile); }
@@ -285,6 +283,7 @@ async function handleLogin() {
     const identifierInput = document.getElementById('loginIdentifier').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     if (!identifierInput || !password) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; }
+    if (!auth) { showToast('Firebase লোড হচ্ছে, একটু পরে চেষ্টা করুন।', 'error'); return; }
     setBtnLoading('loginBtn', true);
     let email = identifierInput;
     try {
@@ -306,7 +305,10 @@ async function handleLogin() {
         setBtnLoading('loginBtn', false);
     } catch(e) {
         sessionStorage.removeItem('rms_is_logged_in');
-        showToast('সঠিক তথ্য দিন', 'error');
+        let msg = 'সঠিক তথ্য দিন';
+        if (e.code === 'permission-denied') msg = 'Firebase Rules-এ users কালেকশন পড়ার অনুমতি দিন!';
+        else if (e.code === 'auth/network-request-failed') msg = 'নেটওয়ার্ক সমস্যা!';
+        showToast(msg, 'error');
         setBtnLoading('loginBtn', false);
     }
 }
@@ -329,13 +331,9 @@ async function loadAppData(user) {
     renderPage(); 
     hideLoader();
     try {        
-        if (unsubBuildings) unsubBuildings();
-        if (unsubRooms) unsubRooms();
-        if (unsubReports) unsubReports();
-        if (unsubTemplates) unsubTemplates();
+        if (unsubBuildings) unsubBuildings(); if (unsubRooms) unsubRooms(); if (unsubReports) unsubReports(); if (unsubTemplates) unsubTemplates();
         
-        // 2. Prevent Data Wipe: If snapshot is empty but we already have data, 
-        // it means Firebase is having a temporary network glitch. We DO NOT overwrite our state.
+        // 2. Prevent Data Wipe: If snapshot is empty but we already have data, it's a network glitch.
         unsubBuildings = db.collection('buildings').onSnapshot(snapshot => {
             if (snapshot.empty && state.buildings.length > 0) return; 
             state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -384,7 +382,7 @@ async function handleForgotSend() {
 
 let idleTimeout;
 function resetIdleTimer() { clearTimeout(idleTimeout); if (auth.currentUser && sessionStorage.getItem('rms_is_logged_in') === 'true') { idleTimeout = setTimeout(() => { showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 300000); } }
-function resetUIForLogout() {
+function resetUIForLogout(callSignOut = true) {
     if (unsubBuildings) unsubBuildings(); if (unsubRooms) unsubRooms(); if (unsubReports) unsubReports(); if (unsubTemplates) unsubTemplates();
     sessionStorage.removeItem('rms_is_logged_in');
     currentUser = null;
@@ -394,13 +392,13 @@ function resetUIForLogout() {
     showLoginView();
     document.getElementById('loginIdentifier').value = ''; document.getElementById('loginPassword').value = ''; document.getElementById('forgotEmail').value = '';
     setBtnLoading('loginBtn', false); 
+    if (callSignOut && auth.currentUser) auth.signOut();
 }
 function handleLogout() { 
     if (isExplicitLogout && currentUser === null) return; 
     isExplicitLogout = true;
     clearTimeout(idleTimeout); 
-    resetUIForLogout();
-    auth.signOut(); 
+    resetUIForLogout(true);
 }
 
 const Store = {
@@ -597,34 +595,32 @@ function hideLoader() { const loader = document.getElementById('loader'); if (lo
 
 function initApp() {
     document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
-    if (!auth) return;
+    if (typeof firebase === 'undefined' || !firebase.auth) { return; }
+    if (!db || !auth) return;
     
+    let isAuthReady = false;
     auth.onAuthStateChanged((user) => {
+        if (!isAuthReady) {
+            isAuthReady = true;
+            hideLoader();
+        }
         const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
         
-        if (user && isLogged) {
-            isExplicitLogout = false; 
-            if (!currentUser || currentUser.uid !== user.uid) {
-                loadAppData(user);
-            }
-        } else if (user && !isLogged) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        } else if (!user && !isLogged) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        } else if (!user && isLogged) {
-            if (currentUser) {
-                console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
+        if (user) {
+            if (isLogged && !isExplicitLogout) {
+                if (!currentUser || currentUser.uid !== user.uid) {
+                    loadAppData(user);
+                }
             } else {
-                isExplicitLogout = true;
-                resetUIForLogout(); 
+                currentUser = null;
+                resetUIForLogout(false);
+            }
+        } else {
+            if (isLogged && currentUser) {
+                console.warn("Firebase user became null temporarily. Ignoring.");
+            } else {
+                if (!isExplicitLogout) isExplicitLogout = true;
+                resetUIForLogout(false);
             }
         }
     });
