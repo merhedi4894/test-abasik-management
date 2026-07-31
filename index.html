@@ -191,6 +191,7 @@ try {
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
 let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
+let isExplicitLogout = false;
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -302,6 +303,7 @@ async function handleLogin() {
             if (!validateEmail(identifierInput)) { showToast('সঠিক তথ্য দিন', 'error'); setBtnLoading('loginBtn', false); return; }
         }
         
+        isExplicitLogout = false;
         sessionStorage.setItem('rms_is_logged_in', 'true');
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         let savedUsers = [];
@@ -375,7 +377,10 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') showToast("Firebase Rules ঠিক নেই! Console এ গিয়ে ঠিক করুন।", "error");
+            if (err.code === 'permission-denied') {
+                showToast("সেশন মেয়াদ শেষ বা অনুমতি নেই। দয়া করে আবার লগ ইন করুন।", "error");
+                if (!isExplicitLogout) handleLogout();
+            }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
@@ -384,7 +389,9 @@ async function loadAppData(user) {
             saveStateToCache();
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
-        }, err => {});
+        }, err => {
+            if (err.code === 'permission-denied' && !isExplicitLogout) handleLogout();
+        });
         
         unsubReports = db.collection('reports').onSnapshot(snapshot => {
             state.reports = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -392,7 +399,9 @@ async function loadAppData(user) {
             saveStateToCache();
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
-        }, err => {});
+        }, err => {
+            if (err.code === 'permission-denied' && !isExplicitLogout) handleLogout();
+        });
 
         unsubTemplates = db.collection('materialTemplates').onSnapshot(snapshot => {
             state.templates = {};
@@ -402,7 +411,10 @@ async function loadAppData(user) {
             saveStateToCache();
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
-        }, err => { console.warn("Templates fetch error:", err); });
+        }, err => { 
+            if (err.code === 'permission-denied' && !isExplicitLogout) handleLogout();
+            console.warn("Templates fetch error:", err); 
+        });
         
     } catch(e) {
         console.error("Data Fetch Error:", e);
@@ -445,6 +457,8 @@ function resetIdleTimer() {
     } 
 }
 function handleLogout() { 
+    if (isExplicitLogout && currentUser === null) return; // prevent multiple calls
+    isExplicitLogout = true;
     clearTimeout(idleTimeout); 
     if (unsubBuildings) unsubBuildings();
     if (unsubRooms) unsubRooms();
@@ -986,28 +1000,36 @@ function initApp() {
     
     firebase.auth().onAuthStateChanged((user) => {
         const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
-        if (user && isLogged) {
-            if (!currentUser || currentUser.uid !== user.uid) {
-                loadAppData(user);
+        if (user) {
+            isExplicitLogout = false; // reset flag if user comes back
+            if (isLogged) {
+                if (!currentUser || currentUser.uid !== user.uid) {
+                    loadAppData(user);
+                }
+            } else {
+                // User exists in Firebase, but this tab is not logged in.
+                // This happens when opening a new tab.
+                currentUser = null;
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('authContainer').style.display = 'flex';
+                showLoginView();
+                hideLoader();
             }
         } else {
-            if (currentUser) {
-                if (unsubBuildings) unsubBuildings();
-                if (unsubRooms) unsubRooms();
-                if (unsubReports) unsubReports();
-                if (unsubTemplates) unsubTemplates();
-                state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
-                sessionStorage.removeItem('rms_is_logged_in');
+            // User is null
+            if (isLogged && !isExplicitLogout) {
+                // Temporary null! Ignore to prevent UI disruption.
+                console.warn("Firebase user became null temporarily. Ignoring logout.");
+            } else {
+                if (currentUser || isExplicitLogout) {
+                   handleLogout();
+                } else {
+                   document.getElementById('appContainer').style.display = 'none';
+                   document.getElementById('authContainer').style.display = 'flex';
+                   showLoginView();
+                   hideLoader();
+                }
             }
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            document.getElementById('loginIdentifier').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('forgotEmail').value = '';
-            setBtnLoading('loginBtn', false);
-            hideLoader();
         }
     });
 }
