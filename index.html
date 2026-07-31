@@ -231,13 +231,25 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 <div id="toastContainer"></div>
 
 <script>
+// 1. Synchronous Session Check: If not logged in, show login page IMMEDIATELY.
+// This prevents anyone from seeing the home page if they just enter the URL.
 (function() {
+    var isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
     var loader = document.getElementById('loader');
     var auth = document.getElementById('authContainer');
     var app = document.getElementById('appContainer');
-    if (loader) loader.style.display = 'flex';
-    if (auth) auth.style.display = 'none';
-    if (app) app.style.display = 'none';
+    
+    if (isLogged) {
+        // Keep loader spinning until Firebase confirms and data loads
+        if (loader) loader.style.display = 'flex';
+        if (auth) auth.style.display = 'none';
+        if (app) app.style.display = 'none';
+    } else {
+        // Show login page instantly
+        if (loader) loader.style.display = 'none';
+        if (auth) auth.style.display = 'flex';
+        if (app) app.style.display = 'none';
+    }
 })();
 </script>
 
@@ -264,6 +276,7 @@ let currentUser = null, tenantIndex = 1, occupantIndex = 1;
 let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
 let isExplicitLogout = false;
+let isAuthInitialized = false;
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -443,6 +456,8 @@ async function loadAppData(user) {
         if (unsubReports) unsubReports();
         if (unsubTemplates) unsubTemplates();
         
+        // 2. Prevent Data Wipe: If snapshot is empty but we already have data, 
+        // it means Firebase is having a temporary network glitch. We DO NOT overwrite our state.
         unsubBuildings = db.collection('buildings').onSnapshot(snapshot => {
             if (snapshot.empty && state.buildings.length > 0) return; 
             state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -544,10 +559,7 @@ function resetIdleTimer() {
         }, 300000); 
     } 
 }
-function handleLogout() { 
-    if (isExplicitLogout && currentUser === null) return; 
-    isExplicitLogout = true;
-    clearTimeout(idleTimeout); 
+function resetUIForLogout() {
     if (unsubBuildings) unsubBuildings();
     if (unsubRooms) unsubRooms();
     if (unsubReports) unsubReports();
@@ -562,6 +574,12 @@ function handleLogout() {
     document.getElementById('loginPassword').value = '';
     document.getElementById('forgotEmail').value = '';
     setBtnLoading('loginBtn', false); 
+}
+function handleLogout() { 
+    if (isExplicitLogout && currentUser === null) return; 
+    isExplicitLogout = true;
+    clearTimeout(idleTimeout); 
+    resetUIForLogout();
     firebase.auth().signOut(); 
 }
 
@@ -791,7 +809,7 @@ function showVacateModal(rId) {
     } 
     const itemSnap = (r.items || []).map(i => `<div class="flex-between" style="padding:4px 0;border-bottom:1px solid var(--border)"><span class="text-sm">${escapeHtml(i.name)}</span><div class="flex gap-8"><input type="number" id="vq_${i.id}" value="${i.quantity || 1}" style="width:50px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px"><select id="vs_${i.id}" style="width:80px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px">${getConditionOptions(i.condition)}</select></div></div>`).join(''); 
     
-    openModal('রুম বরাদ্দ বাতিল', `${tenantSelectHtml}<div class="form-group mt-16"><label>ছাড়ার তারিখ *</label><input type="date" id="vDate" value="${new Date().toISOString().split('T')[0]}"></div><div class="form-group"><label>মালামালের পরিমাণ ও অবস্থা</label>${itemSnap}</div><div class="flex gap-8 mt-16"><button class="btn btn-danger" style="flex:1" onclick="confirmVacate('${rId}')">নিশ্চিত করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); 
+    openModal('রুম বরাদ্ড বাতিল', `${tenantSelectHtml}<div class="form-group mt-16"><label>ছাড়ার তারিখ *</label><input type="date" id="vDate" value="${new Date().toISOString().split('T')[0]}"></div><div class="form-group"><label>মালামালের পরিমাণ ও অবস্থা</label>${itemSnap}</div><div class="flex gap-8 mt-16"><button class="btn btn-danger" style="flex:1" onclick="confirmVacate('${rId}')">নিশ্চিত করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); 
 }
 async function confirmVacate(rId) { 
     const eD = document.getElementById('vDate').value; 
@@ -886,7 +904,7 @@ function repairReplaceModal(rId, iId) { const r = state.rooms.find(x => x.id ===
 async function saveRepair(rId, iId) { const t = document.getElementById('rType').value; const d = document.getElementById('rDate').value; const c = document.getElementById('rCond').value; const q = parseInt(document.getElementById('rQty').value) || 1; const n = document.getElementById('rNote').value.trim(); if (!d) { showToast('তারিখ দিন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); if (!i.history) i.history = []; i.history.push({ id: genId('h'), type: t, date: d, note: n, condition: c, quantity: q }); if (t === 'Repair') i.lastRepairDate = d; else i.lastReplaceDate = d; i.condition = c; i.quantity = q; forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('রেকর্ড সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 function editRepairRecord(rId, iId, hId) { const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); const h = i.history.find(x => x.id === hId); openModal(`রেকর্ড এডিট - ${escapeHtml(i.name)}`, `<input type="hidden" id="editHId" value="${hId}"><div class="grid grid-2"><div class="form-group"><label>প্রকার</label><select id="rType"><option value="Repair" ${h.type==='Repair'?'selected':''}>Repair</option><option value="Replace" ${h.type==='Replace'?'selected':''}>Replace</option></select></div><div class="form-group"><label>তারিখ *</label><input type="date" id="rDate" value="${h.date}"></div></div><div class="grid grid-2"><div class="form-group"><label>পরিমাণ</label><input type="number" id="rQty" value="${h.quantity || 1}" min="1"></div><div class="form-group"><label>অবস্থা</label><select id="rCond">${getConditionOptions(h.condition)}</select></div></div><div class="form-group"><label>মন্তব্য</label><input type="text" id="rNote" value="${escapeHtml(h.note || '')}"></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveRepairEdit('${rId}','${iId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true, true); }
 async function saveRepairEdit(rId, iId) { const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); const hId = document.getElementById('editHId').value; const h = i.history.find(x => x.id === hId); if (!h) return; h.type = document.getElementById('rType').value; h.date = document.getElementById('rDate').value; if (!h.date) { showToast('তারিখ দিন', 'error'); return; } h.condition = document.getElementById('rCond').value; h.quantity = parseInt(document.getElementById('rQty').value) || 1; h.note = document.getElementById('rNote').value.trim(); i.history.sort((a,b) => new Date(a.date) - new Date(b.date)); i.lastRepairDate = i.history.filter(x => x.type === 'Repair').pop()?.date || null; i.lastReplaceDate = i.history.filter(x => x.type === 'Replace').pop()?.date || null; forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('রেকর্ড আপডেট হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
-async function deleteRepairRecord(rId, iId, hId) { checkPassword(async () => { showConfirm('এই রেকর্ডটি ডিলিট হবে। নিশ্চিত?', async () => { const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); i.history = i.history.filter(x => x.id !== hId); i.lastRepairDate = i.history.filter(x => x.type === 'Repair').pop()?.date || null; i.lastReplaceDate = i.history.filter(x => x.type === 'Replace').pop()?.date || null; forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); showRoomDetail(rId, 'items', true); } }); }); }
+async function deleteRepairRecord(rId, iId, hId) { checkPassword(async () => { showConfirm('এই রেকর্ডটি ডিলিট হবে। নিশ্চিত?', async () => { const r = state.rooms.find(x => x.id === rId); const i = r.items.find(x => x.id === iId); i.history = i.history.filter(x => x.id !== hID); i.lastRepairDate = i.history.filter(x => x.type === 'Repair').pop()?.date || null; i.lastReplaceDate = i.history.filter(x => x.type === 'Replace').pop()?.date || null; forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); showRoomDetail(rId, 'items', true); } }); }); }
 async function addItemsFromTemplate(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = state.templates?.[r.buildingId] || []; if (tpls.length === 0) { openModal('টেম্পলেট', `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div><button class="btn btn-outline mt-16" style="width:100%" onclick="closeModal()">বন্ধ</button>`, true); return; } const exN = (r.items || []).map(i => i.name.toLowerCase()); const miss = tpls.filter(t => !exN.includes(t.name.toLowerCase())); if (miss.length === 0) { showToast('সব মালামাল আছে', 'error'); closeModal(); return; } openModal('টেম্পলেট থেকে যোগ', `<p class="text-sm text-light mb-16">পরিমাণ ও অবস্থা এডিট করে নিচের বাটনে ক্লিক করুন।</p><div class="card" style="margin:0;max-height:300px;overflow-y:auto;background:#f8fafc">${miss.map(t => `<div class="flex-between" style="padding:4px 0;border-bottom:1px solid var(--border)"><span class="text-sm">${escapeHtml(t.name)}</span><div class="flex gap-8"><input type="number" value="${t.quantity || 1}" id="tq_${t.id}" style="width:50px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px"><select id="tc_${t.id}" style="width:auto;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px">${getConditionOptions('আছে')}</select></div></div>`).join('')}</div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateItems('${rId}')">সবগুলো যোগ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
 async function saveTemplateItems(rId) { const r = state.rooms.find(x => x.id === rId); const tpls = state.templates?.[r.buildingId] || []; const exN = (r.items || []).map(i => i.name.toLowerCase()); let cnt = 0; if (!r.items) r.items = []; tpls.forEach(t => { if (!exN.includes(t.name.toLowerCase())) { const q = document.getElementById(`tq_${t.id}`); const c = document.getElementById(`tc_${t.id}`); r.items.push({ id: genId('i'), name: t.name, quantity: q ? parseInt(q.value) : 1, condition: c ? c.value : 'আছে', lastRepairDate: null, lastReplaceDate: null, history: [] }); cnt++; } }); forceCloseModal(); showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast(`${cnt} টি যোগ হয়েছে`); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 
@@ -1148,15 +1166,17 @@ function initApp() {
             document.getElementById('authContainer').style.display = 'flex';
             showLoginView();
             hideLoader();
-        } else if (!user && isLogged && !isExplicitLogout) {
-            console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
-        } else if (!user && isLogged && isExplicitLogout) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
+        } else if (!user && isLogged) {
+            // If the user is null but the tab thinks it's logged in, it could be a broken session 
+            // OR a temporary Firebase network glitch. If it happens on the very first load, we treat it as a broken session.
+            if (!isAuthInitialized) {
+                isExplicitLogout = true; 
+                resetUIForLogout(); // This will clear the broken session and show the login page.
+            } else {
+                console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
+            }
         }
+        isAuthInitialized = true;
     });
 }
 
