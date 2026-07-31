@@ -98,7 +98,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
     .modal {
         border-radius: 20px 20px 0 0;
         padding: 16px;
-        padding-bottom: 40px; /* extra space at bottom */
+        padding-bottom: 40px; 
     }
     .tabs {
         padding: 4px;
@@ -109,15 +109,22 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
         padding: 10px 8px;
         font-size: 12px;
         border-radius: 6px;
+        background: #fff;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+    .tab.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
     }
     .thin-bright-card {
         background: #f8fafc;
+        border: 1px solid #e2e8f0;
         border-left: 5px solid var(--primary);
         padding: 12px;
         margin-bottom: 10px;
         border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        border-left: 5px solid var(--primary);
     }
     .expandable-3d-card {
         background: #eff6ff;
@@ -140,7 +147,6 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
         font-size: 15px;
         border-radius: 10px;
     }
-    /* Better contrast for table on mobile */
     .table-wrapper {
         border-radius: 10px;
         border: 1px solid #e2e8f0;
@@ -255,6 +261,7 @@ let currentUser = null, tenantIndex = 1, occupantIndex = 1;
 let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
 let isExplicitLogout = false;
+let isAuthInitialized = false;
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -435,6 +442,7 @@ async function loadAppData(user) {
         if (unsubTemplates) unsubTemplates();
         
         unsubBuildings = db.collection('buildings').onSnapshot(snapshot => {
+            if (snapshot.empty && state.buildings.length > 0) return; // Ignore empty snapshot if we have data
             state.buildings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             saveStateToCache(); 
             if (state.isLoading) { state.isLoading = false; }
@@ -442,32 +450,42 @@ async function loadAppData(user) {
         }, err => {
             if (err.code === 'permission-denied') {
                 showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+                if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{});
             }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
         unsubRooms = db.collection('rooms').onSnapshot(snapshot => {
+            if (snapshot.empty && state.rooms.length > 0) return; // Ignore empty snapshot
             state.rooms = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             saveStateToCache();
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+            if (err.code === 'permission-denied') {
+                showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+                if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{});
+            }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
         unsubReports = db.collection('reports').onSnapshot(snapshot => {
+            if (snapshot.empty && state.reports.length > 0) return; // Ignore empty snapshot
             state.reports = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             saveStateToCache();
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+            if (err.code === 'permission-denied') {
+                showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+                if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{});
+            }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
 
         unsubTemplates = db.collection('materialTemplates').onSnapshot(snapshot => {
+            if (snapshot.empty && Object.keys(state.templates || {}).length > 0) return; // Ignore empty snapshot
             state.templates = {};
             snapshot.docs.forEach(doc => {
                 state.templates[doc.id] = doc.data().items || [];
@@ -476,7 +494,10 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => { 
-            if (err.code === 'permission-denied') showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+            if (err.code === 'permission-denied') {
+                showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
+                if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{});
+            }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
             console.warn("Templates fetch error:", err); 
         });
@@ -852,7 +873,7 @@ async function renderTemplates(c) {
 function showAddTemplateModal() { openModal('নতুন টেম্পলেট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="tName"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="tQty" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplate()">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveTemplate() { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('tName').value.trim(); const q = parseInt(document.getElementById('tQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; if (!tpls.find(t => t.name === n)) tpls.push({ id: genId('t'), name: n, quantity: q }); await Store.saveTemplates(bId, tpls); showToast('যোগ হয়েছে'); forceCloseModal(); renderPage(); }
 async function editTemplateModal(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); openModal('টেম্পলেট এডিট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="etName" value="${escapeHtml(t.name)}"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="etQty" value="${t.quantity || 1}" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateEdit('${tId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
-async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'); forceCloseModal(); renderPage(); }
+async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'; forceCloseModal(); renderPage(); }
 async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding || state.buildings[0].id; let tpls = state.templates?.[bId] || []; await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
 
 async function renderPayment(c) { if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } c.innerHTML = `<div class="card"><h3 class="mb-16">💵 পেমেন্ট রেকর্ড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="payBuilding" onchange="loadPayFloors()"><option value="">সিলেক্ট করুন</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা</label><select id="payFloor" onchange="loadPayRooms()" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম নম্বর</label><select id="payRoom" onchange="loadPayPersons()" disabled><option value="">সিলেক্ট করুন</option></select></div><div class="form-group"><label>ব্যক্তি</label><select id="payPerson" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-3"><div class="form-group"><label>জমা টাকার পরিমাণ</label><input type="number" id="payAmount" placeholder="৳"></div><div class="form-group"><label>মাস</label><select id="payMonth">${['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'].map(m=>`<option value="${m}">${m}</option>`).join('')}</select></div><div class="form-group"><label>বছর</label><input type="number" id="payYear" value="${new Date().getFullYear()}"></div></div><button class="btn btn-primary" style="width:100%" onclick="savePayment()">পেমেন্ট সেভ করুন</button></div>`; }
@@ -1073,31 +1094,37 @@ function initApp() {
     
     firebase.auth().onAuthStateChanged((user) => {
         const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
-        if (user && isLogged) {
-            isExplicitLogout = false; // reset flag if user comes back
-            if (!currentUser || currentUser.uid !== user.uid) {
-                loadAppData(user);
-            }
-        } else if (user && !isLogged) {
-            // User exists in Firebase, but this tab is not logged in.
-            // This happens when opening a new tab.
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        } else if (!user && !isExplicitLogout && isLogged) {
-            // Temporary null! Ignore to prevent UI disruption.
-            console.warn("Firebase user became null temporarily. Ignoring logout.");
-        } else {
-            // Real logout or initial load
-            if (currentUser || isExplicitLogout) {
-               handleLogout();
+        
+        if (user) {
+            if (isLogged) {
+                isExplicitLogout = false; 
+                if (!currentUser || currentUser.uid !== user.uid) {
+                    loadAppData(user);
+                }
             } else {
-               document.getElementById('appContainer').style.display = 'none';
-               document.getElementById('authContainer').style.display = 'flex';
-               showLoginView();
-               hideLoader();
+                currentUser = null;
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('authContainer').style.display = 'flex';
+                showLoginView();
+                hideLoader();
+            }
+        } else {
+            if (!isAuthInitialized) {
+                isAuthInitialized = true;
+                currentUser = null;
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('authContainer').style.display = 'flex';
+                showLoginView();
+                hideLoader();
+            } else {
+                if (isExplicitLogout) {
+                    if (currentUser) handleLogout();
+                } else {
+                    console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
+                    if (firebase.auth().currentUser) {
+                        firebase.auth().currentUser.getIdToken(true).catch(()=>{});
+                    }
+                }
             }
         }
     });
