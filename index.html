@@ -11,6 +11,15 @@
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+<!-- Tailwind CSS (Guest Bill এর জন্য) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { corePlugins: { preflight: false } }</script>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- jsPDF & AutoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 @font-face {
@@ -268,7 +277,7 @@ try {
 } catch(e) { console.warn("Firebase Error:", e); }
 
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
-let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
+let state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, guestBills: [], guestBillSettings: null, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
 let modalStack = [];
 let isExplicitLogout = false;
 
@@ -405,7 +414,9 @@ function saveStateToCache() {
                 buildings: state.buildings,
                 rooms: state.rooms,
                 reports: state.reports,
-                templates: state.templates || {}
+                templates: state.templates || {},
+                guestBills: state.guestBills || [],
+                guestBillSettings: state.guestBillSettings || null
             }));
         }
     } catch(e) {}
@@ -420,6 +431,8 @@ function loadStateFromCache() {
             state.rooms = data.rooms || [];
             state.reports = data.reports || [];
             state.templates = data.templates || {};
+            state.guestBills = data.guestBills || [];
+            state.guestBillSettings = data.guestBillSettings || null;
             state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             return true;
         }
@@ -428,7 +441,7 @@ function loadStateFromCache() {
 }
 
 let isLoadingAppData = false;
-let unsubBuildings, unsubRooms, unsubReports, unsubTemplates;
+let unsubBuildings, unsubRooms, unsubReports, unsubTemplates, unsubGuestBills, unsubGBSettings;
 
 async function loadAppData(user) {
     if (isLoadingAppData) return;
@@ -449,6 +462,8 @@ async function loadAppData(user) {
         if (unsubRooms) unsubRooms();
         if (unsubReports) unsubReports();
         if (unsubTemplates) unsubTemplates();
+        if (unsubGuestBills) unsubGuestBills();
+        if (unsubGBSettings) unsubGBSettings();
         
         unsubBuildings = db.collection('buildings').onSnapshot(snapshot => {
             if (snapshot.empty && state.buildings.length > 0) return; 
@@ -510,6 +525,46 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; renderPage(); }
             console.warn("Templates fetch error:", err); 
         });
+
+        unsubGuestBills = db.collection('guestBills').onSnapshot(snapshot => {
+            state.guestBills = snapshot.docs.map(d => {
+                const data = d.data();
+                return { ...data, id: Number(d.id) || d.id }; 
+            });
+            bills = state.guestBills;
+            saveStateToCache();
+            if (state.currentPage === 'payment') {
+                const activeTab = document.querySelector('.tab.active');
+                if (activeTab && activeTab.innerText.includes('গেস্ট বিল')) {
+                    renderBills();
+                }
+            }
+        }, err => {
+            console.warn("Guest Bills fetch error:", err); 
+        });
+
+        unsubGBSettings = db.collection('guestBillSettings').doc('config').onSnapshot(doc => {
+            if (doc.exists) {
+                state.guestBillSettings = doc.data();
+                settings = {
+                    rooms: state.guestBillSettings.rooms || {},
+                    guests: state.guestBillSettings.guests || {}
+                };
+                saveStateToCache();
+                if (state.currentPage === 'payment') {
+                    const activeTab = document.querySelector('.tab.active');
+                    if (activeTab && activeTab.innerText.includes('গেস্ট বিল')) {
+                        renderSettings();
+                        updateFormSelects();
+                    }
+                }
+            } else {
+                // Save default settings if none exist
+                Store.saveGuestBillSettings(settings);
+            }
+        }, err => {
+            console.warn("GB Settings fetch error:", err);
+        });
         
     } catch(e) {
         console.error("Data Fetch Error:", e);
@@ -559,9 +614,11 @@ function handleLogout() {
     if (unsubRooms) unsubRooms();
     if (unsubReports) unsubReports();
     if (unsubTemplates) unsubTemplates();
+    if (unsubGuestBills) unsubGuestBills();
+    if (unsubGBSettings) unsubGBSettings();
     sessionStorage.removeItem('rms_is_logged_in');
     currentUser = null;
-    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
+    state = { currentPage: 'dashboard', buildings: [], rooms: [], reports: [], templates: {}, guestBills: [], guestBillSettings: null, selectedBuilding: null, searchResults: null, expandedBuilding: null, isLoading: false };
     document.getElementById('appContainer').style.display = 'none';
     document.getElementById('authContainer').style.display = 'flex';
     showLoginView();
@@ -586,6 +643,13 @@ const Store = {
     },
     async getPayments() { const s = await db.collection('payments').get(); return s.docs.map(d => ({id: d.id, ...d.data()})); },
     async savePayment(p) { await db.collection('payments').add(p); },
+    async saveGuestBill(bill) { 
+        if (!bill.id) bill.id = Date.now() + Math.floor(Math.random() * 1000);
+        await db.collection('guestBills').doc(String(bill.id)).set(bill, { merge: true });
+        return bill;
+    },
+    async deleteGuestBill(id) { await db.collection('guestBills').doc(String(id)).delete(); },
+    async saveGuestBillSettings(settingsData) { await db.collection('guestBillSettings').doc('config').set(settingsData); },
     async saveReport(r) { if(r.id) { await db.collection('reports').doc(r.id).set(r, {merge:true}); return r; } else { r.createdAt = firebase.firestore.FieldValue.serverTimestamp(); const ref = await db.collection('reports').add(r); return {id: ref.id, ...r}; } },
     async deleteReport(id) { await db.collection('reports').doc(id).delete(); }
 };
@@ -701,7 +765,7 @@ function showRoomDetail(rId, activeTab = 'tenant', replace = false) {
     const room = state.rooms.find(r => r.id === rId); if (!room) return; const building = state.buildings.find(b => b.id === room.buildingId);
     let tArr = room.tenants || (room.tenant ? [room.tenant] : []); let oArr = room.occupants || [];
     const getCard = (t, isOcc = false, isPrev = false) => { 
-        let bodyContent = isOcc ? `<p>সম্পর্ক: ${escapeHtml(t.relation || '-')}</p><p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p><p>প্রকার: ${t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর'}</p>${t.type === 'family' ? `<p>পরিবারের তথ্য: ${escapeHtml(t.familyInfo || '-')}</p>` : ''}<p>ঠিকানা: ${escapeHtml(t.address || '-')}</p><p>মন্তব্য: ${escapeHtml(t.comment || '-')}</p>` : `<p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p><p>📅 বরাদ্দ: ${formatDate(t.startDate)}</p>${t.endDate ? `<p>📅 ছাড়া: ${formatDate(t.endDate)}</p>` : ''}<p>প্রকার: ${t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর'}</p>${t.type === 'family' ? `<p>পরিবারের তথ্য: ${escapeHtml(t.familyInfo || '-')}</p>` : ''}`; 
+        let bodyContent = isOcc ? `<p>সম্পর্ক: ${escapeHtml(t.relation || '-')}</p><p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p><p>প্রকার: ${t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর'}</p>${t.type === 'family' ? `<p>পরিবারের তথ্য: ${escapeHtml(t.familyInfo || '-')}</p>` : ''}<p>ঠিকানা: ${escapeHtml(t.address || '-')}</p><p>মন্তব্য: ${escapeHtml(t.comment || '-')}</p>` : `<p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>📞 ${escapeHtml(t.phone || '-')}</p><p>📅 বরাদ্ব: ${formatDate(t.startDate)}</p>${t.endDate ? `<p>📅 ছাড়া: ${formatDate(t.endDate)}</p>` : ''}<p>প্রকার: ${t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর'}</p>${t.type === 'family' ? `<p>পরিবারের তথ্য: ${escapeHtml(t.familyInfo || '-')}</p>` : ''}`; 
         let actions = ''; 
         if (isPrev) actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div>`; 
         else if (isOcc) actions = `<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editOccupantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteOccupant('${rId}','${t.id}')">${delIcon}</button></div>`; 
@@ -740,7 +804,7 @@ function renderItemsTab(rId, page = 1) {
     document.getElementById('roomTabContent').innerHTML = iHtml;
 }
 function toggleCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
-function toggleHistoryCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.thin-bright-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
+function toggleHistoryCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.closest('#pageContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.thin-bright-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
 function addOccupantModal(rId) { openModal('নতুন ব্যবহারকারী', `<div class="form-group"><label>নাম</label><input type="text" id="o_name"></div><div class="form-group"><label>পদবী</label><input type="text" id="o_desig"></div><div class="form-group"><label>প্রকার</label><select id="o_type" onchange="if(this.value==='family'){document.getElementById('o_fam_div').style.display='block'}else{document.getElementById('o_fam_div').style.display='none'}"><option value="bachelor">ব্যাচেলর</option><option value="family">পরিবার</option></select></div><div class="form-group" id="o_fam_div" style="display:none;"><label>পরিবারের তথ্য</label><input type="text" id="o_family"></div><div class="grid grid-2"><div class="form-group"><label>সম্পর্ক</label><input type="text" id="o_rel"></div><div class="form-group"><label>ফোন</label><input type="text" id="o_phone"></div></div><div class="form-group"><label>ঠিকানা</label><input type="text" id="o_address"></div><div class="form-group"><label>মন্তব্য</label><textarea id="o_comment" rows="2"></textarea></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveSingleOccupant('${rId}')">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, designation: document.getElementById('o_desig').value.trim(), type: document.getElementById('o_type').value, familyInfo: document.getElementById('o_type').value === 'family' ? document.getElementById('o_family').value.trim() : '', relation: document.getElementById('o_rel').value.trim(), phone: document.getElementById('o_phone').value.trim(), address: document.getElementById('o_address').value.trim(), comment: document.getElementById('o_comment').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 async function saveBulkEdit(rId) { const r = state.rooms.find(x => x.id === rId); r.items.forEach(i => { const s = document.getElementById(`bc_${i.id}`); const q = document.getElementById(`bq_${i.id}`); if (s) i.condition = s.value; if (q) i.quantity = parseInt(q.value) || 1; }); document.getElementById('saveBulkBtn').disabled = true; showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
@@ -748,14 +812,6 @@ function switchRoomTab(e, tab, rId) { document.querySelectorAll('.tab').forEach(
 function renderRoomHistoryTab(rId, c, page = 1) { 
     const r = state.rooms.find(x => x.id === rId); 
     let p = r.previousTenants || []; 
-    
-    // Sort by endDate descending (most recent first)
-    p.sort((a, b) => {
-        const dateA = a.endDate ? new Date(a.endDate) : new Date(0);
-        const dateB = b.endDate ? new Date(b.endDate) : new Date(0);
-        return dateB - dateA;
-    });
-
     const pageSize = window.innerWidth >= 768 ? 20 : 10; 
     const totalPages = Math.ceil(p.length / pageSize); 
     if (page > totalPages && totalPages > 0) page = totalPages; 
@@ -914,11 +970,204 @@ async function editTemplateModal(tId) { const bId = state.selectedBuilding || st
 async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'); forceCloseModal(); renderPage(); }
 async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding || state.buildings[0].id; let tpls = state.templates?.[bId] || []; await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
 
-async function renderPayment(c) { if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } c.innerHTML = `<div class="card"><h3 class="mb-16">💵 পেমেন্ট রেকর্ড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="payBuilding" onchange="loadPayFloors()"><option value="">সিলেক্ট করুন</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা</label><select id="payFloor" onchange="loadPayRooms()" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম নম্বর</label><select id="payRoom" onchange="loadPayPersons()" disabled><option value="">সিলেক্ট করুন</option></select></div><div class="form-group"><label>ব্যক্তি</label><select id="payPerson" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-3"><div class="form-group"><label>জমা টাকার পরিমাণ</label><input type="number" id="payAmount" placeholder="৳"></div><div class="form-group"><label>মাস</label><select id="payMonth">${['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'].map(m=>`<option value="${m}">${m}</option>`).join('')}</select></div><div class="form-group"><label>বছর</label><input type="number" id="payYear" value="${new Date().getFullYear()}"></div></div><button class="btn btn-primary" style="width:100%" onclick="savePayment()">পেমেন্ট সেভ করুন</button></div>`; }
+async function renderPayment(c) { 
+    if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } 
+    c.innerHTML = `<div class="tabs"><div class="tab active" onclick="switchPaymentTab(event,'tenant')">🏠 ভাড়াটে বিল</div><div class="tab" onclick="switchPaymentTab(event,'guest')">👤 গেস্ট বিল</div></div><div id="paymentTabContent"></div>`; 
+    renderTenantBillTab();
+}
+function switchPaymentTab(e, tab) {
+    document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    if(tab === 'tenant') renderTenantBillTab();
+    else if(tab === 'guest') renderGuestBillTab();
+}
+function renderTenantBillTab() {
+    const c = document.getElementById('paymentTabContent');
+    c.innerHTML = `<div class="card"><h3 class="mb-16">💵 পেমেন্ট রেকর্ড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="payBuilding" onchange="loadPayFloors()"><option value="">সিলেক্ট করুন</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা</label><select id="payFloor" onchange="loadPayRooms()" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম নম্বর</label><select id="payRoom" onchange="loadPayPersons()" disabled><option value="">সিলেক্ট করুন</option></select></div><div class="form-group"><label>ব্যক্তি</label><select id="payPerson" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-3"><div class="form-group"><label>জমা টাকার পরিমাণ</label><input type="number" id="payAmount" placeholder="৳"></div><div class="form-group"><label>মাস</label><select id="payMonth">${['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'].map(m=>`<option value="${m}">${m}</option>`).join('')}</select></div><div class="form-group"><label>বছর</label><input type="number" id="payYear" value="${new Date().getFullYear()}"></div></div><button class="btn btn-primary" style="width:100%" onclick="savePayment()">পেমেন্ট সেভ করুন</button></div>`;
+}
 function loadPayFloors() { const bId = document.getElementById('payBuilding').value; const b = state.buildings.find(x=>x.id===bId); const fS = document.getElementById('payFloor'); fS.innerHTML = '-সিলেক্ট করুন-'; for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; document.getElementById('payRoom').disabled = true; document.getElementById('payPerson').disabled = true; document.getElementById('payRoom').innerHTML = '-সিলেক্ট করুন-'; document.getElementById('payPerson').innerHTML = '-সিলেক্ট করুন-'; }
 function loadPayRooms() { const bId = document.getElementById('payBuilding').value; const fId = document.getElementById('payFloor').value; const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); const rS = document.getElementById('payRoom'); rS.innerHTML = '-সিলেক্ট করুন-'; rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; document.getElementById('payPerson').disabled = true; document.getElementById('payPerson').innerHTML = '-সিলেক্ট করুন-'; }
 function loadPayPersons() { const rId = document.getElementById('payRoom').value; const r = state.rooms.find(x=>x.id===rId); const pS = document.getElementById('payPerson'); pS.innerHTML = '-সিলেক্ট করুন-'; (r.tenants || []).forEach(p=>pS.innerHTML += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`); pS.disabled = false; }
 async function savePayment() { const d = { building: document.getElementById('payBuilding').selectedOptions[0]?.text, floor: document.getElementById('payFloor').value, room: document.getElementById('payRoom').selectedOptions[0]?.text, person: document.getElementById('payPerson').value, amount: document.getElementById('payAmount').value, month: document.getElementById('payMonth').value, year: document.getElementById('payYear').value, date: new Date().toISOString() }; if(!d.person || !d.amount || !d.building) { showToast('সব তথ্য সঠিকভাবে দিন', 'error'); return; } await Store.savePayment(d); showToast('পেমেন্ট সেভ হয়েছে'); document.getElementById('payAmount').value = ''; }
+
+// --- GUEST BILL TAB RENDERING ---
+function renderGuestBillTab() {
+    const c = document.getElementById('paymentTabContent');
+    c.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md h-fit lg:sticky lg:top-8">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 class="text-lg font-bold">নতুন বিল তৈরি করুন</h2>
+                    <button onclick="openSettingsModal()" class="text-gray-600 hover:text-blue-600 text-2xl transition-colors">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+                
+                <form id="billForm" class="space-y-3">
+                    <input type="hidden" id="editId">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium">নাম</label>
+                            <input type="text" id="guestName" class="w-full p-2 border rounded mt-1">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">মোবাইল</label>
+                            <input type="text" id="mobileNumbers" class="w-full p-2 border rounded mt-1">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium">ঠিকানা</label>
+                        <input type="text" id="address" class="w-full p-2 border rounded mt-1">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium">গেস্ট টাইপ</label>
+                            <select id="guestType" onchange="toggleOtherType()" class="w-full p-2 border rounded mt-1"></select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">রুম টাইপ</label>
+                            <select id="roomType" class="w-full p-2 border rounded mt-1"></select>
+                        </div>
+                    </div>
+
+                    <div id="otherTypeField" class="hidden">
+                        <label class="block text-sm font-medium">অন্যান্য গেস্ট টাইপ লিখুন</label>
+                        <input type="text" id="customGuestType" class="w-full p-2 border rounded mt-1" placeholder="গেস্ট টাইপ লিখুন">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium">রুম নম্বর</label>
+                        <input type="text" id="roomNumber" class="w-full p-2 border rounded mt-1" placeholder="যেমন: 101">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium">চেক ইন</label>
+                            <input type="date" id="checkIn" onchange="updateTotalDays()" class="w-full p-2 border rounded mt-1">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">চেক আউট</label>
+                            <input type="date" id="checkOut" onchange="updateTotalDays()" class="w-full p-2 border rounded mt-1">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label>
+                        <input type="text" id="excludedDates" onchange="updateTotalDays()" class="w-full p-2 border rounded mt-1" placeholder="যেমন: 12-10-2023, 15-10-2023">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium">আগমনের উদ্দেশ্য</label>
+                        <input type="text" id="purpose" class="w-full p-2 border rounded mt-1">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium">মোট দিন (অটো)</label>
+                            <input type="text" id="totalDays" readonly class="w-full p-2 border rounded mt-1 bg-gray-100 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">মন্তব্য</label>
+                            <input type="text" id="comments" class="w-full p-2 border rounded mt-1">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2 pt-3">
+                        <button type="button" onclick="addTempGuest()" id="tempBtn" class="w-full bg-yellow-500 text-white p-2.5 rounded-lg hover:bg-yellow-600 btn-icon font-medium">
+                            <i class="fas fa-user-plus"></i> গেস্ট ডাটা এন্ট্রি
+                        </button>
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 bg-blue-600 text-white p-2.5 rounded-lg hover:bg-blue-700 btn-icon font-medium" id="submitBtn">
+                                <i class="fas fa-file-invoice"></i> বিল তৈরি করুন
+                            </button>
+                            <button type="button" onclick="resetForm()" class="bg-gray-300 text-gray-700 p-2.5 rounded-lg hover:bg-gray-400 w-1/4 btn-icon">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="mt-6">
+                    <h3 class="font-bold text-sm border-b pb-2 mb-2 text-gray-700">এন্ট্রি দেওয়া গেস্টগণ:</h3>
+                    <div id="tempGuestList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-200">
+                    <h3 class="font-bold text-blue-800 mb-3 flex items-center gap-2"><i class="fas fa-download"></i> বিল ডাউনলোড করুন</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">শুরু তারিখ (চেক-ইন)</label>
+                            <input type="date" id="bulkFromDate" class="w-full p-2 border rounded mt-1 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">শেষ তারিখ (চেক-ইন)</label>
+                            <input type="date" id="bulkToDate" class="w-full p-2 border rounded mt-1 text-sm">
+                        </div>
+                        <button onclick="downloadBulkPDF()" class="bg-red-500 text-white p-2 rounded hover:bg-red-600 btn-icon font-medium">
+                            <i class="fas fa-file-pdf"></i> Pdf
+                        </button>
+                        <button onclick="downloadBulkExcel()" class="bg-green-600 text-white p-2 rounded hover:bg-green-700 btn-icon font-medium">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4 border-b pb-4">
+                    <h2 class="text-lg font-bold text-gray-800">বিলের তালিকা</h2>
+                    <div class="relative w-full md:w-64">
+                        <input type="text" id="searchInput" onkeyup="searchBills()" placeholder="নাম দিয়ে সার্চ করুন..." class="w-full p-2 pl-8 border rounded">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                    </div>
+                </div>
+
+                <div id="billListContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+                <div class="flex justify-center items-center mt-6 gap-4" id="paginationControls">
+                    <button onclick="prevPage()" class="bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 btn-icon"><i class="fas fa-chevron-left"></i> Prev</button>
+                    <span id="pageInfo" class="font-medium text-gray-600"></span>
+                    <button onclick="nextPage()" class="bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 btn-icon">Next <i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b z-10">
+                    <h2 class="text-xl font-bold text-gray-800">সেটিংস (ভাড়া কনফিগারেশন)</h2>
+                    <button onclick="closeSettingsModal()" class="text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="font-bold mb-3 text-blue-700 flex items-center gap-2"><i class="fas fa-bed"></i> রুম ভাড়া সেটিংস</h3>
+                    <div id="roomSettingsContainer" class="space-y-4"></div>
+                    <button onclick="addNewRoom()" class="mt-3 w-full p-2 border-dashed border-2 border-blue-400 text-blue-600 rounded hover:bg-blue-50 btn-icon font-medium">
+                        <i class="fas fa-plus-circle"></i> নতুন রুম ক্যাটাগরি যুক্ত করুন
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="font-bold mb-2 text-green-700 flex items-center gap-2"><i class="fas fa-users"></i> গেস্ট টাইপ ভাড়া</h3>
+                    <p class="text-xs text-gray-500 mb-2">নির্দিষ্ট টাইপের জন্য ফ্ল্যাট ভাড়া দিন। খালি বা 0 থাকলে রুমের ভাড়া প্রযোজ্য হবে।</p>
+                    <div id="guestSettingsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                    <button onclick="addNewGuest()" class="mt-3 w-full p-2 border-dashed border-2 border-green-400 text-green-600 rounded hover:bg-green-50 btn-icon font-medium">
+                        <i class="fas fa-plus-circle"></i> নতুন গেস্ট টাইপ যুক্ত করুন
+                    </button>
+                </div>
+
+                <button onclick="saveSettings()" class="w-full bg-blue-600 text-white p-2.5 rounded-lg hover:bg-blue-700 btn-icon font-bold sticky bottom-0">
+                    <i class="fas fa-save"></i> সেটিংস সেভ করুন
+                </button>
+            </div>
+        </div>
+    `;
+    initGuestBillUI();
+}
+
 function renderTroubleReport(c) { 
     const pending = state.reports.filter(r => r.status === 'pending'); 
     const resolved = state.reports.filter(r => r.status === 'resolved'); 
@@ -1170,7 +1419,412 @@ function initApp() {
     });
 }
 
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
-</script>
-</body>
-</html>
+// --- GUEST BILL SCRIPT INTEGRATION ---
+// (Inserted exactly as provided, replacing window.onload with initGuestBillUI, and hooked to Firebase)
+
+let settings = {
+    rooms: {
+        A: { name: "A টাইপ", x: 2000, a: 5, b: 10, y: 1500, c: 11, d: 20, z: 1000 },
+        B: { name: "B টাইপ", x: 1500, a: 4, b: 8, y: 1200, c: 9, d: 15, z: 800 },
+        C: { name: "C টাইপ", x: 1000, a: 6, b: 12, y: 800, c: 13, d: 25, z: 600 },
+        D: { name: "D টাইপ", x: 500, a: 3, b: 7, y: 400, c: 8, d: 12, z: 300 }
+    },
+    guests: {
+        g1: { name: "EGB Staff", rate: 1500 },
+        g2: { name: "Govt officer", rate: 1800 },
+        g3: { name: "Student", rate: 500 },
+        g4: { name: "Foreign Consultant", rate: 3000 }
+    }
+};
+
+let bills = []; 
+let tempGuests = []; 
+let currentPage = 1;
+let itemsPerPage = window.innerWidth < 768 ? 10 : 25;
+let filteredBills = [];
+
+function initGuestBillUI() {
+    // Sync local state with Firebase state
+    bills = state.guestBills || [];
+    if (state.guestBillSettings) {
+        settings = {
+            rooms: state.guestBillSettings.rooms || settings.rooms,
+            guests: state.guestBillSettings.guests || settings.guests
+        };
+    }
+    
+    renderSettings();
+    updateFormSelects();
+    renderBills();
+    renderTempGuests();
+
+    const form = document.getElementById('billForm');
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const editId = document.getElementById('editId').value;
+            if (editId) {
+                const idNum = Number(editId);
+                const index = bills.findIndex(b => b.id === idNum);
+                if (index > -1) {
+                    const updatedBill = { id: idNum, ...getFormData() };
+                    bills[index] = updatedBill;
+                    await Store.saveGuestBill(updatedBill);
+                    showToast("বিল সফলভাবে আপডেট হয়েছে!", "success");
+                }
+            } else {
+                if (document.getElementById('guestName').value.trim() !== '') {
+                    addTempGuest();
+                }
+                
+                if (tempGuests.length === 0) {
+                    showToast("অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!", "error");
+                    return;
+                }
+                
+                for (let g of tempGuests) {
+                    const newBill = { ...g };
+                    await Store.saveGuestBill(newBill);
+                    bills.push(newBill);
+                }
+                tempGuests = [];
+                renderTempGuests();
+                showToast("বিলগুলো সফলভাবে তৈরি এবং তালিকায় যুক্ত হয়েছে!", "success");
+            }
+            
+            resetForm();
+            renderBills();
+        });
+    }
+}
+
+function handleResize() {
+    let newItemsPerPage = window.innerWidth < 768 ? 10 : 25;
+    if (newItemsPerPage !== itemsPerPage) {
+        itemsPerPage = newItemsPerPage;
+        renderBills();
+    }
+}
+
+function openSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); }
+function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+
+function renderSettings() {
+    const rC = document.getElementById('roomSettingsContainer');
+    if(!rC) return;
+    let roomHtml = '';
+    for (let id in settings.rooms) {
+        let r = settings.rooms[id];
+        roomHtml += `
+            <div class="p-4 border rounded bg-gray-50 relative" id="room_${id}">
+                <button type="button" onclick="deleteRoom('${id}')" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash"></i></button>
+                <input type="text" value="${r.name}" id="room_${id}_name" class="w-full p-1 border rounded text-sm font-bold mb-3 text-blue-800" placeholder="ক্যাটাগরি নাম">
+                <div class="flex items-center space-x-2 mb-2">
+                    <span class="text-xs w-40">রেগুলার ভাড়া = </span>
+                    <input type="number" value="${r.x}" id="room_${id}_x" class="w-24 p-1 border rounded text-sm">
+                </div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <input type="number" value="${r.a}" id="room_${id}_a" class="w-12 p-1 border rounded text-sm">
+                    <span class="text-xs">থেকে</span>
+                    <input type="number" value="${r.b}" id="room_${id}_b" class="w-12 p-1 border rounded text-sm">
+                    <span class="text-xs">দিনের ভাড়া =</span>
+                    <input type="number" value="${r.y}" id="room_${id}_y" class="w-24 p-1 border rounded text-sm">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="number" value="${r.c}" id="room_${id}_c" class="w-12 p-1 border rounded text-sm">
+                    <span class="text-xs">থেকে</span>
+                    <input type="number" value="${r.d}" id="room_${id}_d" class="w-12 p-1 border rounded text-sm">
+                    <span class="text-xs">দিনের ভাড়া =</span>
+                    <input type="number" value="${r.z}" id="room_${id}_z" class="w-24 p-1 border rounded text-sm">
+                </div>
+            </div>
+        `;
+    }
+    rC.innerHTML = roomHtml;
+
+    const gC = document.getElementById('guestSettingsContainer');
+    let guestHtml = '';
+    for (let id in settings.guests) {
+        let g = settings.guests[id];
+        guestHtml += `
+            <div class="p-2 border rounded bg-gray-50 flex items-center gap-2" id="guest_${id}">
+                <input type="text" value="${g.name}" id="guest_${id}_name" class="flex-1 p-1 border rounded text-sm" placeholder="গেস্ট টাইপ নাম">
+                <input type="number" value="${g.rate}" id="guest_${id}_rate" class="w-24 p-1 border rounded text-sm" placeholder="ভাড়া">
+                <button type="button" onclick="deleteGuest('${id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+    }
+    gC.innerHTML = guestHtml;
+}
+
+function addNewRoom() {
+    let id = 'r_' + Date.now();
+    settings.rooms[id] = { name: "নতুন রুম", x: 0, a: 0, b: 0, y: 0, c: 0, d: 0, z: 0 };
+    renderSettings();
+}
+
+function deleteRoom(id) {
+    if(confirm('এই রুম ক্যাটাগরিটি ডিলিট করতে চান?')) {
+        delete settings.rooms[id];
+        renderSettings();
+    }
+}
+
+function addNewGuest() {
+    let id = 'g_' + Date.now();
+    settings.guests[id] = { name: "নতুন গেস্ট", rate: 0 };
+    renderSettings();
+}
+
+function deleteGuest(id) {
+    if(confirm('এই গেস্ট টাইপটি ডিলিট করতে চান?')) {
+        delete settings.guests[id];
+        renderSettings();
+    }
+}
+
+async function saveSettings() {
+    let updatedRooms = {};
+    for (let id in settings.rooms) {
+        updatedRooms[id] = {
+            name: document.getElementById(`room_${id}_name`).value || "Unnamed",
+            x: parseFloat(document.getElementById(`room_${id}_x`).value) || 0,
+            a: parseInt(document.getElementById(`room_${id}_a`).value) || 0,
+            b: parseInt(document.getElementById(`room_${id}_b`).value) || 0,
+            y: parseFloat(document.getElementById(`room_${id}_y`).value) || 0,
+            c: parseInt(document.getElementById(`room_${id}_c`).value) || 0,
+            d: parseInt(document.getElementById(`room_${id}_d`).value) || 0,
+            z: parseFloat(document.getElementById(`room_${id}_z`).value) || 0
+        };
+    }
+    settings.rooms = updatedRooms;
+
+    let updatedGuests = {};
+    for (let id in settings.guests) {
+        updatedGuests[id] = {
+            name: document.getElementById(`guest_${id}_name`).value || "Unnamed",
+            rate: parseFloat(document.getElementById(`guest_${id}_rate`).value) || 0
+        };
+    }
+    settings.guests = updatedGuests;
+    state.guestBillSettings = settings;
+
+    await Store.saveGuestBillSettings(settings);
+    
+    closeSettingsModal();
+    updateFormSelects();
+    showToast("সেটিংস সফলভাবে সেভ হয়েছে!", "success");
+}
+
+function updateFormSelects() {
+    const roomSelect = document.getElementById('roomType');
+    if(!roomSelect) return;
+    let roomHtml = '';
+    for (let id in settings.rooms) {
+        roomHtml += `<option value="${id}">${settings.rooms[id].name}</option>`;
+    }
+    roomSelect.innerHTML = roomHtml;
+
+    const guestSelect = document.getElementById('guestType');
+    let guestHtml = '';
+    for (let id in settings.guests) {
+        guestHtml += `<option value="${id}">${settings.guests[id].name}</option>`;
+    }
+    guestHtml += `<option value="Others">Others</option>`;
+    guestSelect.innerHTML = guestHtml;
+    toggleOtherType();
+}
+
+function toggleOtherType() {
+    const type = document.getElementById('guestType').value;
+    const oField = document.getElementById('otherTypeField');
+    if(oField) oField.classList.toggle('hidden', type !== "Others");
+}
+
+function formatDateToCustom(dateObj) {
+    const d = new Date(dateObj);
+    let day = d.getDate().toString().padStart(2, '0');
+    let month = (d.getMonth() + 1).toString().padStart(2, '0');
+    let year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+function updateTotalDays() {
+    const ci = document.getElementById('checkIn').value;
+    const co = document.getElementById('checkOut').value;
+    const ex = document.getElementById('excludedDates').value;
+    if(!ci || !co) return;
+
+    const start = new Date(ci);
+    const end = new Date(co);
+    if (end < start) { document.getElementById('totalDays').value = "ভুল তারিখ"; return; }
+    
+    let diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    let excludedCount = 0;
+    if(ex.trim()) {
+        excludedCount = ex.split(',').map(d => d.trim()).filter(d => d !== "").length;
+    }
+    document.getElementById('totalDays').value = (diffDays - excludedCount) + " দিন";
+}
+
+function getFormData() {
+    const guestName = document.getElementById('guestName').value.trim();
+    const mobile = document.getElementById('mobileNumbers').value.trim();
+    const address = document.getElementById('address').value.trim();
+    
+    const guestTypeId = document.getElementById('guestType').value;
+    let guestTypeName = "";
+    if (guestTypeId === "Others") {
+        guestTypeName = document.getElementById('customGuestType').value || "Others";
+    } else {
+        guestTypeName = settings.guests[guestTypeId] ? settings.guests[guestTypeId].name : "";
+    }
+    
+    const roomTypeId = document.getElementById('roomType').value;
+    const roomTypeName = settings.rooms[roomTypeId] ? settings.rooms[roomTypeId].name : "";
+    const roomNumber = document.getElementById('roomNumber').value.trim();
+    const checkIn = document.getElementById('checkIn').value;
+    const checkOut = document.getElementById('checkOut').value;
+    const excludedDatesRaw = document.getElementById('excludedDates').value;
+    const excludedDates = excludedDatesRaw ? excludedDatesRaw.split(',').map(d => d.trim()) : [];
+    const purpose = document.getElementById('purpose').value;
+    const totalDays = document.getElementById('totalDays').value;
+    const comments = document.getElementById('comments').value;
+
+    const totalAmount = calculateBill(checkIn, checkOut, excludedDates, roomTypeId, guestTypeName);
+
+    return { guestName, mobile, address, guestType: guestTypeName, roomType: roomTypeId, roomTypeName, roomNumber, checkIn, checkOut, excludedDates, purpose, totalDays, comments, totalAmount };
+}
+
+function addTempGuest() {
+    const name = document.getElementById('guestName').value.trim();
+    const ci = document.getElementById('checkIn').value;
+    const co = document.getElementById('checkOut').value;
+    
+    if(!name) { showToast("অন্তত নামটি লিখুন!", "error"); return; }
+    if(!ci || !co) { showToast("চেক-ইন এবং চেক-আউট তারিখ দিন!", "error"); return; }
+    
+    const data = getFormData();
+    tempGuests.push(data);
+    renderTempGuests();
+
+    document.getElementById('guestName').value = '';
+    document.getElementById('mobileNumbers').value = '';
+    document.getElementById('address').value = '';
+    document.getElementById('roomNumber').value = '';
+    document.getElementById('purpose').value = '';
+    document.getElementById('comments').value = '';
+    document.getElementById('guestName').focus();
+}
+
+function renderTempGuests() {
+    const c = document.getElementById('tempGuestList');
+    if(!c) return;
+    let html = '';
+    if(tempGuests.length === 0) {
+        html = '<p class="text-gray-400 text-xs text-center py-2">কোনো গেস্ট এন্ট্রি দেওয়া হয়নি।</p>';
+    } else {
+        tempGuests.forEach((g, index) => {
+            html += `
+                <div class="flex justify-between items-center bg-blue-50 p-2 rounded border border-blue-100 text-sm">
+                    <span class="font-medium">${index + 1}. ${g.guestName} <span class="text-gray-500 text-xs">(${g.roomTypeName})</span></span>
+                    <button type="button" onclick="removeTempGuest(${index})" class="text-red-500 hover:text-red-700"><i class="fas fa-times-circle"></i></button>
+                </div>
+            `;
+        });
+    }
+    c.innerHTML = html;
+}
+
+function removeTempGuest(index) {
+    tempGuests.splice(index, 1);
+    renderTempGuests();
+}
+
+function calculateBill(checkIn, checkOut, excludedDates, roomTypeId, guestTypeName) {
+    let total = 0;
+    let current = new Date(checkIn);
+    let end = new Date(checkOut);
+    let consecutiveDays = 0;
+    
+    const r = settings.rooms[roomTypeId];
+    let guestRate = 0;
+    for (let id in settings.guests) {
+        if (settings.guests[id].name === guestTypeName) {
+            guestRate = settings.guests[id].rate;
+            break;
+        }
+    }
+
+    while (current <= end) {
+        const dateStr = formatDateToCustom(current);
+        if (!excludedDates.includes(dateStr)) {
+            consecutiveDays++;
+            let dailyRate;
+
+            if (guestRate > 0) {
+                dailyRate = guestRate;
+            } else if (r) {
+                if (consecutiveDays >= r.a && consecutiveDays <= r.b) {
+                    dailyRate = r.y;
+                } else if (consecutiveDays >= r.c && consecutiveDays <= r.d) {
+                    dailyRate = r.z;
+                } else if (consecutiveDays > r.d) {
+                    dailyRate = r.z; 
+                } else {
+                    dailyRate = r.x;
+                }
+            } else {
+                dailyRate = 0;
+            }
+            total += dailyRate;
+        } else {
+            consecutiveDays = 0;
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    return Math.round(total);
+}
+
+function resetForm() {
+    const form = document.getElementById('billForm');
+    if(form) form.reset();
+    const editIdEl = document.getElementById('editId');
+    if(editIdEl) editIdEl.value = '';
+    const submitBtn = document.getElementById('submitBtn');
+    if(submitBtn) submitBtn.innerText = 'বিল তৈরি করুন';
+    const tempBtn = document.getElementById('tempBtn');
+    if(tempBtn) tempBtn.classList.remove('hidden');
+    const tdEl = document.getElementById('totalDays');
+    if(tdEl) tdEl.value = '';
+    toggleOtherType();
+}
+
+function editBill(id) {
+    const bill = bills.find(b => b.id === id);
+    if(!bill) return;
+    document.getElementById('editId').value = bill.id;
+    
+    document.getElementById('guestName').value = bill.guestName;
+    document.getElementById('mobileNumbers').value = bill.mobile;
+    document.getElementById('address').value = bill.address;
+    
+    const guestSelect = document.getElementById('guestType');
+    let matched = false;
+    for (let id in settings.guests) {
+        if (settings.guests[id].name === bill.guestType) {
+            guestSelect.value = id;
+            matched = true;
+            break;
+        }
+    }
+    if (!matched) {
+        guestSelect.value = "Others";
+        toggleOtherType();
+        document.getElementById('customGuestType').value = bill.guestType;
+    }
+
+    document.getElementById('roomType').value = bill.roomType;
+    document.getElementById('roomNumber').value = bill.roomNumber || '';
+    document.getElementById('checkIn').value = bill.checkIn
