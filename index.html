@@ -16,9 +16,6 @@
 <script>tailwind.config = { corePlugins: { preflight: false } }</script>
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- jsPDF & AutoTable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -179,6 +176,25 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
         background: #f8fafc;
     }
 }
+
+/* --- GUEST BILL CUSTOM PROFESSIONAL DESIGN --- */
+.gb-label { display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; }
+.gb-input { width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; transition:all 0.2s; background:#fff; box-sizing:border-box; font-family: inherit; }
+.gb-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none; }
+.gb-btn-primary { background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 12px; border-radius: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; border: none; cursor: pointer; width: 100%; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
+.gb-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 8px rgba(37, 99, 235, 0.3); }
+.gb-btn-secondary { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 12px; border-radius: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; border: none; cursor: pointer; width: 100%; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2); }
+.gb-btn-secondary:hover { transform: translateY(-1px); box-shadow: 0 6px 8px rgba(245, 158, 11, 0.3); }
+.gb-btn-reset { background: #f1f5f9; color: #475569; padding: 12px; border-radius: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; transition: 0.2s; border: none; cursor: pointer; }
+.gb-btn-reset:hover { background: #e2e8f0; }
+.gb-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: 0.2s; }
+.gb-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.gb-btn-pdf { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 10px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; border: none; cursor: pointer; flex:1; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2); }
+.gb-btn-pdf:hover { box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3); }
+.gb-btn-excel { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 10px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; border: none; cursor: pointer; flex:1; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2); }
+.gb-btn-excel:hover { box-shadow: 0 4px 6px rgba(34, 197, 94, 0.3); }
+.gb-set-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; background: #f8fafc; position: relative; }
+.gb-set-title { font-size: 14px; font-weight: bold; color: #1e40af; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
 </style>
 </head>
 <body>
@@ -994,95 +1010,95 @@ function renderGuestBillTab() {
     const c = document.getElementById('paymentTabContent');
     c.innerHTML = `
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md h-fit lg:sticky lg:top-8">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h2 class="text-lg font-bold">নতুন বিল তৈরি করুন</h2>
-                    <button onclick="openSettingsModal()" class="text-gray-600 hover:text-blue-600 text-2xl transition-colors">
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-md h-fit lg:sticky lg:top-8 border border-gray-100">
+                <div class="flex justify-between items-center mb-5 border-b pb-3">
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-file-invoice text-blue-600"></i> নতুন বিল তৈরি করুন</h2>
+                    <button onclick="openSettingsModal()" class="text-gray-500 hover:text-blue-600 text-xl transition-colors">
                         <i class="fas fa-cog"></i>
                     </button>
                 </div>
                 
-                <form id="billForm" class="space-y-3">
+                <form id="billForm" class="space-y-4">
                     <input type="hidden" id="editId">
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium">নাম</label>
-                            <input type="text" id="guestName" class="w-full p-2 border rounded mt-1">
+                            <label class="gb-label">নাম</label>
+                            <input type="text" id="guestName" class="gb-input" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium">মোবাইল</label>
-                            <input type="text" id="mobileNumbers" class="w-full p-2 border rounded mt-1">
+                            <label class="gb-label">মোবাইল</label>
+                            <input type="text" id="mobileNumbers" class="gb-input">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">ঠিকানা</label>
-                        <input type="text" id="address" class="w-full p-2 border rounded mt-1">
+                        <label class="gb-label">ঠিকানা</label>
+                        <input type="text" id="address" class="gb-input">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium">গেস্ট টাইপ</label>
-                            <select id="guestType" onchange="toggleOtherType()" class="w-full p-2 border rounded mt-1"></select>
+                            <label class="gb-label">গেস্ট টাইপ</label>
+                            <select id="guestType" onchange="toggleOtherType()" class="gb-input"></select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium">রুম টাইপ</label>
-                            <select id="roomType" class="w-full p-2 border rounded mt-1"></select>
+                            <label class="gb-label">রুম টাইপ</label>
+                            <select id="roomType" class="gb-input"></select>
                         </div>
                     </div>
 
                     <div id="otherTypeField" class="hidden">
-                        <label class="block text-sm font-medium">অন্যান্য গেস্ট টাইপ লিখুন</label>
-                        <input type="text" id="customGuestType" class="w-full p-2 border rounded mt-1" placeholder="গেস্ট টাইপ লিখুন">
+                        <label class="gb-label">অন্যান্য গেস্ট টাইপ লিখুন</label>
+                        <input type="text" id="customGuestType" class="gb-input" placeholder="গেস্ট টাইপ লিখুন">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">রুম নম্বর</label>
-                        <input type="text" id="roomNumber" class="w-full p-2 border rounded mt-1" placeholder="যেমন: 101">
+                        <label class="gb-label">রুম নম্বর</label>
+                        <input type="text" id="roomNumber" class="gb-input" placeholder="যেমন: 101">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium">চেক ইন</label>
-                            <input type="date" id="checkIn" onchange="updateTotalDays()" class="w-full p-2 border rounded mt-1">
+                            <label class="gb-label">চেক ইন</label>
+                            <input type="date" id="checkIn" onchange="updateTotalDays()" class="gb-input">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium">চেক আউট</label>
-                            <input type="date" id="checkOut" onchange="updateTotalDays()" class="w-full p-2 border rounded mt-1">
+                            <label class="gb-label">চেক আউট</label>
+                            <input type="date" id="checkOut" onchange="updateTotalDays()" class="gb-input">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label>
-                        <input type="text" id="excludedDates" onchange="updateTotalDays()" class="w-full p-2 border rounded mt-1" placeholder="যেমন: 12-10-2023, 15-10-2023">
+                        <label class="gb-label">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label>
+                        <input type="text" id="excludedDates" onchange="updateTotalDays()" class="gb-input" placeholder="যেমন: 12-10-2023, 15-10-2023">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">আগমনের উদ্দেশ্য</label>
-                        <input type="text" id="purpose" class="w-full p-2 border rounded mt-1">
+                        <label class="gb-label">আগমনের উদ্দেশ্য</label>
+                        <input type="text" id="purpose" class="gb-input">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium">মোট দিন (অটো)</label>
-                            <input type="text" id="totalDays" readonly class="w-full p-2 border rounded mt-1 bg-gray-100 cursor-not-allowed">
+                            <label class="gb-label">মোট দিন (অটো)</label>
+                            <input type="text" id="totalDays" readonly class="gb-input bg-gray-100 cursor-not-allowed">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium">মন্তব্য</label>
-                            <input type="text" id="comments" class="w-full p-2 border rounded mt-1">
+                            <label class="gb-label">মন্তব্য</label>
+                            <input type="text" id="comments" class="gb-input">
                         </div>
                     </div>
 
-                    <div class="flex flex-col gap-2 pt-3">
-                        <button type="button" onclick="addTempGuest()" id="tempBtn" class="w-full bg-yellow-500 text-white p-2.5 rounded-lg hover:bg-yellow-600 btn-icon font-medium">
+                    <div class="flex flex-col gap-3 pt-2">
+                        <button type="button" onclick="addTempGuest()" id="tempBtn" class="gb-btn-secondary">
                             <i class="fas fa-user-plus"></i> গেস্ট ডাটা এন্ট্রি
                         </button>
-                        <div class="flex gap-2">
-                            <button type="submit" class="flex-1 bg-blue-600 text-white p-2.5 rounded-lg hover:bg-blue-700 btn-icon font-medium" id="submitBtn">
+                        <div class="flex gap-3">
+                            <button type="submit" class="gb-btn-primary flex-1" id="submitBtn">
                                 <i class="fas fa-file-invoice"></i> বিল তৈরি করুন
                             </button>
-                            <button type="button" onclick="resetForm()" class="bg-gray-300 text-gray-700 p-2.5 rounded-lg hover:bg-gray-400 w-1/4 btn-icon">
+                            <button type="button" onclick="resetForm()" class="gb-btn-reset w-1/4">
                                 <i class="fas fa-redo"></i>
                             </button>
                         </div>
@@ -1090,75 +1106,75 @@ function renderGuestBillTab() {
                 </form>
 
                 <div class="mt-6">
-                    <h3 class="font-bold text-sm border-b pb-2 mb-2 text-gray-700">এন্ট্রি দেওয়া গেস্টগণ:</h3>
+                    <h3 class="font-bold text-sm border-b pb-2 mb-3 text-gray-700">এন্ট্রি দেওয়া গেস্টগণ:</h3>
                     <div id="tempGuestList" class="space-y-2 max-h-40 overflow-y-auto"></div>
                 </div>
             </div>
 
-            <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
-                <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-200">
-                    <h3 class="font-bold text-blue-800 mb-3 flex items-center gap-2"><i class="fas fa-download"></i> বিল ডাউনলোড করুন</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                <div class="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
+                    <h3 class="font-bold text-blue-800 mb-4 flex items-center gap-2 text-lg"><i class="fas fa-download"></i> বিল ডাউনলোড করুন</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600">শুরু তারিখ (চেক-ইন)</label>
-                            <input type="date" id="bulkFromDate" class="w-full p-2 border rounded mt-1 text-sm">
+                            <label class="gb-label">শুরু তারিখ (চেক-ইন)</label>
+                            <input type="date" id="bulkFromDate" class="gb-input">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600">শেষ তারিখ (চেক-ইন)</label>
-                            <input type="date" id="bulkToDate" class="w-full p-2 border rounded mt-1 text-sm">
+                            <label class="gb-label">শেষ তারিখ (চেক-ইন)</label>
+                            <input type="date" id="bulkToDate" class="gb-input">
                         </div>
-                        <button onclick="downloadBulkPDF()" class="bg-red-500 text-white p-2 rounded hover:bg-red-600 btn-icon font-medium">
-                            <i class="fas fa-file-pdf"></i> Pdf
+                        <button onclick="downloadBulkPDF()" class="gb-btn-pdf">
+                            <i class="fas fa-file-pdf"></i> PDF ডাউনলোড
                         </button>
-                        <button onclick="downloadBulkExcel()" class="bg-green-600 text-white p-2 rounded hover:bg-green-700 btn-icon font-medium">
-                            <i class="fas fa-file-excel"></i> Excel
+                        <button onclick="downloadBulkExcel()" class="gb-btn-excel">
+                            <i class="fas fa-file-excel"></i> Excel ডাউনলোড
                         </button>
                     </div>
                 </div>
 
-                <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4 border-b pb-4">
-                    <h2 class="text-lg font-bold text-gray-800">বিলের তালিকা</h2>
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-list-ul text-blue-600"></i> বিলের তালিকা</h2>
                     <div class="relative w-full md:w-64">
-                        <input type="text" id="searchInput" onkeyup="searchBills()" placeholder="নাম দিয়ে সার্চ করুন..." class="w-full p-2 pl-8 border rounded">
+                        <input type="text" id="searchInput" onkeyup="searchBills()" placeholder="নাম দিয়ে সার্চ করুন..." class="gb-input pl-10">
                         <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
                     </div>
                 </div>
 
                 <div id="billListContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
 
-                <div class="flex justify-center items-center mt-6 gap-4" id="paginationControls">
-                    <button onclick="prevPage()" class="bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 btn-icon"><i class="fas fa-chevron-left"></i> Prev</button>
+                <div class="flex justify-center items-center mt-8 gap-6" id="paginationControls">
+                    <button onclick="prevPage()" class="bg-gray-200 px-5 py-2 rounded-lg hover:bg-gray-300 flex items-center gap-2 font-medium text-gray-700"><i class="fas fa-chevron-left"></i> Prev</button>
                     <span id="pageInfo" class="font-medium text-gray-600"></span>
-                    <button onclick="nextPage()" class="bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 btn-icon">Next <i class="fas fa-chevron-right"></i></button>
+                    <button onclick="nextPage()" class="bg-gray-200 px-5 py-2 rounded-lg hover:bg-gray-300 flex items-center gap-2 font-medium text-gray-700">Next <i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
         </div>
 
         <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2 border-b z-10">
-                    <h2 class="text-xl font-bold text-gray-800">সেটিংস (ভাড়া কনফিগারেশন)</h2>
-                    <button onclick="closeSettingsModal()" class="text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-6 sticky top-0 bg-white pb-3 border-b z-10">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-cog text-blue-600"></i> সেটিংস (ভাড়া কনফিগারেশন)</h2>
+                    <button onclick="closeSettingsModal()" class="text-gray-500 hover:text-red-500 text-3xl">&times;</button>
                 </div>
                 
-                <div class="mb-6">
-                    <h3 class="font-bold mb-3 text-blue-700 flex items-center gap-2"><i class="fas fa-bed"></i> রুম ভাড়া সেটিংস</h3>
-                    <div id="roomSettingsContainer" class="space-y-4"></div>
-                    <button onclick="addNewRoom()" class="mt-3 w-full p-2 border-dashed border-2 border-blue-400 text-blue-600 rounded hover:bg-blue-50 btn-icon font-medium">
+                <div class="mb-8">
+                    <h3 class="font-bold mb-4 text-blue-700 flex items-center gap-2 text-lg"><i class="fas fa-bed"></i> রুম ভাড়া সেটিংস</h3>
+                    <div id="roomSettingsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    <button onclick="addNewRoom()" class="mt-4 w-full p-3 border-dashed border-2 border-blue-400 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center justify-center gap-2 font-medium">
                         <i class="fas fa-plus-circle"></i> নতুন রুম ক্যাটাগরি যুক্ত করুন
                     </button>
                 </div>
 
-                <div class="mb-6">
-                    <h3 class="font-bold mb-2 text-green-700 flex items-center gap-2"><i class="fas fa-users"></i> গেস্ট টাইপ ভাড়া</h3>
-                    <p class="text-xs text-gray-500 mb-2">নির্দিষ্ট টাইপের জন্য ফ্ল্যাট ভাড়া দিন। খালি বা 0 থাকলে রুমের ভাড়া প্রযোজ্য হবে।</p>
+                <div class="mb-8">
+                    <h3 class="font-bold mb-3 text-green-700 flex items-center gap-2 text-lg"><i class="fas fa-users"></i> গেস্ট টাইপ ভাড়া</h3>
+                    <p class="text-xs text-gray-500 mb-3">নির্দিষ্ট টাইপের জন্য ফ্ল্যাট ভাড়া দিন। খালি বা 0 থাকলে রুমের ভাড়া প্রযোজ্য হবে।</p>
                     <div id="guestSettingsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-                    <button onclick="addNewGuest()" class="mt-3 w-full p-2 border-dashed border-2 border-green-400 text-green-600 rounded hover:bg-green-50 btn-icon font-medium">
+                    <button onclick="addNewGuest()" class="mt-4 w-full p-3 border-dashed border-2 border-green-400 text-green-600 rounded-lg hover:bg-green-50 flex items-center justify-center gap-2 font-medium">
                         <i class="fas fa-plus-circle"></i> নতুন গেস্ট টাইপ যুক্ত করুন
                     </button>
                 </div>
 
-                <button onclick="saveSettings()" class="w-full bg-blue-600 text-white p-2.5 rounded-lg hover:bg-blue-700 btn-icon font-bold sticky bottom-0">
+                <button onclick="saveSettings()" class="gb-btn-primary mt-4">
                     <i class="fas fa-save"></i> সেটিংস সেভ করুন
                 </button>
             </div>
@@ -1462,44 +1478,28 @@ function initGuestBillUI() {
             const editId = document.getElementById('editId').value;
             if (editId) {
                 const idNum = Number(editId);
-                const index = bills.findIndex(b => b.id === idNum);
-                if (index > -1) {
-                    const updatedBill = { id: idNum, ...getFormData() };
-                    bills[index] = updatedBill;
-                    await Store.saveGuestBill(updatedBill);
-                    showToast("বিল সফলভাবে আপডেট হয়েছে!", "success");
-                }
+                const updatedBill = { id: idNum, ...getFormData() };
+                await Store.saveGuestBill(updatedBill);
+                showToast("বিল সফলভাবে আপডেট হয়েছে!", "success");
             } else {
                 if (document.getElementById('guestName').value.trim() !== '') {
                     addTempGuest();
                 }
-                
                 if (tempGuests.length === 0) {
                     showToast("অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!", "error");
                     return;
                 }
-                
                 for (let g of tempGuests) {
-                    const newBill = { ...g };
+                    const newBill = { ...g, createdAt: new Date().toISOString() };
                     await Store.saveGuestBill(newBill);
-                    bills.push(newBill);
                 }
                 tempGuests = [];
                 renderTempGuests();
-                showToast("বিলগুলো সফলভাবে তৈরি এবং তালিকায় যুক্ত হয়েছে!", "success");
+                showToast("বিলগুলো সফলভাবে তৈরি এবং তালিকায় যুক্ত হয়েছে!", "success");
             }
-            
             resetForm();
-            renderBills();
+            // renderBills() will be triggered by onSnapshot automatically
         });
-    }
-}
-
-function handleResize() {
-    let newItemsPerPage = window.innerWidth < 768 ? 10 : 25;
-    if (newItemsPerPage !== itemsPerPage) {
-        itemsPerPage = newItemsPerPage;
-        renderBills();
     }
 }
 
@@ -1513,26 +1513,30 @@ function renderSettings() {
     for (let id in settings.rooms) {
         let r = settings.rooms[id];
         roomHtml += `
-            <div class="p-4 border rounded bg-gray-50 relative" id="room_${id}">
-                <button type="button" onclick="deleteRoom('${id}')" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash"></i></button>
-                <input type="text" value="${r.name}" id="room_${id}_name" class="w-full p-1 border rounded text-sm font-bold mb-3 text-blue-800" placeholder="ক্যাটাগরি নাম">
-                <div class="flex items-center space-x-2 mb-2">
-                    <span class="text-xs w-40">রেগুলার ভাড়া = </span>
-                    <input type="number" value="${r.x}" id="room_${id}_x" class="w-24 p-1 border rounded text-sm">
+            <div class="gb-set-card" id="room_${id}">
+                <button type="button" onclick="deleteRoom('${id}')" class="absolute top-3 right-3 text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash"></i></button>
+                <div class="gb-set-title">
+                    <input type="text" value="${r.name}" id="room_${id}_name" class="gb-input" style="font-weight:bold; color:#1e40af; border:none; padding:0; background:transparent;" placeholder="ক্যাটাগরি নাম">
                 </div>
-                <div class="flex items-center space-x-2 mb-2">
-                    <input type="number" value="${r.a}" id="room_${id}_a" class="w-12 p-1 border rounded text-sm">
-                    <span class="text-xs">থেকে</span>
-                    <input type="number" value="${r.b}" id="room_${id}_b" class="w-12 p-1 border rounded text-sm">
-                    <span class="text-xs">দিনের ভাড়া =</span>
-                    <input type="number" value="${r.y}" id="room_${id}_y" class="w-24 p-1 border rounded text-sm">
-                </div>
-                <div class="flex items-center space-x-2">
-                    <input type="number" value="${r.c}" id="room_${id}_c" class="w-12 p-1 border rounded text-sm">
-                    <span class="text-xs">থেকে</span>
-                    <input type="number" value="${r.d}" id="room_${id}_d" class="w-12 p-1 border rounded text-sm">
-                    <span class="text-xs">দিনের ভাড়া =</span>
-                    <input type="number" value="${r.z}" id="room_${id}_z" class="w-24 p-1 border rounded text-sm">
+                <div class="space-y-3 mt-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-600 w-28 flex-shrink-0">রেগুলার ভাড়া:</span>
+                        <input type="number" value="${r.x}" id="room_${id}_x" class="gb-input text-sm py-1">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" value="${r.a}" id="room_${id}_a" class="gb-input text-sm py-1 w-16">
+                        <span class="text-xs text-gray-600">থেকে</span>
+                        <input type="number" value="${r.b}" id="room_${id}_b" class="gb-input text-sm py-1 w-16">
+                        <span class="text-xs text-gray-600 flex-1">দিন পর্যন্ত ভাড়া:</span>
+                        <input type="number" value="${r.y}" id="room_${id}_y" class="gb-input text-sm py-1 w-24">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" value="${r.c}" id="room_${id}_c" class="gb-input text-sm py-1 w-16">
+                        <span class="text-xs text-gray-600">থেকে</span>
+                        <input type="number" value="${r.d}" id="room_${id}_d" class="gb-input text-sm py-1 w-16">
+                        <span class="text-xs text-gray-600 flex-1">দিন পর্যন্ত ভাড়া:</span>
+                        <input type="number" value="${r.z}" id="room_${id}_z" class="gb-input text-sm py-1 w-24">
+                    </div>
                 </div>
             </div>
         `;
@@ -1545,10 +1549,10 @@ function renderSettings() {
     for (let id in settings.guests) {
         let g = settings.guests[id];
         guestHtml += `
-            <div class="p-2 border rounded bg-gray-50 flex items-center gap-2" id="guest_${id}">
-                <input type="text" value="${g.name}" id="guest_${id}_name" class="flex-1 p-1 border rounded text-sm" placeholder="গেস্ট টাইপ নাম">
-                <input type="number" value="${g.rate}" id="guest_${id}_rate" class="w-24 p-1 border rounded text-sm" placeholder="ভাড়া">
-                <button type="button" onclick="deleteGuest('${id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fas fa-trash"></i></button>
+            <div class="gb-set-card flex items-center gap-2 p-2" id="guest_${id}">
+                <input type="text" value="${g.name}" id="guest_${id}_name" class="gb-input flex-1 text-sm" placeholder="গেস্ট টাইপ নাম">
+                <input type="number" value="${g.rate}" id="guest_${id}_rate" class="gb-input w-28 text-sm" placeholder="ভাড়া">
+                <button type="button" onclick="deleteGuest('${id}')" class="text-red-500 hover:text-red-700 px-2"><i class="fas fa-trash"></i></button>
             </div>
         `;
     }
@@ -1839,9 +1843,8 @@ function editBill(id) {
 
 async function deleteBill(id) {
     if (confirm('আপনি কি এই বিলটি ডিলিট করতে চান?')) {
-        bills = bills.filter(b => b.id !== id);
         await Store.deleteGuestBill(id);
-        renderBills();
+        // renderBills() will be called by onSnapshot automatically
     }
 }
 
@@ -1850,6 +1853,10 @@ function searchBills() { renderBills(); }
 function renderBills() {
     const container = document.getElementById('billListContainer');
     if(!container) return;
+    
+    // Sort bills by createdAt descending
+    bills.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     filteredBills = bills.filter(b => b.guestName.toLowerCase().includes(searchTerm));
     
@@ -1867,7 +1874,7 @@ function renderBills() {
     } else {
         pageItems.forEach(bill => {                    
             html += `
-                <div class="border rounded-xl shadow-sm bg-white p-4 hover:shadow-md transition-shadow">
+                <div class="gb-card">
                     <div class="flex justify-between items-center cursor-pointer" onclick="toggleExpand(${bill.id})">
                         <div>
                             <h3 class="font-bold text-lg text-gray-800">${bill.guestName}</h3>
@@ -1881,6 +1888,7 @@ function renderBills() {
                         </div>
                     </div>
                     <div id="details_${bill.id}" class="hidden mt-4 border-t pt-3 text-sm space-y-1">
+                        <p><i class="fas fa-calendar-plus text-gray-400 w-4"></i> বিল তৈরির তারিখ: ${bill.createdAt ? formatDateToCustom(bill.createdAt) : 'N/A'}</p>
                         <p><i class="fas fa-phone text-gray-400 w-4"></i> ${bill.mobile || 'নেই'}</p>
                         <p><i class="fas fa-map-marker-alt text-gray-400 w-4"></i> ${bill.address || 'নেই'}</p>
                         <p><i class="fas fa-calendar text-gray-400 w-4"></i> ${formatDateToCustom(bill.checkIn)} থেকে ${formatDateToCustom(bill.checkOut)}</p>
@@ -1892,8 +1900,8 @@ function renderBills() {
                         </div>
                         
                         <div class="flex gap-2 mt-3">
-                            <button onclick="downloadSinglePDF(${bill.id})" class="flex-1 bg-red-500 text-white px-2 py-1.5 rounded text-xs btn-icon hover:bg-red-600"><i class="fas fa-download"></i> Pdf</button>
-                            <button onclick="downloadSingleExcel(${bill.id})" class="flex-1 bg-green-600 text-white px-2 py-1.5 rounded text-xs btn-icon hover:bg-green-700"><i class="fas fa-download"></i> Excel</button>
+                            <button onclick="downloadSinglePDF(${bill.id})" class="gb-btn-pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button onclick="downloadSingleExcel(${bill.id})" class="gb-btn-excel"><i class="fas fa-file-excel"></i> Excel</button>
                         </div>
                         <div class="flex gap-2 mt-2 justify-end text-gray-500">
                             <button onclick="editBill(${bill.id})" class="hover:text-blue-600 px-2"><i class="fas fa-edit"></i> এডিট</button>
@@ -1934,80 +1942,3 @@ function getBulkFilteredBills() {
         let fromOk = true, toOk = true;
         if(fromDate) fromOk = d >= new Date(fromDate);
         if(toDate) toOk = d <= new Date(toDate);
-        return fromOk && toOk;
-    });
-}
-
-function generateBillTableData(bill) {
-    return [
-        ['নাম', bill.guestName],
-        ['মোবাইল', bill.mobile || ''],
-        ['ঠিকানা', bill.address || ''],
-        ['গেস্ট টাইপ', bill.guestType],
-        ['রুম টাইপ', bill.roomTypeName],
-        ['রুম নম্বর', bill.roomNumber || ''],
-        ['চেক-ইন', formatDateToCustom(bill.checkIn)],
-        ['চেক-আউট', formatDateToCustom(bill.checkOut)],
-        ['বাদ দেওয়া তারিখ', bill.excludedDates.join(', ') || 'নেই'],
-        ['মোট দিন', bill.totalDays],
-        ['আগমনের উদ্দেশ্য', bill.purpose || ''],
-        ['মন্তব্য', bill.comments || ''],
-        ['মোট বিল', `৳${bill.totalAmount}`]
-    ];
-}
-
-function downloadSinglePDF(id) {
-    const bill = bills.find(b => b.id === id);
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text("Rest House Bill", 14, 15);
-    doc.autoTable({
-        startY: 25, head: [['Field', 'Details']], body: generateBillTableData(bill),
-        theme: 'grid', styles: { fontSize: 10, cellPadding: 2 }
-    });
-    doc.save(`Bill_${bill.guestName}.pdf`);
-}
-
-function downloadSingleExcel(id) {
-    const bill = bills.find(b => b.id === id);
-    const ws = XLSX.utils.aoa_to_sheet([['Field', 'Details'], ...generateBillTableData(bill)]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Bill");
-    XLSX.writeFile(wb, `Bill_${bill.guestName}.xlsx`);
-}
-
-function downloadBulkPDF() {
-    const bulkBills = getBulkFilteredBills();
-    if(bulkBills.length === 0) { alert("এই তারিখে কোনো বিল পাওয়া যায়নি।"); return; }
-    
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    bulkBills.forEach((bill, index) => {
-        if (index > 0) doc.addPage();
-        doc.text("Rest House Bill", 14, 15);
-        doc.autoTable({
-            startY: 25, head: [['Field', 'Details']], body: generateBillTableData(bill),
-            theme: 'grid', styles: { fontSize: 10, cellPadding: 2 }
-        });
-    });
-    doc.save(`Bills_${new Date().toLocaleDateString()}.pdf`);
-}
-
-function downloadBulkExcel() {
-    const bulkBills = getBulkFilteredBills();
-    if(bulkBills.length === 0) { alert("এই তারিখে কোনো বিল পাওয়া যায়নি।"); return; }
-    
-    const wb = XLSX.utils.book_new();
-    bulkBills.forEach(bill => {
-        const ws = XLSX.utils.aoa_to_sheet([['Field', 'Details'], ...generateBillTableData(bill)]);
-        let sheetName = `${bill.guestName.substring(0, 20)}_${bill.roomNumber || 'NA'}`.replace(/[\\/?*[\]]/g, '_').substring(0, 31);
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    });
-    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`);
-}
-
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
-</script>
-</body>
-</html>
