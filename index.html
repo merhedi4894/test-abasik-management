@@ -1751,4 +1751,143 @@ function gbGetFilteredBills() {
     const to = document.getElementById('gbToDate')?.value;
     return guestBillState.bills.filter(bill => {
         if(!bill.guests || bill.guests.length === 0) return false;
-        let d = new Date(bill.guests[0].checkIn);
+        return bill.guests.some(g => {
+            let d = new Date(g.checkIn);
+            let fromOk = true, toOk = true;
+            if (from) fromOk = d >= new Date(from);
+            if (to) toOk = d <= new Date(to);
+            return fromOk && toOk;
+        });
+    });
+}
+
+function gbGenerateRows(bill) {
+    return bill.guests.map((g, index) => {
+        return [
+            [`নাম ${index+1}`, g.guestName || ''],
+            [`মোবাইল`, g.mobile || ''],
+            [`ঠিকানা`, g.address || ''],
+            [`গেস্ট টাইপ`, g.guestType || ''],
+            [`রুম টাইপ`, g.roomTypeName || ''],
+            [`রুম নম্বর`, g.roomNumber || ''],
+            [`চেক-ইন`, gbFormatDate(g.checkIn)],
+            [`চেক-আউট`, gbFormatDate(g.checkOut)],
+            [`বাদ দেওয়া তারিখ`, (g.excludedDates || []).join(', ') || 'নেই'],
+            [`মোট দিন`, g.totalDays || ''],
+            [`উদ্দেশ্য`, g.purpose || ''],
+            [`মন্তব্য`, g.comments || ''],
+            [`মোট বিল`, `৳${g.totalAmount || 0}`]
+        ];
+    }).flat(1);
+}
+
+function gbDownloadPDF(billId) {
+    const bill = guestBillState.bills.find(b => b.id === billId);
+    if (!bill || !bill.guests) return;
+    
+    const rows = gbGenerateRows(bill);
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Bill</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}h2{text-align:center;margin-bottom:5px;color:#1e40af;}.sub{text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;}table{width:100%;border-collapse:collapse;margin-bottom:20px;}th,td{border:1px solid #cbd5e1;padding:8px 12px;text-align:left;font-size:14px;}td:first-child{font-weight:600;width:35%;background:#f8fafc;}.total-row td{font-size:16px;font-weight:700;color:#16a34a;background:#f0fdf4;}@media print{body{padding:10px;}@page{margin:1cm;}}</style></head><body><h2>Rest House Bill</h2><p class="sub">তারিখ: ${new Date().toLocaleDateString()}</p><table><tbody>${rows.map(r => `<tr${r[0].includes('মোট বিল') ? ' class="total-row"' : ''}><td>${r[0]}</td><td>${escapeHtml(String(r[1]))}</td></tr>`).join('')}</tbody></table><script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+    win.document.close();
+    showToast('PDF প্রিভিউ খোলা হচ্ছে...');
+}
+
+function gbDownloadExcel(billId) {
+    const bill = guestBillState.bills.find(b => b.id === billId);
+    if (!bill || !bill.guests) return;
+
+    const headers = ['Field', 'Details'];
+    const data = gbGenerateRows(bill);
+    
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Bill");
+    XLSX.writeFile(wb, `Bill_${bill.id}.xlsx`);
+    showToast('Excel ডাউনলোড হচ্ছে...');
+}
+
+function gbDownloadBulkPDF() {
+    const bills = gbGetFilteredBills();
+    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
+    
+    const win = window.open('', '_blank');
+    let tableRows = '';
+    bills.forEach(bill => {
+        (bill.guests || []).forEach(g => {
+            tableRows += `<tr><td>${escapeHtml(g.guestName || '')}</td><td>${escapeHtml(g.mobile || '-')}</td><td>${escapeHtml(g.address || '-')}</td><td>${escapeHtml(g.guestType || '-')}</td><td>${escapeHtml(g.roomTypeName || '-')}</td><td>${escapeHtml(g.roomNumber || '-')}</td><td>${gbFormatDate(g.checkIn)}</td><td>${gbFormatDate(g.checkOut)}</td><td>${escapeHtml(g.totalDays || '-')}</td><td>${escapeHtml(g.purpose || '-')}</td><td>${escapeHtml(g.comments || '-')}</td><td class="total-col">৳${g.totalAmount || 0}</td></tr>`;
+        });
+    });
+
+    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;}h2{text-align:center;margin-bottom:5px;color:#1e40af;}.sub{text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left;font-size:12px;}th{background:#2563eb;color:#fff;font-weight:600;}tr:nth-child(even){background:#f8fafc;}.total-col{font-weight:700;color:#16a34a;}@media print{@page{margin:1cm;landscape;}}</style></head><body><h2>Rest House Bills</h2><p class="sub">মোট বিল: ${bills.length} টি | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr><th>নাম</th><th>মোবাইল</th><th>ঠিকানা</th><th>গেস্ট টাইপ</th><th>রুম টাইপ</th><th>রুম নম্বর</th><th>চেক-ইন</th><th>চেক-আউট</th><th>মোট দিন</th><th>উদ্দেশ্য</th><th>মন্তব্য</th><th>মোট বিল</th></tr></thead><tbody>${tableRows}</tbody></table><script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+    win.document.close();
+    showToast('PDF প্রিভিউ খোলা হচ্ছে...');
+}
+
+function gbDownloadBulkExcel() {
+    const bills = gbGetFilteredBills();
+    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
+    
+    const headers = ['নাম', 'মোবাইল', 'ঠিকানা', 'গেস্ট টাইপ', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'উদ্দেশ্য', 'মন্তব্য', 'মোট বিল'];
+    const data = [];
+    bills.forEach(bill => {
+        (bill.guests || []).forEach(g => {
+            data.push([g.guestName || '', g.mobile || '', g.address || '', g.guestType || '', g.roomTypeName || '', g.roomNumber || '', gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays || '', g.purpose || '', g.comments || '', `৳${g.totalAmount || 0}`]);
+        });
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Bills");
+    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`);
+    showToast('Excel ডাউনলোড হচ্ছে...');
+}
+
+function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
+
+function initApp() {
+    document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
+
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+        showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error");
+        hideLoader();
+        document.getElementById('authContainer').style.display = 'flex';
+        showLoginView();
+        return;
+    }
+    
+    firebase.auth().onAuthStateChanged((user) => {
+        const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
+        
+        if (user && isLogged) {
+            isExplicitLogout = false; 
+            if (!currentUser || currentUser.uid !== user.uid) {
+                loadAppData(user);
+            }
+        } else if (user && !isLogged) {
+            currentUser = null;
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('authContainer').style.display = 'flex';
+            showLoginView();
+            hideLoader();
+        } else if (!user && !isLogged) {
+            currentUser = null;
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('authContainer').style.display = 'flex';
+            showLoginView();
+            hideLoader();
+        } else if (!user && isLogged && !isExplicitLogout) {
+            console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
+        } else if (!user && isLogged && isExplicitLogout) {
+            currentUser = null;
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('authContainer').style.display = 'flex';
+            showLoginView();
+            hideLoader();
+        }
+    });
+}
+
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
+</script>
+</body>
+</html>
