@@ -12,12 +12,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-@font-face {
-    font-family: 'SolaimanLipi';
-    src: url('https://cdn.jsdelivr.net/gh/mehedihasanshow/SolaimanLipi@latest/SolaimanLipi.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
+@font-face { font-family: 'SolaimanLipi'; src: url('https://cdn.jsdelivr.net/gh/mehedihasanshow/SolaimanLipi@latest/SolaimanLipi.ttf') format('truetype'); font-weight: normal; font-style: normal; }
 :root{--primary:#2563eb;--primary-dark:#1e40af;--bg:#f9fafb;--card:#fff;--text:#1e293b;--text-light:#64748b;--border:#cbd5e1;--danger:#e11d48;--success:#16a34a;--warning:#d97706;--radius:14px}
 @media(min-width:768px){:root{--bg:#d1d5db;--border:#94a3b8}}
 *{margin:0;padding:0;box-sizing:border-box}html,body{overflow-x:hidden;width:100%;height:100%}
@@ -101,77 +96,20 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .text-success { color: var(--success); }
 .text-danger { color: var(--danger); }
 .highlight-bg { background-color: #fff8e1; border-left: 4px solid #ffa000; padding: 8px; border-radius: 6px; margin: 8px 0; font-weight: 600; }
-
-/* Mobile UI Enhancements */
 @media (max-width: 767px) {
-    .modal {
-        border-radius: 20px 20px 0 0;
-        padding: 16px;
-        padding-bottom: 40px; 
-    }
-    .tabs {
-        padding: 4px;
-        gap: 4px;
-        background: #e2e8f0;
-    }
-    .tab {
-        padding: 10px 8px;
-        font-size: 12px;
-        border-radius: 6px;
-        background: #fff;
-        color: #475569;
-        border: 1px solid #e2e8f0;
-    }
-    .tab.active {
-        background: var(--primary);
-        color: #fff;
-        border-color: var(--primary);
-    }
-    .thin-bright-card {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-left: 5px solid var(--primary);
-        padding: 12px;
-        margin-bottom: 10px;
-        border-radius: 8px;
-    }
-    .expandable-3d-card {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-left: 5px solid #3b82f6;
-        border-radius: 8px;
-    }
-    .expandable-3d-card.occupant {
-        background: #fff7ed;
-        border: 1px solid #fed7aa;
-        border-left: 5px solid #f97316;
-        border-radius: 8px;
-    }
-    .btn {
-        padding: 10px 16px;
-        font-size: 14px;
-        border-radius: 10px;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-        padding: 12px;
-        font-size: 15px;
-        border-radius: 10px;
-    }
-    .table-wrapper {
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        background: #fff;
-    }
-    .material-table th {
-        background: #1e293b;
-        color: #fff;
-    }
-    .material-table tr:nth-child(even) {
-        background: #f8fafc;
-    }
+    .modal { border-radius: 20px 20px 0 0; padding: 16px; padding-bottom: 40px; } 
+    .tabs { padding: 4px; gap: 4px; background: #e2e8f0; }
+    .tab { padding: 10px 8px; font-size: 12px; border-radius: 6px; background: #fff; color: #475569; border: 1px solid #e2e8f0; }
+    .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .thin-bright-card { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid var(--primary); padding: 12px; margin-bottom: 10px; border-radius: 8px; }
+    .expandable-3d-card { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 5px solid #3b82f6; border-radius: 8px; }
+    .expandable-3d-card.occupant { background: #fff7ed; border: 1px solid #fed7aa; border-left: 5px solid #f97316; border-radius: 8px; }
+    .btn { padding: 10px 16px; font-size: 14px; border-radius: 10px; }
+    .form-group input, .form-group select, .form-group textarea { padding: 12px; font-size: 15px; border-radius: 10px; }
+    .table-wrapper { border-radius: 10px; border: 1px solid #e2e8f0; background: #fff; }
+    .material-table th { background: #1e293b; color: #fff; }
+    .material-table tr:nth-child(even) { background: #f8fafc; }
 }
-
-/* ===== GUEST BILL STYLES ===== */
 .gb-wrapper { display: grid; grid-template-columns: 1fr; gap: 16px; }
 .gb-form-card { background: var(--card); padding: 20px; border-radius: var(--radius); box-shadow: 0 2px 4px rgba(0,0,0,.03); border: 1px solid #f1f5f9; position: relative; }
 .gb-list-card { background: var(--card); padding: 20px; border-radius: var(--radius); box-shadow: 0 2px 4px rgba(0,0,0,.03); border: 1px solid #f1f5f9; }
@@ -309,15 +247,6 @@ try {
     db = firebase.firestore(); 
     useFirebase = true; 
     firebase.auth().setPersistence(firebase.auth().Persistence.LOCAL).catch(err => console.warn("Auth Persistence error:", err)); 
-    if (db.enablePersistence) {
-        db.enablePersistence().catch(err => {
-            if (err.code == 'failed-precondition') {
-                console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-            } else if (err.code == 'unimplemented') {
-                console.warn('The current browser does not support offline persistence');
-            }
-        });
-    }
 } catch(e) { console.warn("Firebase Error:", e); }
 
 let currentUser = null, tenantIndex = 1, occupantIndex = 1;
@@ -329,54 +258,17 @@ const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
 const gbDelIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
-// ===== GUEST BILL STATE =====
 let guestBillState = {
-    bills: [],
-    settings: {
-        rooms: {
-            A: { name: "A টাইপ", x: 2000, a: 5, b: 10, y: 1500, c: 11, d: 20, z: 1000 },
-            B: { name: "B টাইপ", x: 1500, a: 4, b: 8, y: 1200, c: 9, d: 15, z: 800 },
-            C: { name: "C টাইপ", x: 1000, a: 6, b: 12, y: 800, c: 13, d: 25, z: 600 },
-            D: { name: "D টাইপ", x: 500, a: 3, b: 7, y: 400, c: 8, d: 12, z: 300 }
-        },
-        guests: {
-            g1: { name: "EGB Staff", rate: 1500 },
-            g2: { name: "Govt officer", rate: 1800 },
-            g3: { name: "Student", rate: 500 },
-            g4: { name: "Foreign Consultant", rate: 3000 }
-        }
-    },
-    tempGuests: [],
-    currentPage: 1,
-    itemsPerPage: window.innerWidth < 768 ? 10 : 25,
-    filteredBills: [],
-    activePaymentTab: 'guestBill',
-    activeGbTab: 'newBill',
-    editId: null,
-    editGuestId: null,
-    isLoading: false
+    bills: [], settings: { rooms: { A: { name: "A টাইপ", x: 2000, a: 5, b: 10, y: 1500, c: 11, d: 20, z: 1000 }, B: { name: "B টাইপ", x: 1500, a: 4, b: 8, y: 1200, c: 9, d: 15, z: 800 }, C: { name: "C টাইপ", x: 1000, a: 6, b: 12, y: 800, c: 13, d: 25, z: 600 }, D: { name: "D টাইপ", x: 500, a: 3, b: 7, y: 400, c: 8, d: 12, z: 300 } }, guests: { g1: { name: "EGB Staff", rate: 1500 }, g2: { name: "Govt officer", rate: 1800 }, g3: { name: "Student", rate: 500 }, g4: { name: "Foreign Consultant", rate: 3000 } } },
+    tempGuests: [], currentPage: 1, itemsPerPage: window.innerWidth < 768 ? 10 : 25, filteredBills: [], activePaymentTab: 'guestBill', activeGbTab: 'newBill', editId: null, editGuestId: null, isLoading: false
 };
 let unsubGuestBills = null, unsubGuestSettings = null;
 
-// ===== GUEST BILL STORE =====
 const GbStore = {
-    async saveSettings(settings) {
-        if (!db) return;
-        await db.collection('guestBillSettings').doc('config').set(settings);
-    },
-    async saveBatchBill(billDoc) {
-        if (!db) return;
-        const ref = await db.collection('guestBills').add(billDoc);
-        return { id: ref.id, ...billDoc };
-    },
-    async updateBill(bill) {
-        if (!db) return;
-        await db.collection('guestBills').doc(bill.id).set(bill, { merge: true });
-    },
-    async deleteBill(id) {
-        if (!db) return;
-        await db.collection('guestBills').doc(id).delete();
-    }
+    async saveSettings(settings) { if (!db) return; await db.collection('guestBillSettings').doc('config').set(settings); },
+    async saveBatchBill(billDoc) { if (!db) return; const ref = await db.collection('guestBills').add(billDoc); return { id: ref.id, ...billDoc }; },
+    async updateBill(bill) { if (!db) return; await db.collection('guestBills').doc(bill.id).set(bill, { merge: true }); },
+    async deleteBill(id) { if (!db) return; await db.collection('guestBills').doc(id).delete(); }
 };
 
 function showToast(msg, type = 'success') { msg = String(msg).replace(/(https?:\/\/[^\s]+)/g, ''); const t = document.createElement('div'); t.className = `toast ${type}`; t.textContent = msg; document.getElementById('toastContainer').appendChild(t); setTimeout(() => t.remove(), 3000); }
@@ -412,41 +304,18 @@ let availabilityTimeout;
 function checkAvailability(input, type) {
     const val = input.value.trim();
     const feedbackEl = document.getElementById(`${type}Feedback`);
-    input.style.borderColor = '';
-    feedbackEl.textContent = '';
-    feedbackEl.className = 'feedback-text';
-
+    input.style.borderColor = ''; feedbackEl.textContent = ''; feedbackEl.className = 'feedback-text';
     if (!val) return;
-
-    if (type === 'email' && !validateEmail(val)) {
-        input.style.borderColor = 'var(--danger)';
-        feedbackEl.textContent = 'ভুল ইমেইল লেখা হয়েছে';
-        feedbackEl.classList.add('text-danger');
-        return;
-    }
-
+    if (type === 'email' && !validateEmail(val)) { input.style.borderColor = 'var(--danger)'; feedbackEl.textContent = 'ভুল ইমেইল লেখা হয়েছে'; feedbackEl.classList.add('text-danger'); return; }
     clearTimeout(availabilityTimeout);
     availabilityTimeout = setTimeout(async () => {
         try {
             let snapshot;
-            if (type === 'username') {
-                snapshot = await db.collection('users').where('username', '==', val.toLowerCase()).limit(1).get();
-            } else {
-                snapshot = await db.collection('users').where('email', '==', val).limit(1).get();
-            }
-            
-            if (snapshot.empty) {
-                input.style.borderColor = 'var(--success)';
-                feedbackEl.textContent = 'Available';
-                feedbackEl.classList.add('text-success');
-            } else {
-                input.style.borderColor = 'var(--danger)';
-                feedbackEl.textContent = 'Already exists';
-                feedbackEl.classList.add('text-danger');
-            }
-        } catch(e) {
-            console.error("Check error:", e);
-        }
+            if (type === 'username') snapshot = await db.collection('users').where('username', '==', val.toLowerCase()).limit(1).get();
+            else snapshot = await db.collection('users').where('email', '==', val).limit(1).get();
+            if (snapshot.empty) { input.style.borderColor = 'var(--success)'; feedbackEl.textContent = 'Available'; feedbackEl.classList.add('text-success'); }
+            else { input.style.borderColor = 'var(--danger)'; feedbackEl.textContent = 'Already exists'; feedbackEl.classList.add('text-danger'); }
+        } catch(e) { console.error("Check error:", e); }
     }, 500);
 }
 
@@ -485,14 +354,12 @@ async function handleLogin() {
         } else {
             if (!validateEmail(identifierInput)) { showToast('সঠিক তথ্য দিন', 'error'); setBtnLoading('loginBtn', false); return; }
         }
-        
         isExplicitLogout = false;
         sessionStorage.setItem('rms_is_logged_in', 'true');
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         let savedUsers = [];
         try { const s = localStorage.getItem('rms_logged_users'); if (s) savedUsers = JSON.parse(s); } catch(e) {}
         if (!savedUsers.includes(identifierInput)) { savedUsers.push(identifierInput); localStorage.setItem('rms_logged_users', JSON.stringify(savedUsers)); }
-        
         await loadAppData(userCredential.user); 
         setBtnLoading('loginBtn', false);
     } catch(e) {
@@ -505,12 +372,7 @@ async function handleLogin() {
 function saveStateToCache() {
     try {
         if (state.buildings.length > 0 || state.rooms.length > 0 || state.reports.length > 0 || Object.keys(state.templates || {}).length > 0) {
-            localStorage.setItem('rms_state_cache', JSON.stringify({
-                buildings: state.buildings,
-                rooms: state.rooms,
-                reports: state.reports,
-                templates: state.templates || {}
-            }));
+            localStorage.setItem('rms_state_cache', JSON.stringify({ buildings: state.buildings, rooms: state.rooms, reports: state.reports, templates: state.templates || {} }));
         }
     } catch(e) {}
 }
@@ -520,17 +382,11 @@ function loadStateFromCache() {
         const saved = localStorage.getItem('rms_state_cache');
         if (saved) {
             const data = JSON.parse(saved);
-            state.buildings = data.buildings || [];
-            state.rooms = data.rooms || [];
-            state.reports = data.reports || [];
-            state.templates = data.templates || {};
+            state.buildings = data.buildings || []; state.rooms = data.rooms || []; state.reports = data.reports || []; state.templates = data.templates || {};
             state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-            
-            const gbBillsCache = localStorage.getItem('rms_gb_bills');
-            const gbSettingsCache = localStorage.getItem('rms_gb_settings');
+            const gbBillsCache = localStorage.getItem('rms_gb_bills'); const gbSettingsCache = localStorage.getItem('rms_gb_settings');
             if (gbBillsCache) guestBillState.bills = JSON.parse(gbBillsCache);
             if (gbSettingsCache) guestBillState.settings = JSON.parse(gbSettingsCache);
-            
             return true;
         }
     } catch(e) {}
@@ -543,7 +399,6 @@ let unsubBuildings, unsubRooms, unsubReports, unsubTemplates;
 async function loadAppData(user) {
     if (isLoadingAppData) return;
     isLoadingAppData = true;
-    
     currentUser = user;
     document.getElementById('authContainer').style.display = 'none'; 
     document.getElementById('appContainer').style.display = 'block'; 
@@ -567,10 +422,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') {
-                showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
-                if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{});
-            }
+            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
@@ -581,10 +433,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') {
-                showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
-                if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{});
-            }
+            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
@@ -596,32 +445,23 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') {
-                showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
-                if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{});
-            }
+            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
 
         unsubTemplates = db.collection('materialTemplates').onSnapshot(snapshot => {
             if (snapshot.empty && Object.keys(state.templates || {}).length > 0) return; 
             state.templates = {};
-            snapshot.docs.forEach(doc => {
-                state.templates[doc.id] = doc.data().items || [];
-            });
+            snapshot.docs.forEach(doc => { state.templates[doc.id] = doc.data().items || []; });
             saveStateToCache();
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => { 
-            if (err.code === 'permission-denied') {
-                showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error");
-                if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{});
-            }
+            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
             console.warn("Templates fetch error:", err); 
         });
 
-        // ===== GUEST BILL LISTENERS =====
         if (unsubGuestBills) unsubGuestBills();
         if (unsubGuestSettings) unsubGuestSettings();
         
@@ -671,28 +511,17 @@ let idleTimeout;
 function resetIdleTimer() { 
     clearTimeout(idleTimeout); 
     if (firebase.auth().currentUser && sessionStorage.getItem('rms_is_logged_in') === 'true') { 
-        idleTimeout = setTimeout(() => { 
-            showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); 
-            handleLogout(); 
-        }, 300000); 
+        idleTimeout = setTimeout(() => { showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।', 'error'); handleLogout(); }, 300000); 
     } 
 }
 function handleLogout() { 
     if (isExplicitLogout && currentUser === null) return; 
     isExplicitLogout = true;
     clearTimeout(idleTimeout); 
-    if (unsubBuildings) unsubBuildings();
-    if (unsubRooms) unsubRooms();
-    if (unsubReports) unsubReports();
-    if (unsubTemplates) unsubTemplates();
-    if (unsubGuestBills) unsubGuestBills();
-    if (unsubGuestSettings) unsubGuestSettings();
-    guestBillState.bills = [];
-    guestBillState.tempGuests = [];
-    guestBillState.editId = null;
-    guestBillState.editGuestId = null;
-    guestBillState.activePaymentTab = 'guestBill';
-    guestBillState.activeGbTab = 'newBill';
+    if (unsubBuildings) unsubBuildings(); if (unsubRooms) unsubRooms(); if (unsubReports) unsubReports(); if (unsubTemplates) unsubTemplates();
+    if (unsubGuestBills) unsubGuestBills(); if (unsubGuestSettings) unsubGuestSettings();
+    guestBillState.bills = []; guestBillState.tempGuests = []; guestBillState.editId = null; guestBillState.editGuestId = null;
+    guestBillState.activePaymentTab = 'guestBill'; guestBillState.activeGbTab = 'newBill';
     try { localStorage.removeItem('rms_gb_bills'); localStorage.removeItem('rms_gb_settings'); } catch(e) {}
     sessionStorage.removeItem('rms_is_logged_in');
     currentUser = null;
@@ -700,9 +529,7 @@ function handleLogout() {
     document.getElementById('appContainer').style.display = 'none';
     document.getElementById('authContainer').style.display = 'flex';
     showLoginView();
-    document.getElementById('loginIdentifier').value = '';
-    document.getElementById('loginPassword').value = '';
-    document.getElementById('forgotEmail').value = '';
+    document.getElementById('loginIdentifier').value = ''; document.getElementById('loginPassword').value = ''; document.getElementById('forgotEmail').value = '';
     setBtnLoading('loginBtn', false); 
     firebase.auth().signOut(); 
 }
@@ -713,12 +540,7 @@ const Store = {
     async saveRoom(r) { if (r.id) { await db.collection('rooms').doc(r.id).set(r, { merge: true }); return r; } else { const ref = await db.collection('rooms').add(r); return { id: ref.id, ...r }; } },
     async deleteRoom(id) { await db.collection('rooms').doc(id).delete(); },
     async getTemplates(bId) { return state.templates?.[bId] || []; },
-    async saveTemplates(bId, items) { 
-        await db.collection('materialTemplates').doc(bId).set({ items });
-        if (!state.templates) state.templates = {};
-        state.templates[bId] = items;
-        saveStateToCache();
-    },
+    async saveTemplates(bId, items) { await db.collection('materialTemplates').doc(bId).set({ items }); if (!state.templates) state.templates = {}; state.templates[bId] = items; saveStateToCache(); },
     async getPayments() { const s = await db.collection('payments').get(); return s.docs.map(d => ({id: d.id, ...d.data()})); },
     async savePayment(p) { await db.collection('payments').add(p); },
     async saveReport(r) { if(r.id) { await db.collection('reports').doc(r.id).set(r, {merge:true}); return r; } else { r.createdAt = firebase.firestore.FieldValue.serverTimestamp(); const ref = await db.collection('reports').add(r); return {id: ref.id, ...r}; } },
@@ -734,28 +556,16 @@ function formatDate(d) {
     try {
         let dateObj;
         if (typeof d === 'string') {
-            if (d.length === 10 && d.includes('-')) {
-                 const parts = d.split('-');
-                 return convertToBengali(`${parts[2].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[0]}`);
-            }
+            if (d.length === 10 && d.includes('-')) { const parts = d.split('-'); return convertToBengali(`${parts[2].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[0]}`); }
             dateObj = new Date(d);
-        } else if (typeof d === 'object' && d !== null && d.seconds !== undefined) {
-            dateObj = new Date(d.seconds * 1000);
-        } else if (typeof d === 'number') {
-            dateObj = new Date(d > 100000000000 ? d : d * 1000);
-        } else {
-            dateObj = new Date(d);
-        }
+        } else if (typeof d === 'object' && d !== null && d.seconds !== undefined) { dateObj = new Date(d.seconds * 1000); } 
+        else if (typeof d === 'number') { dateObj = new Date(d > 100000000000 ? d : d * 1000); } 
+        else { dateObj = new Date(d); }
         if (isNaN(dateObj.getTime())) return String(d);
         return convertToBengali(`${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`);
-    } catch (e) {
-        return String(d);
-    }
+    } catch (e) { return String(d); }
 }
-function convertToBengali(str) {
-    const bengaliNumerals = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return String(str).replace(/[0-9]/g, (digit) => bengaliNumerals[digit]);
-}
+function convertToBengali(str) { const bengaliNumerals = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯']; return String(str).replace(/[0-9]/g, (digit) => bengaliNumerals[digit]); }
 
 function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function genId(p) { return (p || 'id') + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5); }
@@ -778,17 +588,10 @@ function renderPage() {
     document.getElementById('searchBox').style.display = 'flex'; 
     const actionBtn = document.getElementById('actionBtn');
     const c = document.getElementById('pageContent');
-    
-    if (state.isLoading) {
-        if(actionBtn) actionBtn.style.display = 'none';
-        c.innerHTML = `<div class="card" style="text-align:center; padding: 50px;"><div class="spinner"><div></div><div></div><div></div><div></div></div><p class="mt-16 text-light">ডাটা লোড হচ্ছে...</p></div>`;
-        return;
-    }
-
+    if (state.isLoading) { if(actionBtn) actionBtn.style.display = 'none'; c.innerHTML = `<div class="card" style="text-align:center; padding: 50px;"><div class="spinner"><div></div><div></div><div></div><div></div></div><p class="mt-16 text-light">ডাটা লোড হচ্ছে...</p></div>`; return; }
     if (state.currentPage === 'dashboard') { actionBtn.style.display = 'inline-flex'; actionBtn.textContent = '+ বিল্ডিং'; actionBtn.onclick = showAddBuildingModal; }
     else if (state.currentPage === 'troubleReport') { actionBtn.style.display = 'inline-flex'; actionBtn.textContent = '+ নতুন রিপোর্ট'; actionBtn.onclick = showAddReportModal; }
     else { actionBtn.style.display = 'none'; }
-    
     if (state.currentPage === 'dashboard') renderDashboard(c);
     else if (state.currentPage === 'templates') renderTemplates(c);
     else if (state.currentPage === 'download') renderDownload(c);
@@ -799,10 +602,7 @@ function renderPage() {
 function renderDashboard(c) {
     if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><p class="text-sm text-light mt-8">নতুন বিল্ডিং যোগ করতে নিচের বাটনে ক্লিক করুন।</p><button class="btn btn-primary mt-16" onclick="showAddBuildingModal()">+ বিল্ডিং যোগ করুন</button></div></div>`; return; }
     const roomsByBuilding = {};
-    state.rooms.forEach(r => {
-        if (!roomsByBuilding[r.buildingId]) roomsByBuilding[r.buildingId] = [];
-        roomsByBuilding[r.buildingId].push(r);
-    });
+    state.rooms.forEach(r => { if (!roomsByBuilding[r.buildingId]) roomsByBuilding[r.buildingId] = []; roomsByBuilding[r.buildingId].push(r); });
     let overlayHtml = state.expandedBuilding ? `<div class="expanded-overlay" onclick="toggleExpand('${state.expandedBuilding}')"></div>` : '';
     c.innerHTML = overlayHtml + `<div class="building-grid">${state.buildings.map(b => { 
         const bR = roomsByBuilding[b.id] || []; 
@@ -862,11 +662,7 @@ function renderItemsTab(rId, page = 1) {
         iHtml = `<div class="flex-between mb-16"><h4>📦 মালামাল (${items.length})</h4><div class="flex gap-8"><button class="btn btn-outline btn-sm" onclick="addItemsFromTemplate('${rId}')">📋</button><button class="btn btn-primary btn-sm" onclick="addItemModal('${rId}')">+ যোগ</button></div></div>`;
         iHtml += `<div class="table-wrapper"><table class="material-table"><thead><tr><th>নাম</th><th>পরি.</th><th>অবস্থা</th><th>রিপেয়ার/রিপ্লেস</th><th>অ্যাকশন</th></tr></thead><tbody>${paginatedItems.map(i => { 
             let dateHtml = '-';
-            if (i.lastRepairDate || i.lastReplaceDate) {
-                dateHtml = '';
-                if (i.lastRepairDate) dateHtml += `<span class="date-repair">রিপে-${formatDate(i.lastRepairDate)}</span>`;
-                if (i.lastReplaceDate) dateHtml += `<span class="date-replace">রিপ্লে-${formatDate(i.lastReplaceDate)}</span>`;
-            }
+            if (i.lastRepairDate || i.lastReplaceDate) { dateHtml = ''; if (i.lastRepairDate) dateHtml += `<span class="date-repair">রিপে-${formatDate(i.lastRepairDate)}</span>`; if (i.lastReplaceDate) dateHtml += `<span class="date-replace">রিপ্লে-${formatDate(i.lastReplaceDate)}</span>`; }
             return `<tr><td>${escapeHtml(i.name)}</td><td><input type="number" value="${i.quantity || 1}" id="bq_${i.id}" style="width:25px;padding:0;text-align:center" onchange="document.getElementById('saveBulkBtn').disabled=false"></td><td><select id="bc_${i.id}" style="width:60px;padding:1px;" onchange="document.getElementById('saveBulkBtn').disabled=false">${getConditionOptions(i.condition)}</select></td><td style="min-width: 90px;">${dateHtml}</td><td style="white-space:nowrap;"><button class="btn-icon" onclick="repairReplaceModal('${rId}','${i.id}')">🔧</button> <button class="btn-icon danger" onclick="deleteItem('${rId}','${i.id}')">${delIcon}</button></td></tr>`; 
         }).join('')}</tbody></table></div>`;
         iHtml += `<button class="btn btn-success mt-16" style="width:100%" id="saveBulkBtn" onclick="saveBulkEdit('${rId}')" disabled>✅ সেভ করুন</button>`;
@@ -877,28 +673,19 @@ function renderItemsTab(rId, page = 1) {
 function toggleCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
 function toggleHistoryCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.thin-bright-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
 function addOccupantModal(rId) { openModal('নতুন ব্যবহারকারী', `<div class="form-group"><label>নাম</label><input type="text" id="o_name"></div><div class="form-group"><label>পদবী</label><input type="text" id="o_desig"></div><div class="form-group"><label>প্রকার</label><select id="o_type" onchange="if(this.value==='family'){document.getElementById('o_fam_div').style.display='block'}else{document.getElementById('o_fam_div').style.display='none'}"><option value="bachelor">ব্যাচেলর</option><option value="family">পরিবার</option></select></div><div class="form-group" id="o_fam_div" style="display:none;"><label>পরিবারের তথ্য</label><input type="text" id="o_family"></div><div class="grid grid-2"><div class="form-group"><label>সম্পর্ক</label><input type="text" id="o_rel"></div><div class="form-group"><label>ফোন</label><input type="text" id="o_phone"></div></div><div class="form-group"><label>ঠিকানা</label><input type="text" id="o_address"></div><div class="form-group"><label>মন্তব্য</label><textarea id="o_comment" rows="2"></textarea></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveSingleOccupant('${rId}')">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
-async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, designation: document.getElementById('o_desig').value.trim(), type: document.getElementById('o_type').value, familyInfo: document.getElementById('o_type').value === 'family' ? document.getElementById('o_family').value.trim() : '', relation: document.getElementById('o_rel').value.trim(), phone = document.getElementById('o_phone').value.trim(), address: document.getElementById('o_address').value.trim(), comment: document.getElementById('o_comment').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
+async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, designation: document.getElementById('o_desig').value.trim(), type: document.getElementById('o_type').value, familyInfo: document.getElementById('o_type').value === 'family' ? document.getElementById('o_family').value.trim() : '', relation: document.getElementById('o_rel').value.trim(), phone: document.getElementById('o_phone').value.trim(), address: document.getElementById('o_address').value.trim(), comment: document.getElementById('o_comment').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 async function saveBulkEdit(rId) { const r = state.rooms.find(x => x.id === rId); r.items.forEach(i => { const s = document.getElementById(`bc_${i.id}`); const q = document.getElementById(`bq_${i.id}`); if (s) i.condition = s.value; if (q) i.quantity = parseInt(q.value) || 1; }); document.getElementById('saveBulkBtn').disabled = true; showRoomDetail(rId, 'items', true); try { await Store.saveRoom(r); showToast('সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 function switchRoomTab(e, tab, rId) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); e.target.classList.add('active'); const c = document.getElementById('roomTabContent'); if (tab === 'history') renderRoomHistoryTab(rId, c, 1); else if (tab === 'guests') renderGuestsTab(rId, c, 1); else if (tab === 'items') renderItemsTab(rId, 1); else c.innerHTML = state.roomTabs[rId][tab]; }
 function renderRoomHistoryTab(rId, c, page = 1) { 
     const r = state.rooms.find(x => x.id === rId); 
     let p = r.previousTenants || []; 
-    
-    p.sort((a, b) => {
-        const dateA = a.endDate ? new Date(a.endDate) : new Date(0);
-        const dateB = b.endDate ? new Date(b.endDate) : new Date(0);
-        return dateB - dateA;
-    });
-
+    p.sort((a, b) => { const dateA = a.endDate ? new Date(a.endDate) : new Date(0); const dateB = b.endDate ? new Date(b.endDate) : new Date(0); return dateB - dateA; });
     const pageSize = window.innerWidth >= 768 ? 20 : 10; 
     const totalPages = Math.ceil(p.length / pageSize); 
-    if (page > totalPages && totalPages > 0) page = totalPages; 
-    if (page < 1) page = 1; 
+    if (page > totalPages && totalPages > 0) page = totalPages; if (page < 1) page = 1; 
     const start = (page - 1) * pageSize; 
     const paginatedList = p.slice(start, start + pageSize); 
-    
     let listHtml = paginatedList.length === 0 ? `<div class="empty-state"><p>কেউ নেই।</p></div>` : `<div class="grid gap-12">${paginatedList.map(t => `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${escapeHtml(t.name)}</strong><span class="text-sm">ছাড়া: ${formatDate(t.endDate)}</span></div><div class="card-body"><div class="highlight-bg"><p>পদবী: ${escapeHtml(t.designation || '-')}</p><p>ফোন: ${escapeHtml(t.phone || '-')}</p><p>বরাদ্ব: ${formatDate(t.startDate)}</p></div><div class="flex gap-8 mt-8"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); viewTenantSnapshot('${rId}','${t.id}')">📦 মালামাল</button><button class="btn-icon" onclick="event.stopPropagation(); editPreviousTenantModal('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deletePreviousTenant('${rId}','${t.id}')">${delIcon}</button></div></div></div>`).join('')}</div>`; 
-    
     let paginationHtml = ''; 
     if (totalPages > 1) { paginationHtml = `<div class="pagination"><button class="btn ${page === 1 ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="renderRoomHistoryTab('${rId}', document.getElementById('roomTabContent'), ${page - 1})" ${page === 1 ? 'disabled' : ''}>পূর্ববর্তী</button><span style="color: var(--primary); font-weight: 600;">পেজ ${page} / ${totalPages}</span><button class="btn ${page === totalPages ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="renderRoomHistoryTab('${rId}', document.getElementById('roomTabContent'), ${page + 1})" ${page === totalPages ? 'disabled' : ''}>পরবর্তী</button></div>`; } 
     c.innerHTML = `<h4 class="mb-16">📜 পূর্বের ভাড়াটে (${p.length})</h4>` + listHtml + paginationHtml; 
@@ -925,87 +712,47 @@ function showVacateModal(rId) {
     let tArr = r.tenants || (r.tenant ? [room.tenant] : []); 
     if (tArr.length === 0) { showToast('কোন ভাড়াটে নেই', 'error'); return; } 
     let tenantSelectHtml = ''; 
-    if (tArr.length > 1) { 
-        tenantSelectHtml = `<div class="form-group"><label>যার রুম বরাদ্ব বাতিল হবে তাকে নির্বাচন করুন *</label><select id="vacateTenantId" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:#f8fafc;">${tArr.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}</select></div>`; 
-    } else { 
-        tenantSelectHtml = `<input type="hidden" id="vacateTenantId" value="${tArr[0].id}"><p>ভাড়াটে: <strong>${escapeHtml(tArr[0].name)}</strong></p>`; 
-    } 
+    if (tArr.length > 1) { tenantSelectHtml = `<div class="form-group"><label>যার রুম বরাদ্ব বাতিল হবে তাকে নির্বাচন করুন *</label><select id="vacateTenantId" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:#f8fafc;">${tArr.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}</select></div>`; } 
+    else { tenantSelectHtml = `<input type="hidden" id="vacateTenantId" value="${tArr[0].id}"><p>ভাড়াটে: <strong>${escapeHtml(tArr[0].name)}</strong></p>`; } 
     const itemSnap = (r.items || []).map(i => `<div class="flex-between" style="padding:4px 0;border-bottom:1px solid var(--border)"><span class="text-sm">${escapeHtml(i.name)}</span><div class="flex gap-8"><input type="number" id="vq_${i.id}" value="${i.quantity || 1}" style="width:50px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px"><select id="vs_${i.id}" style="width:80px;padding:2px;border:1px solid var(--border);border-radius:4px;font-size:11px">${getConditionOptions(i.condition)}</select></div></div>`).join(''); 
-    
     openModal('রুম বরাদ্ব বাতিল', `${tenantSelectHtml}<div class="form-group mt-16"><label>ছাড়ার তারিখ *</label><input type="date" id="vDate" value="${new Date().toISOString().split('T')[0]}"></div><div class="form-group"><label>মালামালের পরিমাণ ও অবস্থা</label>${itemSnap}</div><div class="flex gap-8 mt-16"><button class="btn btn-danger" style="flex:1" onclick="confirmVacate('${rId}')">নিশ্চিত করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); 
 }
 async function confirmVacate(rId) { 
-    const eD = document.getElementById('vDate').value; 
-    const vacateTenantId = document.getElementById('vacateTenantId').value; 
+    const eD = document.getElementById('vDate').value; const vacateTenantId = document.getElementById('vacateTenantId').value; 
     if (!eD || !vacateTenantId) { showToast('তারিখ ও ব্যক্তি নির্বাচন করুন', 'error'); return; } 
-    const r = state.rooms.find(x => x.id === rId); 
-    const tenantToVacate = (r.tenants || []).find(t => t.id === vacateTenantId); 
+    const r = state.rooms.find(x => x.id === rId); const tenantToVacate = (r.tenants || []).find(t => t.id === vacateTenantId); 
     if (!tenantToVacate) { showToast('ভাড়াটে খুঁজে পাওয়া যায়নি', 'error'); return; } 
     const iSnap = (r.items || []).map(i => { const q = document.getElementById(`vq_${i.id}`); const s = document.getElementById(`vs_${i.id}`); i.quantity = q ? parseInt(q.value) : i.quantity; i.condition = s ? s.value : i.condition; return { id: i.id, name: i.name, quantity: i.quantity, condition: i.condition }; }); 
     if (!r.previousTenants) r.previousTenants = []; 
     r.previousTenants.push({ id: genId('pt'), name: tenantToVacate.name, designation: tenantToVacate.designation, phone: tenantToVacate.phone, startDate: tenantToVacate.startDate, endDate: eD, type: tenantToVacate.type, familyInfo: tenantToVacate.familyInfo, itemsSnapshot: iSnap }); 
     r.tenants = (r.tenants || []).filter(t => t.id !== vacateTenantId); 
     if (r.tenants.length === 0) { r.tenant = null; } 
-    forceCloseModal(); 
-    showRoomDetail(rId, 'tenant', true); 
+    forceCloseModal(); showRoomDetail(rId, 'tenant', true); 
     try { await Store.saveRoom(r); showToast('ভাড়াটে রুম ছেড়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } 
 }
 async function deletePreviousTenant(rId, tId) { checkPassword(async () => { const r = state.rooms.find(x => x.id === rId); r.previousTenants = (r.previousTenants || []).filter(t => t.id !== tId); forceCloseModal(); showRoomDetail(rId, 'history', true); try { await Store.saveRoom(r); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); showRoomDetail(rId, 'history', true); } }); }
 function viewTenantSnapshot(rId, tId) { const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); openModal(`স্ন্যাপশট - ${escapeHtml(t.name)}`, `<p class="text-light text-sm mb-16">ছাড়ার তারিখ: ${formatDate(t.endDate)}</p>${(!t.itemsSnapshot || t.itemsSnapshot.length === 0) ? `<div class="empty-state"><p>কোন স্ন্যাপশট নেই।</p></div>` : `<table class="material-table"><thead><tr><th>মালামাল</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>${t.itemsSnapshot.map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${i.quantity || 1}</td><td>${getConditionBadge(i.condition)}</td></tr>`).join('')}</tbody></table>`}<div class="flex gap-8 mt-16" style="justify-content: flex-end"><button class="btn-icon" onclick="editTenantSnapshotItems('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="closeModal()">✖</button></div>`, true); }
 function editTenantSnapshotItems(rId, tId) {
-    const r = state.rooms.find(x => x.id === rId);
-    const t = (r.previousTenants || []).find(x => x.id === tId);
-    let itemsHtml = '';
-    (t.itemsSnapshot || []).forEach(i => {
-        itemsHtml += `<tr><td><input type="text" value="${escapeHtml(i.name)}" id="snap_name_${i.id}"></td><td><input type="number" value="${i.quantity || 1}" id="snap_qty_${i.id}"></td><td><select id="snap_cond_${i.id}">${getConditionOptions(i.condition)}</select></td></tr>`;
-    });
-    openModal(`স্ন্যাপশট এডিট - ${escapeHtml(t.name)}`, `
-        <table class="material-table"><thead><tr><th>নাম</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>${itemsHtml}</tbody></table>
-        <button class="btn btn-primary mt-16" style="width:100%" onclick="saveTenantSnapshotItems('${rId}','${tId}')">সেভ করুন</button>
-    `, true, true);
+    const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); let itemsHtml = '';
+    (t.itemsSnapshot || []).forEach(i => { itemsHtml += `<tr><td><input type="text" value="${escapeHtml(i.name)}" id="snap_name_${i.id}"></td><td><input type="number" value="${i.quantity || 1}" id="snap_qty_${i.id}"></td><td><select id="snap_cond_${i.id}">${getConditionOptions(i.condition)}</select></td></tr>`; });
+    openModal(`স্ন্যাপশট এডিট - ${escapeHtml(t.name)}`, `<table class="material-table"><thead><tr><th>নাম</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>${itemsHtml}</tbody></table><button class="btn btn-primary mt-16" style="width:100%" onclick="saveTenantSnapshotItems('${rId}','${tId}')">সেভ করুন</button>`, true, true);
 }
 async function saveTenantSnapshotItems(rId, tId) {
-    const r = state.rooms.find(x => x.id === rId);
-    const t = (r.previousTenants || []).find(x => x.id === tId);
-    const updatedItems = [];
-    (t.itemsSnapshot || []).forEach(i => {
-        updatedItems.push({
-            id: i.id,
-            name: document.getElementById(`snap_name_${i.id}`).value,
-            quantity: parseInt(document.getElementById(`snap_qty_${i.id}`).value) || 1,
-            condition: document.getElementById(`snap_cond_${i.id}`).value
-        });
-    });
-    t.itemsSnapshot = updatedItems;
-    forceCloseModal();
-    viewTenantSnapshot(rId, tId);
+    const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); const updatedItems = [];
+    (t.itemsSnapshot || []).forEach(i => { updatedItems.push({ id: i.id, name: document.getElementById(`snap_name_${i.id}`).value, quantity: parseInt(document.getElementById(`snap_qty_${i.id}`).value) || 1, condition: document.getElementById(`snap_cond_${i.id}`).value }); });
+    t.itemsSnapshot = updatedItems; forceCloseModal(); viewTenantSnapshot(rId, tId);
     try { await Store.saveRoom(r); showToast('স্ন্যাপশট আপডেট হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); }
 }
 
 function renderGuestsTab(rId, c, page = 1) { 
-    const r = state.rooms.find(x => x.id === rId); 
-    const g = r.guests || []; 
-    const cur = g.filter(x => !x.endDate); 
-    const past = g.filter(x => x.endDate); 
-    
-    const pageSize = window.innerWidth >= 768 ? 20 : 10;
-    const totalPages = Math.ceil(cur.length / pageSize);
-    if (page > totalPages && totalPages > 0) page = totalPages;
-    if (page < 1) page = 1;
-    const start = (page - 1) * pageSize;
-    const paginatedCur = cur.slice(start, start + pageSize);
-
+    const r = state.rooms.find(x => x.id === rId); const g = r.guests || []; const cur = g.filter(x => !x.endDate); const past = g.filter(x => x.endDate); 
+    const pageSize = window.innerWidth >= 768 ? 20 : 10; const totalPages = Math.ceil(cur.length / pageSize);
+    if (page > totalPages && totalPages > 0) page = totalPages; if (page < 1) page = 1; const start = (page - 1) * pageSize; const paginatedCur = cur.slice(start, start + pageSize);
     let curHtml = paginatedCur.length === 0 ? `<div class="empty-state"><p>কোন গেস্ট নেই।</p></div>` : `<div class="grid gap-12">${paginatedCur.map(x => `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${escapeHtml(x.name)}</strong><span class="text-sm">${formatDate(x.startDate)}</span></div><div class="card-body"><div class="highlight-bg"><p>📱 ${escapeHtml(x.mobile || '-')}</p><p>📍 ${escapeHtml(x.address || '-')}</p><p>👤 ${escapeHtml(x.reference || '-')}</p><p>💬 ${escapeHtml(x.comment || '-')}</p><p>💳 ${x.isPaid ? 'Paid' : 'Non-Paid'}</p></div><div class="flex gap-8 mt-8"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); showGuestCheckoutModal('${rId}','${x.id}')">চেক-আউট</button><button class="btn-icon" onclick="event.stopPropagation(); editGuestModal('${rId}','${x.id}')">${editIcon}</button></div></div></div>`).join('')}</div>`;
     let paginationHtml = '';
     if (totalPages > 1) { paginationHtml = `<div class="pagination"><button class="btn ${page === 1 ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="renderGuestsTab('${rId}', document.getElementById('roomTabContent'), ${page - 1})" ${page === 1 ? 'disabled' : ''}>পূর্ববর্তী</button><span style="color: var(--primary); font-weight: 600;">পেজ ${page} / ${totalPages}</span><button class="btn ${page === totalPages ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="renderGuestsTab('${rId}', document.getElementById('roomTabContent'), ${page + 1})" ${page === totalPages ? 'disabled' : ''}>পরবর্তী</button></div>`; }
-
     let pastHtml = '';
-    if (past.length > 0) {
-        const totalPagesPast = Math.ceil(past.length / pageSize);
-        const paginatedPast = past.slice(0, pageSize);
-        pastHtml = `<h4 class="mt-16 mb-16">📜 পূর্বের (${past.length})</h4><div class="grid gap-12">${paginatedPast.map(x => `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${escapeHtml(x.name)}</strong><span class="text-sm">${formatDate(x.endDate)}</span></div><div class="card-body"><div class="highlight-bg"><p>📅 ${formatDate(x.startDate)} - ${formatDate(x.endDate)}</p><p>💳 ${x.isPaid ? 'Paid' : 'Non-Paid'} ${x.totalBill ? '(৳'+x.totalBill+')' : ''}</p><p>💬 ${escapeHtml(x.endComment || '-')}</p></div><div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editGuestModal('${rId}','${x.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteGuest('${rId}','${x.id}')">${delIcon}</button></div></div></div>`).join('')}</div>`;
-    }
-
+    if (past.length > 0) { const totalPagesPast = Math.ceil(past.length / pageSize); const paginatedPast = past.slice(0, pageSize); pastHtml = `<h4 class="mt-16 mb-16">📜 পূর্বের (${past.length})</h4><div class="grid gap-12">${paginatedPast.map(x => `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${escapeHtml(x.name)}</strong><span class="text-sm">${formatDate(x.endDate)}</span></div><div class="card-body"><div class="highlight-bg"><p>📅 ${formatDate(x.startDate)} - ${formatDate(x.endDate)}</p><p>💳 ${x.isPaid ? 'Paid' : 'Non-Paid'} ${x.totalBill ? '(৳'+x.totalBill+')' : ''}</p><p>💬 ${escapeHtml(x.endComment || '-')}</p></div><div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editGuestModal('${rId}','${x.id}')">${editIcon}</button><button class="btn-icon danger" onclick="event.stopPropagation(); deleteGuest('${rId}','${x.id}')">${delIcon}</button></div></div></div>`).join('')}</div>`; }
     c.innerHTML = `<div class="flex-between mb-16"><h4>🏨 গেস্ট (${cur.length})</h4><button class="btn btn-primary btn-sm" onclick="showAddGuestModal('${rId}')">+ গেস্ট</button></div>` + curHtml + paginationHtml + pastHtml; 
 }
 function showAddGuestModal(rId) { openModal('নতুন গেস্ট', `<div class="form-group"><label>নাম *</label><input type="text" id="gName"></div><div class="grid grid-2"><div class="form-group"><label>মোবাইল</label><input type="text" id="gMobile"></div><div class="form-group"><label>রেফারেন্স</label><input type="text" id="gRef"></div></div><div class="form-group"><label>ঠিকানা</label><input type="text" id="gAddress"></div><div class="grid grid-2"><div class="form-group"><label>প্রবেশ তারিখ *</label><input type="date" id="gDate" value="${new Date().toISOString().split('T')[0]}"></div><div class="form-group" style="display:flex;align-items:flex-end;gap:8px;padding-bottom:14px;"><input type="checkbox" id="gPaid" style="width:auto;cursor:pointer;"><label for="gPaid" style="margin:0;cursor:pointer;">Paid</label></div></div><div class="form-group"><label>মন্তব্য</label><textarea id="gComment" rows="2"></textarea></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveGuest('${rId}')">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
@@ -1013,8 +760,7 @@ async function saveGuest(rId) { const n = document.getElementById('gName').value
 function editGuestModal(rId, gId) { const r = state.rooms.find(x => x.id === rId); const g = r.guests.find(x => x.id === gId); openModal('গেস্ট এডিট', `<div class="form-group"><label>নাম</label><input type="text" id="egName" value="${escapeHtml(g.name)}"></div><div class="grid grid-2"><div class="form-group"><label>মোবাইল</label><input type="text" id="egMobile" value="${escapeHtml(g.mobile || '')}"></div><div class="form-group"><label>রেফারেন্স</label><input type="text" id="egRef" value="${escapeHtml(g.reference || '')}"></div></div><div class="form-group"><label>ঠিকানা</label><input type="text" id="egAddress" value="${escapeHtml(g.address || '')}"></div><div class="grid grid-2"><div class="form-group"><label>প্রবেশ তারিখ</label><input type="date" id="egStart" value="${g.startDate || ''}"></div>${g.endDate ? `<div class="form-group"><label>চেক-আউট তারিখ</label><input type="date" id="egEnd" value="${g.endDate}"></div>` : `<div class="form-group" style="display:flex;align-items:flex-end;gap:8px;padding-bottom:14px;"><input type="checkbox" id="egPaid" ${g.isPaid ? 'checked' : ''} style="width:auto;cursor:pointer;"><label for="egPaid" style="margin:0;cursor:pointer;">Paid</label></div>`}</div><div class="form-group"><label>মন্তব্য</label><textarea id="egComment" rows="2">${escapeHtml(g.comment || '')}</textarea></div>${g.endDate ? `<div class="form-group"><label>চেক-আউট মন্তব্য</label><textarea id="egEndComment" rows="2">${escapeHtml(g.endComment || '')}</textarea></div>${g.isPaid ? `<div class="form-group"><label>মোট বিল</label><input type="number" id="egBill" value="${g.totalBill || ''}" placeholder="৳"></div>` : ''}` : ''}<div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveEditGuest('${rId}','${gId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
 async function saveEditGuest(rId, gId) { const r = state.rooms.find(x => x.id === rId); const g = r.guests.find(x => x.id === gId); g.name = document.getElementById('egName').value.trim(); g.mobile = document.getElementById('egMobile').value.trim(); g.address = document.getElementById('egAddress').value.trim(); g.reference = document.getElementById('egRef').value.trim(); g.comment = document.getElementById('egComment').value.trim(); g.startDate = document.getElementById('egStart').value; if (g.endDate) { g.endDate = document.getElementById('egEnd').value; g.endComment = document.getElementById('egEndComment').value.trim(); if (g.isPaid) g.totalBill = document.getElementById('egBill')?.value || ''; } else { g.isPaid = document.getElementById('egPaid').checked; } forceCloseModal(); showRoomDetail(rId, 'guests', true); try { await Store.saveRoom(r); showToast('আপডেট হয়েছে'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); showRoomDetail(rId, 'guests', true); } }
 function showGuestCheckoutModal(rId, gId) { 
-    const r = state.rooms.find(x => x.id === rId); 
-    const g = r.guests.find(x => x.id === gId); 
+    const r = state.rooms.find(x => x.id === rId); const g = r.guests.find(x => x.id === gId); 
     openModal('গেস্ট চেক-আউট', `<div class="form-group"><label>চেক-আউট তারিখ *</label><input type="date" id="gEndDate" value="${new Date().toISOString().split('T')[0]}"></div><div class="form-group"><label>মন্তব্য</label><textarea id="gEndComment" rows="2"></textarea></div>${g.isPaid ? `<div class="form-group"><label>মোট বিল</label><input type="number" id="gTotalBill" placeholder="৳" value="${g.totalBill || ''}"></div>` : ''}<div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="confirmGuestCheckout('${rId}','${gId}')">নিশ্চিত</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); 
 }
 async function confirmGuestCheckout(rId, gId) { const eD = document.getElementById('gEndDate').value; if (!eD) { showToast('তারিখ দিন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); const g = r.guests.find(x => x.id === gId); g.endDate = eD; g.endComment = document.getElementById('gEndComment')?.value.trim() || ''; if (g.isPaid) g.totalBill = document.getElementById('gTotalBill')?.value || ''; forceCloseModal(); showRoomDetail(rId, 'guests', true); try { await Store.saveRoom(r); showToast('চেক-আউট সম্পন্ন'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
@@ -1033,11 +779,9 @@ async function saveTemplateItems(rId) { const r = state.rooms.find(x => x.id ===
 
 async function renderTemplates(c) { 
     if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; } 
-    const bId = state.selectedBuilding || state.buildings[0].id; 
-    const tpls = state.templates?.[bId] || []; 
+    const bId = state.selectedBuilding || state.buildings[0].id; const tpls = state.templates?.[bId] || []; 
     const renderTable = (arr) => { return `<div class="table-wrapper"><table class="material-table"><thead><tr><th>নাম</th><th>পরিমাণ</th><th>অ্যাকশন</th></tr></thead><tbody>${arr.map(t => `<tr><td>${escapeHtml(t.name)}</td><td>${t.quantity || 1}</td><td><button class="btn-icon" onclick="editTemplateModal('${t.id}')">${editIcon}</button> <button class="btn-icon danger" onclick="deleteTemplate('${t.id}')">${delIcon}</button></td></tr>`).join('')}</tbody></table></div>`; }; 
-    let tableHtml = ''; 
-    const isDesktop = window.innerWidth >= 768; 
+    let tableHtml = ''; const isDesktop = window.innerWidth >= 768; 
     if (isDesktop && tpls.length > 4) { const half = Math.ceil(tpls.length / 2); const leftTpls = tpls.slice(0, half); const rightTpls = tpls.slice(half); tableHtml = `<div class="grid grid-2">${renderTable(leftTpls)}${renderTable(rightTpls)}</div>`; } 
     else { tableHtml = renderTable(tpls); } 
     c.innerHTML = `<div class="flex gap-12 mb-16 flex-wrap"><select style="padding:8px 12px;border-radius:8px;border:1px solid var(--border)" onchange="state.selectedBuilding=this.value;renderPage()">${state.buildings.map(b => `<option value="${b.id}" ${b.id === bId ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}</select><button class="btn btn-primary btn-sm" onclick="showAddTemplateModal()">+ টেম্পলেট</button></div><div class="card"><h3 class="mb-16">মালামাল টেম্পলেট (${tpls.length})</h3>${tpls.length === 0 ? `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div>` : tableHtml}</div>`; 
@@ -1055,12 +799,7 @@ function renderPayment(c) {
     if (guestBillState.activePaymentTab === 'guestBill') renderGuestBillTab(tc);
     else renderPaymentRecordTab(tc);
 }
-
-function switchPaymentTab(tab) {
-    guestBillState.activePaymentTab = tab;
-    renderPage();
-}
-
+function switchPaymentTab(tab) { guestBillState.activePaymentTab = tab; renderPage(); }
 function renderPaymentRecordTab(c) {
     c.innerHTML = `<div class="card"><h3 class="mb-16">💵 পেমেন্ট রেকর্ড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="payBuilding" onchange="loadPayFloors()"><option value="">সিলেক্ট করুন</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা</label><select id="payFloor" onchange="loadPayRooms()" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম নম্বর</label><select id="payRoom" onchange="loadPayPersons()" disabled><option value="">সিলেক্ট করুন</option></select></div><div class="form-group"><label>ব্যক্তি</label><select id="payPerson" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-3"><div class="form-group"><label>জমা টাকার পরিমাণ</label><input type="number" id="payAmount" placeholder="৳"></div><div class="form-group"><label>মাস</label><select id="payMonth">${['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'].map(m=>`<option value="${m}">${m}</option>`).join('')}</select></div><div class="form-group"><label>বছর</label><input type="number" id="payYear" value="${new Date().getFullYear()}"></div></div><button class="btn btn-primary" style="width:100%" onclick="savePayment()">পেমেন্ট সেভ করুন</button></div>`;
 }
@@ -1069,198 +808,52 @@ function loadPayRooms() { const bId = document.getElementById('payBuilding').val
 function loadPayPersons() { const rId = document.getElementById('payRoom').value; const r = state.rooms.find(x=>x.id===rId); const pS = document.getElementById('payPerson'); pS.innerHTML = '-সিলেক্ট করুন-'; (r.tenants || []).forEach(p=>pS.innerHTML += `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`); pS.disabled = false; }
 async function savePayment() { const d = { building: document.getElementById('payBuilding').selectedOptions[0]?.text, floor: document.getElementById('payFloor').value, room: document.getElementById('payRoom').selectedOptions[0]?.text, person: document.getElementById('payPerson').value, amount: document.getElementById('payAmount').value, month: document.getElementById('payMonth').value, year: document.getElementById('payYear').value, date: new Date().toISOString() }; if(!d.person || !d.amount || !d.building) { showToast('সব তথ্য সঠিকভাবে দিন', 'error'); return; } await Store.savePayment(d); showToast('পেমেন্ট সেভ হয়েছে'); document.getElementById('payAmount').value = ''; }
 function renderTroubleReport(c) { 
-    const pending = state.reports.filter(r => r.status === 'pending'); 
-    const resolved = state.reports.filter(r => r.status === 'resolved'); 
-    c.innerHTML = `
-    <div class="tabs"><div class="tab pending active" onclick="switchReportTab(event,'pending')">🛠️ কাজ চলমান (${pending.length})</div><div class="tab resolved" onclick="switchReportTab(event,'resolved')">✅ সমাধান হয়েছে (${resolved.length})</div></div>
-    <div id="reportSearchBoxContainer" class="card" style="margin-bottom: 16px; display:flex; align-items:center; gap: 10px;">
-        <div class="search-box" style="margin-bottom: 0; border: 1px solid var(--border); background: #fff; flex: 1;">
-            <span>🔍</span>
-            <input type="text" id="reportSearchInput" placeholder="ডিপার্টমেন্ট বা মিস্ত্রির নাম লিখে খুঁজুন" oninput="filterReports()">
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="showDeleteReportsByYearModal()" style="white-space:nowrap;">${delIcon} ডিলিট</button>
-    </div>
-    <div id="reportListData"></div>`; 
+    const pending = state.reports.filter(r => r.status === 'pending'); const resolved = state.reports.filter(r => r.status === 'resolved'); 
+    c.innerHTML = `<div class="tabs"><div class="tab pending active" onclick="switchReportTab(event,'pending')">🛠️ কাজ চলমান (${pending.length})</div><div class="tab resolved" onclick="switchReportTab(event,'resolved')">✅ সমাধান হয়েছে (${resolved.length})</div></div><div id="reportSearchBoxContainer" class="card" style="margin-bottom: 16px; display:flex; align-items:center; gap: 10px;"><div class="search-box" style="margin-bottom: 0; border: 1px solid var(--border); background: #fff; flex: 1;"><span>🔍</span><input type="text" id="reportSearchInput" placeholder="ডিপার্টমেন্ট বা মিস্ত্রির নাম লিখে খুঁজুন" oninput="filterReports()"></div><button class="btn btn-danger btn-sm" onclick="showDeleteReportsByYearModal()" style="white-space:nowrap;">${delIcon} ডিলিট</button></div><div id="reportListData"></div>`; 
     renderReportList('pending', 1); 
 }
 function showDeleteReportsByYearModal() {
-    const years = [...new Set(state.reports.map(r => {
-        const ts = r.createdAt?.seconds ? new Date(r.createdAt.seconds * 1000) : new Date(r.reportDate || 0);
-        return ts.getFullYear();
-    }))].sort((a, b) => b - a);
-    if (years.length === 0) {
-        const currentYear = new Date().getFullYear();
-        years = [currentYear, currentYear - 1];
-    }
-
-    openModal('সাল ভিত্তিক ডিলিট', `
-    <div class="grid grid-2">
-        <div class="form-group">
-            <label>কোন সাল থেকে?</label>
-            <select id="delStartYear" class="form-control">${years.map(y => `<option value="${y}">${convertToBengali(y)}</option>`).join('')}</select>
-        </div>
-        <div class="form-group">
-            <label>কোন সাল পর্যন্ত?</label>
-            <select id="delEndYear" class="form-control">${years.map(y => `<option value="${y}" ${y === years[0] ? 'selected' : ''}>${convertToBengali(y)}</option>`).join('')}</select>
-        </div>
-    </div>
-    <div class="flex gap-8 mt-16">
-        <button class="btn btn-danger" style="flex:1" onclick="confirmDeleteReportsByYear()">ডিলিট কনফার্ম</button>
-        <button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button>
-    </div>`, true);
+    const years = [...new Set(state.reports.map(r => { const ts = r.createdAt?.seconds ? new Date(r.createdAt.seconds * 1000) : new Date(r.reportDate || 0); return ts.getFullYear(); }))].sort((a, b) => b - a);
+    if (years.length === 0) { const currentYear = new Date().getFullYear(); years = [currentYear, currentYear - 1]; }
+    openModal('সাল ভিত্তিক ডিলিট', `<div class="grid grid-2"><div class="form-group"><label>কোন সাল থেকে?</label><select id="delStartYear" class="form-control">${years.map(y => `<option value="${y}">${convertToBengali(y)}</option>`).join('')}</select></div><div class="form-group"><label>কোন সাল পর্যন্ত?</label><select id="delEndYear" class="form-control">${years.map(y => `<option value="${y}" ${y === years[0] ? 'selected' : ''}>${convertToBengali(y)}</option>`).join('')}</select></div></div><div class="flex gap-8 mt-16"><button class="btn btn-danger" style="flex:1" onclick="confirmDeleteReportsByYear()">ডিলিট কনফার্ম</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true);
 }
 async function confirmDeleteReportsByYear() {
-    const startYear = parseInt(document.getElementById('delStartYear').value);
-    const endYear = parseInt(document.getElementById('delEndYear').value);
-    
+    const startYear = parseInt(document.getElementById('delStartYear').value); const endYear = parseInt(document.getElementById('delEndYear').value);
     if (startYear > endYear) { showToast('শুরুর সাল শেষের সালের চেয়েে বড় হতে পারবে না', 'error'); return; }
-
     checkPassword(async () => {
         showConfirm(`আপনি কি ${convertToBengali(startYear)} থেকে ${convertToBengali(endYear)} সালের সমস্ত রিপোর্ট ডিলিট করতে চান?`, async () => {
-            try {
-                const batch = db.batch();
-                let count = 0;
-                state.reports.forEach(r => {
-                    const ts = r.createdAt?.seconds ? new Date(r.createdAt.seconds * 1000) : new Date(r.reportDate || 0);
-                    const rYear = ts.getFullYear();
-                    if (rYear >= startYear && rYear <= endYear) {
-                        batch.delete(db.collection('reports').doc(r.id));
-                        count++;
-                    }
-                });
-                
-                if (count > 0) {
-                    await batch.commit();
-                    showToast(`${convertToBengali(count)} টি রিপোর্ট ডিলিট হয়েছে`);
-                } else {
-                    showToast('এই সালের মধ্যে কোন রিপোর্ট পাওয়া যায়নি');
-                }
-                forceCloseModal();
-            } catch(e) {
-                showToast('ডিলিট করতে সমস্যা হয়েছে', 'error');
-                console.error(e);
-            }
+            try { const batch = db.batch(); let count = 0; state.reports.forEach(r => { const ts = r.createdAt?.seconds ? new Date(r.createdAt.seconds * 1000) : new Date(r.reportDate || 0); const rYear = ts.getFullYear(); if (rYear >= startYear && rYear <= endYear) { batch.delete(db.collection('reports').doc(r.id)); count++; } }); if (count > 0) { await batch.commit(); showToast(`${convertToBengali(count)} টি রিপোর্ট ডিলিট হয়েছে`); } else { showToast('এই সালের মধ্যে কোন রিপোর্ট পাওয়া যায়নি'); } forceCloseModal(); } catch(e) { showToast('ডিলিট করতে সমস্যা হয়েছে', 'error'); console.error(e); }
         });
     });
 }
-function switchReportTab(e, tab) { 
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
-    e.target.classList.add('active'); 
-    const searchInput = document.getElementById('reportSearchInput');
-    if (searchInput) searchInput.value = ''; 
-    renderReportList(tab, 1); 
-}
-function filterReports() {
-    const activeTab = document.querySelector('.tab.active').classList.contains('pending') ? 'pending' : 'resolved';
-    renderReportList(activeTab, 1);
-}
+function switchReportTab(e, tab) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); e.target.classList.add('active'); const searchInput = document.getElementById('reportSearchInput'); if (searchInput) searchInput.value = ''; renderReportList(tab, 1); }
+function filterReports() { const activeTab = document.querySelector('.tab.active').classList.contains('pending') ? 'pending' : 'resolved'; renderReportList(activeTab, 1); }
 function renderReportList(tab, page = 1) { 
     let list = state.reports.filter(r => r.status === tab); 
-    
-    const searchVal = document.getElementById('reportSearchInput')?.value.trim().toLowerCase();
-    const pageSize = searchVal ? 15 : 10; 
-    if (searchVal) {
-        list = list.filter(r => (r.department || '').toLowerCase().includes(searchVal) || (r.mistry || '').toLowerCase().includes(searchVal));
-    }
-
+    const searchVal = document.getElementById('reportSearchInput')?.value.trim().toLowerCase(); const pageSize = searchVal ? 15 : 10; 
+    if (searchVal) { list = list.filter(r => (r.department || '').toLowerCase().includes(searchVal) || (r.mistry || '').toLowerCase().includes(searchVal)); }
     const totalPages = Math.ceil(list.length / pageSize); 
-    if (page > totalPages && totalPages > 0) page = totalPages; 
-    if (page < 1) page = 1; 
-    const start = (page - 1) * pageSize; 
-    const end = start + pageSize; 
-    const paginatedList = list.slice(start, end); 
-    const c = document.getElementById('reportListData'); 
-    
-    let listHtml = paginatedList.length === 0 ? `<div class="empty-state"><p>কোন রিপোর্ট নেই।</p></div>` : `<div class="grid gap-12">${paginatedList.map(r => {
-        const titleText = r.building ? `${escapeHtml(r.building)} - তলা: ${escapeHtml(r.floor)} - রুম: ${escapeHtml(r.room)}` : `${escapeHtml(r.reporter)}${r.reporterDesignation ? ' (' + escapeHtml(r.reporterDesignation) + ')' : ''}`;
-        return `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${titleText}</strong><span class="dept-badge">${escapeHtml(r.department || 'N/A')}${r.mistry ? ' - ' + escapeHtml(r.mistry) : ''}</span></div><div class="card-body"><p><strong>রিপোর্টের তারিখ:</strong> ${formatDate(r.reportDate || r.createdAt)}</p><div class="highlight-bg"><strong>সমস্যা:</strong> ${escapeHtml(r.description)}</div><p><strong>রিপোর্টকারী:</strong> ${escapeHtml(r.reporter)}${r.reporterDesignation ? ' (' + escapeHtml(r.reporterDesignation) + ')' : ''}</p>${tab === 'resolved' ? `<p><strong>✅ সমাধানের তারিখ:</strong> ${formatDate(r.resolvedAt)}</p>` : ''}<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editReport('${r.id}')">${editIcon}</button>${tab === 'pending' ? `<button class="btn btn-success btn-sm" onclick="event.stopPropagation(); resolveReport('${r.id}')">✅ সমাধান হয়েছে</button>` : ''}<button class="btn-icon danger" onclick="event.stopPropagation(); deleteReport('${r.id}')">${delIcon}</button></div></div></div>`;
-    }).join('')}</div>`; 
-    
+    if (page > totalPages && totalPages > 0) page = totalPages; if (page < 1) page = 1; 
+    const start = (page - 1) * pageSize; const end = start + pageSize; const paginatedList = list.slice(start, end); const c = document.getElementById('reportListData'); 
+    let listHtml = paginatedList.length === 0 ? `<div class="empty-state"><p>কোন রিপোর্ট নেই।</p></div>` : `<div class="grid gap-12">${paginatedList.map(r => { const titleText = r.building ? `${escapeHtml(r.building)} - তলা: ${escapeHtml(r.floor)} - রুম: ${escapeHtml(r.room)}` : `${escapeHtml(r.reporter)}${r.reporterDesignation ? ' (' + escapeHtml(r.reporterDesignation) + ')' : ''}`; return `<div class="thin-bright-card" onclick="toggleHistoryCard(event, this)"><div class="flex-between"><strong>${titleText}</strong><span class="dept-badge">${escapeHtml(r.department || 'N/A')}${r.mistry ? ' - ' + escapeHtml(r.mistry) : ''}</span></div><div class="card-body"><p><strong>রিপোর্টের তারিখ:</strong> ${formatDate(r.reportDate || r.createdAt)}</p><div class="highlight-bg"><strong>সমস্যা:</strong> ${escapeHtml(r.description)}</div><p><strong>রিপোর্টকারী:</strong> ${escapeHtml(r.reporter)}${r.reporterDesignation ? ' (' + escapeHtml(r.reporterDesignation) + ')' : ''}</p>${tab === 'resolved' ? `<p><strong>✅ সমাধানের তারিখ:</strong> ${formatDate(r.resolvedAt)}</p>` : ''}<div class="flex gap-8 mt-8"><button class="btn-icon" onclick="event.stopPropagation(); editReport('${r.id}')">${editIcon}</button>${tab === 'pending' ? `<button class="btn btn-success btn-sm" onclick="event.stopPropagation(); resolveReport('${r.id}')">✅ সমাধান হয়েছে</button>` : ''}<button class="btn-icon danger" onclick="event.stopPropagation(); deleteReport('${r.id}')">${delIcon}</button></div></div></div>`; }).join('')}</div>`; 
     let paginationHtml = ''; 
     if (totalPages > 1) { paginationHtml = `<div class="pagination"><button class="btn ${page === 1 ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="renderReportList('${tab}', ${page - 1})" ${page === 1 ? 'disabled' : ''}>পূর্ববর্তী</button><span style="color: var(--primary); font-weight: 600;">পেজ ${page} / ${totalPages}</span><button class="btn ${page === totalPages ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="renderReportList('${tab}', ${page + 1})" ${page === totalPages ? 'disabled' : ''}>পরবর্তী</button></div>`; } 
     c.innerHTML = listHtml + paginationHtml; 
 }
 function showAddReportModal() { 
-    openModal('নতুন ট্রাবল রিপোর্ট', `
-    <div class="grid grid-2">
-        <div class="form-group"><label>বিল্ডিং (ঐচ্ছিক)</label><select id="rptBuilding" onchange="loadRptFloors()"><option value="">সিলেক্ট করুন</option><option value="all">সকল বিল্ডিং</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div>
-        <div class="form-group"><label>তলা</label><select id="rptFloor" onchange="loadRptRooms()" disabled><option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option></select></div>
-    </div>
-    <div class="grid grid-2">
-        <div class="form-group"><label>রুম</label><select id="rptRoom" disabled><option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option></select></div>
-        <div class="form-group"><label>রিপোর্টের তারিখ *</label><input type="date" id="rptDate" value="${new Date().toISOString().split('T')[0]}"></div>
-    </div>
-    <div class="grid grid-2">
-        <div class="form-group"><label>ডিপার্টমেন্ট</label><select id="rptDept" onchange="toggleOtherDeptField(this.value)"><option value="Civil">Civil</option><option value="Electrical">Electrical</option><option value="Mechanical">Mechanical</option><option value="I&C">I&C</option><option value="Others">Others</option></select></div>
-        <div class="form-group" id="mistryField">
-            <label>মিস্ত্রি</label>
-            <select id="rptMistry">
-                <option value="">সিলেক্ট করুন</option>
-                <option value="স্যানিটারি">স্যানিটারি</option>
-                <option value="কাঠ মিস্ত্রি">কাঠ মিস্ত্রি</option>
-                <option value="রাজ মিস্ত্রি">রাজ মিস্ত্রি</option>
-                <option value="মালী">মালী</option>
-                <option value="থাই/অ্যালুমিনিয়াম/গ্লাস">থাই/অ্যালুমিনিয়াম/গ্লাস</option>
-                <option value="সুইপার">সুইপার</option>
-                <option value="লেবার">লেবার</option>
-                <option value="রংমিস্ত্রি">রংমিস্ত্রি</option>
-                <option value="রড মিস্ত্রি">রড মিস্ত্রি</option>
-                <option value="টাইলস মিস্ত্রি">টাইলস মিস্ত্রি</option>
-                <option value="গ্রিল মিস্ত্রি">গ্রিল মিস্ত্রি</option>
-                <option value="ওয়েল্ডিং মিস্ত্রি">ওয়েল্ডিং মিস্ত্রি</option>
-            </select>
-        </div>
-    </div>
-    <div class="form-group" id="otherDeptField" style="display:none;"><label>অন্য ডিপার্টমেন্টের নাম</label><input type="text" id="rptOtherDept" placeholder="ডিপার্টমেন্টের নাম লিখুন"></div>
-    <div class="form-group"><label>রিপোর্টকারীর নাম *</label><input type="text" id="rptName"></div>
-    <div class="form-group"><label>পদবী</label><input type="text" id="rptDesignation"></div>
-    <div class="form-group"><label>সমস্যার বিবরণ *</label><textarea id="rptDesc" rows="3"></textarea></div>
-    <div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveReport()">জমা দিন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); 
+    openModal('নতুন ট্রাবল রিপোর্ট', `<div class="grid grid-2"><div class="form-group"><label>বিল্ডিং (ঐচ্ছিক)</label><select id="rptBuilding" onchange="loadRptFloors()"><option value="">সিলেক্ট করুন</option><option value="all">সকল বিল্ডিং</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা</label><select id="rptFloor" onchange="loadRptRooms()" disabled><option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম</label><select id="rptRoom" disabled><option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option></select></div><div class="form-group"><label>রিপোর্টের তারিখ *</label><input type="date" id="rptDate" value="${new Date().toISOString().split('T')[0]}"></div></div><div class="grid grid-2"><div class="form-group"><label>ডিপার্টমেন্ট</label><select id="rptDept" onchange="toggleOtherDeptField(this.value)"><option value="Civil">Civil</option><option value="Electrical">Electrical</option><option value="Mechanical">Mechanical</option><option value="I&C">I&C</option><option value="Others">Others</option></select></div><div class="form-group" id="mistryField"><label>মিস্ত্রি</label><select id="rptMistry"><option value="">সিলেক্ট করুন</option><option value="স্যানিটারি">স্যানিটারি</option><option value="কাঠ মিস্ত্রি">কাঠ মিস্ত্রি</option><option value="রাজ মিস্ত্রি">রাজ মিস্ত্রি</option><option value="মালী">মালী</option><option value="থাই/অ্যালুমিনিয়াম/গ্লাস">থাই/অ্যালুমিনিয়াম/গ্লাস</option><option value="সুইপার">সুইপার</option><option value="লেবার">লেবার</option><option value="রংমিস্ত্রি">রংমিস্ত্রি</option><option value="রড মিস্ত্রি">রড মিস্ত্রি</option><option value="টাইলস মিস্ত্রি">টাইলস মিস্ত্রি</option><option value="গ্রিল মিস্ত্রি">গ্রিল মিস্ত্রি</option><option value="ওয়েল্ডিং মিস্ত্রি">ওয়েল্ডিং মিস্ত্রি</option></select></div></div><div class="form-group" id="otherDeptField" style="display:none;"><label>অন্য ডিপার্টমেন্টের নাম</label><input type="text" id="rptOtherDept" placeholder="ডিপার্টমেন্টের নাম লিখুন"></div><div class="form-group"><label>রিপোর্টকারীর নাম *</label><input type="text" id="rptName"></div><div class="form-group"><label>পদবী</label><input type="text" id="rptDesignation"></div><div class="form-group"><label>সমস্যার বিবরণ *</label><textarea id="rptDesc" rows="3"></textarea></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveReport()">জমা দিন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); 
 }
-function toggleOtherDeptField(val) {
-    document.getElementById('otherDeptField').style.display = val === 'Others' ? 'block' : 'none';
-    document.getElementById('mistryField').style.display = val === 'Civil' ? 'block' : 'none';
-}
+function toggleOtherDeptField(val) { document.getElementById('otherDeptField').style.display = val === 'Others' ? 'block' : 'none'; document.getElementById('mistryField').style.display = val === 'Civil' ? 'block' : 'none'; }
 function loadRptFloors() { const bId = document.getElementById('rptBuilding').value; if(!bId || bId === 'all') { document.getElementById('rptFloor').disabled = true; document.getElementById('rptRoom').disabled = true; document.getElementById('rptFloor').value = 'all'; document.getElementById('rptRoom').value = 'all'; return; } const b = state.buildings.find(x=>x.id===bId); const fS = document.getElementById('rptFloor'); fS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option>'; for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; document.getElementById('rptRoom').disabled = true; document.getElementById('rptRoom').value = 'all'; }
 function loadRptRooms() { const bId = document.getElementById('rptBuilding').value; const fId = document.getElementById('rptFloor').value; if(fId === 'all' || !fId) { document.getElementById('rptRoom').disabled = true; document.getElementById('rptRoom').value = 'all'; return; } const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); const rS = document.getElementById('rptRoom'); rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; rs.forEach(r=>rS.innerHTML += `<option value="${r.number}">${escapeHtml(r.number)}</option>`); rS.disabled = false; }
 async function saveReport() { 
-    const bSelect = document.getElementById('rptBuilding'); 
-    const b = bSelect.value === 'all' ? 'সকল বিল্ডিং' : (bSelect.value && bSelect.value !== "" ? bSelect.selectedOptions[0].text : ''); 
-    const f = document.getElementById('rptFloor').value === 'all' ? 'সকল তলা' : (document.getElementById('rptFloor').value || ''); 
-    const r = document.getElementById('rptRoom').value === 'all' ? 'সকল রুম' : (document.getElementById('rptRoom').value || ''); 
-    const d = document.getElementById('rptDesc').value.trim(); 
-    const n = document.getElementById('rptName').value.trim();
-    const desig = document.getElementById('rptDesignation').value.trim();
-    const reportDate = document.getElementById('rptDate').value; 
-    let dept = document.getElementById('rptDept').value;
-    let mistry = '';
-    if (dept === 'Civil') {
-        mistry = document.getElementById('rptMistry').value;
-    }
-    if (dept === 'Others') {
-        const otherDept = document.getElementById('rptOtherDept').value.trim();
-        if (!otherDept) { showToast('অন্য ডিপার্টমেন্টের নাম লিখুন', 'error'); return; }
-        dept = otherDept;
-    }
+    const bSelect = document.getElementById('rptBuilding'); const b = bSelect.value === 'all' ? 'সকল বিল্ডিং' : (bSelect.value && bSelect.value !== "" ? bSelect.selectedOptions[0].text : ''); 
+    const f = document.getElementById('rptFloor').value === 'all' ? 'সকল তলা' : (document.getElementById('rptFloor').value || ''); const r = document.getElementById('rptRoom').value === 'all' ? 'সকল রুম' : (document.getElementById('rptRoom').value || ''); const d = document.getElementById('rptDesc').value.trim(); const n = document.getElementById('rptName').value.trim(); const desig = document.getElementById('rptDesignation').value.trim(); const reportDate = document.getElementById('rptDate').value; 
+    let dept = document.getElementById('rptDept').value; let mistry = ''; if (dept === 'Civil') mistry = document.getElementById('rptMistry').value; if (dept === 'Others') { const otherDept = document.getElementById('rptOtherDept').value.trim(); if (!otherDept) { showToast('অন্য ডিপার্টমেন্টের নাম লিখুন', 'error'); return; } dept = otherDept; }
     if(!d || !n || !reportDate) { showToast('বিবরণ, নাম ও তারিখ দিন', 'error'); return; } 
-    const newReport = { id: genId('rep'), building: b, floor: f, room: r, description: d, reporter: n, reporterDesignation: desig, department: dept, mistry: mistry, status: 'pending', reportDate: reportDate, createdAt: { seconds: Date.now()/1000 } }; 
-    state.reports.unshift(newReport); 
-    forceCloseModal(); 
-    renderPage(); 
-    try { await Store.saveReport(newReport); showToast('রিপোর্ট জমা হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } 
+    const newReport = { id: genId('rep'), building: b, floor: f, room: r, description: d, reporter: n, reporterDesignation: desig, department: dept, mistry: mistry, status: 'pending', reportDate: reportDate, createdAt: { seconds: Date.now()/1000 } }; state.reports.unshift(newReport); forceCloseModal(); renderPage(); try { await Store.saveReport(newReport); showToast('রিপোর্ট জমা হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } 
 }
-async function editReport(id) { 
-    const r = state.reports.find(x=>x.id===id); 
-    openModal('রিপোর্ট এডিট', `
-    <div class="form-group"><label>রিপোর্টের তারিখ</label><input type="date" id="erDate" value="${r.reportDate || ''}"></div>
-    <div class="form-group"><label>সমস্যার বিবরণ</label><textarea id="erDesc" rows="3">${escapeHtml(r.description)}</textarea></div>
-    <div class="grid grid-2">
-        <div class="form-group"><label>রিপোর্টকারীর নাম</label><input type="text" id="erName" value="${escapeHtml(r.reporter)}"></div>
-        <div class="form-group"><label>পদবী</label><input type="text" id="erDesignation" value="${escapeHtml(r.reporterDesignation || '')}"></div>
-    </div>
-    ${r.status === 'resolved' ? `<div class="form-group"><label>সমাধানের তারিখ</label><input type="date" id="erResolvedAt" value="${r.resolvedAt || ''}"></div>` : ''}
-    <div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveEditReport('${id}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); 
-}
+async function editReport(id) { const r = state.reports.find(x=>x.id===id); openModal('রিপোর্ট এডিট', `<div class="form-group"><label>রিপোর্টের তারিখ</label><input type="date" id="erDate" value="${r.reportDate || ''}"></div><div class="form-group"><label>সমস্যার বিবরণ</label><textarea id="erDesc" rows="3">${escapeHtml(r.description)}</textarea></div><div class="grid grid-2"><div class="form-group"><label>রিপোর্টকারীর নাম</label><input type="text" id="erName" value="${escapeHtml(r.reporter)}"></div><div class="form-group"><label>পদবী</label><input type="text" id="erDesignation" value="${escapeHtml(r.reporterDesignation || '')}"></div></div>${r.status === 'resolved' ? `<div class="form-group"><label>সমাধানের তারিখ</label><input type="date" id="erResolvedAt" value="${r.resolvedAt || ''}"></div>` : ''}<div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveEditReport('${id}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveEditReport(id) { const r = state.reports.find(x=>x.id===id); r.reportDate = document.getElementById('erDate').value; r.description = document.getElementById('erDesc').value.trim(); r.reporter = document.getElementById('erName').value.trim(); r.reporterDesignation = document.getElementById('erDesignation').value.trim(); if (r.status === 'resolved') r.resolvedAt = document.getElementById('erResolvedAt')?.value || ''; forceCloseModal(); renderPage(); try { await Store.saveReport(r); showToast('আপডেট হয়েছে'); } catch(e) { renderPage(); showToast('আপডেট করতে সমস্যা', 'error'); } }
 async function resolveReport(id) { const r = state.reports.find(x=>x.id===id); r.status = 'resolved'; r.resolvedAt = new Date().toISOString().split('T')[0]; renderPage(); try { await Store.saveReport(r); showToast('সমাধান হিসেবে চিহ্নিত করা হয়েছে'); } catch(e) { r.status = 'pending'; delete r.resolvedAt; renderPage(); showToast('আপডেট করতে সমস্যা', 'error'); } }
 async function deleteReport(id) { checkPassword(async () => { state.reports = state.reports.filter(r => r.id !== id); renderPage(); try { await Store.deleteReport(id); showToast('ডিলিট হয়েছে'); } catch(e) { renderPage(); showToast('ডিলিট করতে সমস্যা', 'error'); } }); }
@@ -1268,17 +861,13 @@ async function renderDownload(c) { if (state.buildings.length === 0) { c.innerHT
 function loadDlFloors() { const bId = document.getElementById('dlBuilding').value; const fS = document.getElementById('dlFloor'); const rS = document.getElementById('dlRoom'); fS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option>'; rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (bId === 'all' || bId === '') { fS.disabled = true; rS.disabled = true; fS.value = 'all'; rS.value = 'all'; } else { const b = state.buildings.find(x=>x.id===bId); for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; rS.disabled = true; fS.value = ''; rS.value = 'all'; } checkDlFields(); }
 function loadDlRooms() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rS = document.getElementById('dlRoom'); rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (fId === 'all' || fId === '') { rS.disabled = true; rS.value = 'all'; } else { const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; rS.value = ''; } checkDlFields(); }
 function checkDlFields() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; let isValid = bId !== '' && t !== ''; const fEl = document.getElementById('dlFloor'); const rEl = document.getElementById('dlRoom'); if (fEl && !fEl.disabled && fId === '') isValid = false; if (rEl && !rEl.disabled && rId === '') isValid = false; const dlExcel = document.getElementById('dlExcel'); const dlPdf = document.getElementById('dlPdf'); if (dlExcel && dlPdf) { if(isValid) { dlExcel.disabled = false; dlPdf.disabled = false; } else { dlExcel.disabled = true; dlPdf.disabled = true; } } }
-async function downloadReport(fmt) { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; if (!t) { showToast('ধরন সিলেক্ট করুন', 'error'); return; } let rs = state.rooms; if (bId !== 'all') rs = rs.filter(r => r.buildingId === bId); if (fId !== 'all' && fId !== '') rs = rs.filter(r => r.floor === fId); if (rId !== 'all' && rId !== '') rs = rs.filter(r => r.id === rId); const bName = bId === 'all' ? 'সকল' : (state.buildings.find(b => b.id === bId)?.name || ''); const fName = fId === 'all' ? 'সকল' : fId; const rName = rId === 'all' ? 'সকল' : (state.rooms.find(r => r.id === rId)?.number || ''); const dStr = new Date().toISOString().split('T')[0]; let data = [], headers = [], title = ''; if (t === 'reports') { title='ট্রাবল রিপোর্ট'; headers=['#','বিল্ডিং/রিপোর্টকারী','তলা','রুম','তারিখ','বিভাগ','মিস্ত্রি','সমস্যা','রিপোর্টকারী','পদবী','স্ট্যাটাস','সমাধানের তারিখ']; const reps = state.reports; reps.forEach((r,i)=>{ if((bId === 'all' || r.building === bName) && (fId === 'all' or r.floor === fName) && (rId === 'all' || r.room === rName)) { data.push([i+1, r.building ? r.building : r.reporter, r.floor, r.room, formatDate(r.reportDate || r.createdAt), r.department || '-', r.mistry || '-', r.description, r.reporter, r.reporterDesignation || '-', r.status === 'resolved' ? 'সমাধান হয়েছে' : 'চলমান', r.resolvedAt ? formatDate(r.resolvedAt) : '-']); } }); } else if (t === 'payments') { title='পেমেন্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','ব্যক্তি','টাকা','মাস','বছর','তারিখ']; const pays = await Store.getPayments(); pays.forEach((p,i)=>{ if((bId === 'all' || p.building === bName) && (fId === 'all' || p.floor === fName) && (rId === 'all' || p.room === rName)) { data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]]); } }); } else if (t === 'items') { title='মালামাল তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','পরিমাণ','অবস্থা','রিপেয়ার তারিখ','রিপ্লেস তারিখ','মন্তব্য','ভাড়াটে']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.items || []).forEach(item => { let note = '-'; if (item.history && item.history.length > 0) { note = item.history[item.history.length - 1].note || '-'; } data.push([data.length+1, bN, room.floor, room.number, item.name, item.quantity || 1, item.condition, item.lastRepairDate ? formatDate(item.lastRepairDate) : '-', item.lastReplaceDate ? formatDate(item.lastReplaceDate) : '-', note, room.tenants?.map(t=>t.name).join(', ') || 'খালি']); }); }); } else if (t === 'tenants') { title='ভাড়াটে তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','পদবী','ফোন','প্রকার','পরিবারের তথ্য','বরাদ্ব তারিখ']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; let tArr = room.tenants || (room.tenant ? [room.tenant] : []); tArr.forEach(t => data.push([data.length+1, bN, room.floor, room.number, t.name, t.designation || '-', t.phone || '-', t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', t.familyInfo || '-', t.startDate])); (room.previousTenants || []).forEach(pt => data.push([data.length+1, bN, room.floor, room.number, pt.name + ' (পূর্বের)', pt.designation || '-', pt.phone || '-', pt.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', pt.familyInfo || '-', pt.startDate])); }); } else if (t === 'guests') { title='গেস্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','মোবাইল','ঠিকানা','রেফারেন্স','প্রবেশ','চেক-আউট','স্ট্যাটাস','মোট বিল']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.guests || []).forEach(g => data.push([data.length+1, bN, room.floor, room.number, g.name, g.mobile || '-', g.address || '-', g.reference || '-', g.startDate, g.endDate || 'উপস্থিত', g.isPaid ? 'Paid' : 'Non-Paid', g.totalBill || '-'])); }); } else if (t === 'rooms') { title='রুম তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','ভাড়াটে','প্রকার','তারিখ']; rs.forEach((room, i) => data.push([i+1, state.buildings.find(b => b.id === room.buildingId)?.name || '', room.floor, room.number, (room.items || []).length, room.tenants?.map(t=>t.name).join(', ') || 'খালি', room.tenants?.some(t=>t.type==='family') ? 'পরিবার' : 'ব্যাচেলর', room.tenants?.[0]?.startDate || '-'])); } if (data.length === 0) { showToast('কোন ডেটা নেই', 'error'); return; } if (fmt === 'xlsx') { const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, title); XLSX.writeFile(wb, `${title}_${bName}_${dStr}.xlsx`); } else { const win = window.open('', '_blank'); win.document.write(`<html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; } h2 { text-align: center; margin-bottom: 5px; font-weight: 700; } p { text-align: center; margin-top: 0; margin-bottom: 20px; color: #555; font-weight: 600; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 11px; } th { background-color: #2563eb; color: #fff; font-weight: 700; } @media print { body { padding: 0; } }</style></head><body><h2>${title}</h2><p>বিল্ডিং: ${bName} | তলা: ${fName} | রুম: ${rName} | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`); win.document.close(); win.focus(); setTimeout(() => { win.print(); }, 500); } showToast('ডাউনলোড হচ্ছে...'); }
+async function downloadReport(fmt) { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; if (!t) { showToast('ধরন সিলেক্ট করুন', 'error'); return; } let rs = state.rooms; if (bId !== 'all') rs = rs.filter(r => r.buildingId === bId); if (fId !== 'all' && fId !== '') rs = rs.filter(r => r.floor === fId); if (rId !== 'all' && rId !== '') rs = rs.filter(r => r.id === rId); const bName = bId === 'all' ? 'সকল' : (state.buildings.find(b => b.id === bId)?.name || ''); const fName = fId === 'all' ? 'সকল' : fId; const rName = rId === 'all' ? 'সকল' : (state.rooms.find(r => r.id === rId)?.number || ''); const dStr = new Date().toISOString().split('T')[0]; let data = [], headers = [], title = ''; if (t === 'reports') { title='ট্রাবল রিপোর্ট'; headers=['#','বিল্ডিং/রিপোর্টকারী','তলা','রুম','তারিখ','বিভাগ','মিস্ত্রি','সমস্যা','রিপোর্টকারী','পদবী','স্ট্যাটাস','সমাধানের তারিখ']; const reps = state.reports; reps.forEach((r,i)=>{ if((bId === 'all' || r.building === bName) && (fId === 'all' || r.floor === fName) && (rId === 'all' || r.room === rName)) { data.push([i+1, r.building ? r.building : r.reporter, r.floor, r.room, formatDate(r.reportDate || r.createdAt), r.department || '-', r.mistry || '-', r.description, r.reporter, r.reporterDesignation || '-', r.status === 'resolved' ? 'সমাধান হয়েছে' : 'চলমান', r.resolvedAt ? formatDate(r.resolvedAt) : '-']); } }); } else if (t === 'payments') { title='পেমেন্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','ব্যক্তি','টাকা','মাস','বছর','তারিখ']; const pays = await Store.getPayments(); pays.forEach((p,i)=>{ if((bId === 'all' || p.building === bName) && (fId === 'all' || p.floor === fName) && (rId === 'all' || p.room === rName)) { data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]]); } }); } else if (t === 'items') { title='মালামাল তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','পরিমাণ','অবস্থা','রিপেয়ার তারিখ','রিপ্লেস তারিখ','মন্তব্য','ভাড়াটে']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.items || []).forEach(item => { let note = '-'; if (item.history && item.history.length > 0) { note = item.history[item.history.length - 1].note || '-'; } data.push([data.length+1, bN, room.floor, room.number, item.name, item.quantity || 1, item.condition, item.lastRepairDate ? formatDate(item.lastRepairDate) : '-', item.lastReplaceDate ? formatDate(item.lastReplaceDate) : '-', note, room.tenants?.map(t=>t.name).join(', ') || 'খালি']); }); }); } else if (t === 'tenants') { title='ভাড়াটে তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','পদবী','ফোন','প্রকার','পরিবারের তথ্য','বরাদ্ব তারিখ']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; let tArr = room.tenants || (room.tenant ? [room.tenant] : []); tArr.forEach(t => data.push([data.length+1, bN, room.floor, room.number, t.name, t.designation || '-', t.phone || '-', t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', t.familyInfo || '-', t.startDate])); (room.previousTenants || []).forEach(pt => data.push([data.length+1, bN, room.floor, room.number, pt.name + ' (পূর্বের)', pt.designation || '-', pt.phone || '-', pt.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', pt.familyInfo || '-', pt.startDate])); }); } else if (t === 'guests') { title='গেস্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','মোবাইল','ঠিকানা','রেফারেন্স','প্রবেশ','চেক-আউট','স্ট্যাটাস','মোট বিল']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.guests || []).forEach(g => data.push([data.length+1, bN, room.floor, room.number, g.name, g.mobile || '-', g.address || '-', g.reference || '-', g.startDate, g.endDate || 'উপস্থিত', g.isPaid ? 'Paid' : 'Non-Paid', g.totalBill || '-'])); }); } else if (t === 'rooms') { title='রুম তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','ভাড়াটে','প্রকার','তারিখ']; rs.forEach((room, i) => data.push([i+1, state.buildings.find(b => b.id === room.buildingId)?.name || '', room.floor, room.number, (room.items || []).length, room.tenants?.map(t=>t.name).join(', ') || 'খালি', room.tenants?.some(t=>t.type==='family') ? 'পরিবার' : 'ব্যাচেলর', room.tenants?.[0]?.startDate || '-'])); } if (data.length === 0) { showToast('কোন ডেটা নেই', 'error'); return; } if (fmt === 'xlsx') { const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, title); XLSX.writeFile(wb, `${title}_${bName}_${dStr}.xlsx`); } else { const win = window.open('', '_blank'); win.document.write(`<html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; } h2 { text-align: center; margin-bottom: 5px; font-weight: 700; } p { text-align: center; margin-top: 0; margin-bottom: 20px; color: #555; font-weight: 600; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 11px; } th { background-color: #2563eb; color: #fff; font-weight: 700; } @media print { body { padding: 0; } }</style></head><body><h2>${title}</h2><p>বিল্ডিং: ${bName} | তলা: ${fName} | রুম: ${rName} | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`); win.document.close(); win.focus(); setTimeout(() => { win.print(); }, 500); } showToast('ডাউনলোড হচ্ছে...'); }
 function handleGlobalSearch(v) { const d = document.getElementById('searchDropdown'); if (!v.trim()) { d.style.display = 'none'; return; } const res = state.rooms.filter(r => roomMatchesSearch(v, r.number) || r.tenants?.some(t => t.name.toLowerCase().includes(v.toLowerCase())) || r.tenant?.name.toLowerCase().includes(v.toLowerCase())); d.innerHTML = res.length === 0 ? '-কোন ফলাফল নেই-' : res.map(r => { const bN = state.buildings.find(b => b.id === r.buildingId)?.name || ''; const tN = r.tenants?.map(t=>t.name).join(', ') || r.tenant?.name || 'খালি'; return `<div class="search-item" onclick="showRoomDetail('${r.id}'); document.getElementById('searchDropdown').style.display='none';"><strong>${escapeHtml(tN)}</strong><br><span class="text-sm">${escapeHtml(bN)} - রুম: ${escapeHtml(r.number)}</span></div>`; }).join(''); d.style.display = 'block'; }
 document.addEventListener('click', (e) => { if (!e.target.closest('.search-box')) document.getElementById('searchDropdown').style.display = 'none'; });
 document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target.id === 'modalOverlay') forceCloseModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-// ===== GUEST BILL FUNCTIONS =====
-function gbSwitchTab(tab) {
-    guestBillState.activeGbTab = tab;
-    renderPage();
-}
+function gbSwitchTab(tab) { guestBillState.activeGbTab = tab; renderPage(); }
 
 function getGbFormHtml() {
     return `<div class="gb-form-card">
@@ -1345,38 +934,14 @@ function getGbListHtml() {
 }
 
 function renderGuestBillTab(c) {
-    c.innerHTML = `
-    <div class="tabs">
-        <div class="tab ${guestBillState.activeGbTab === 'newBill' ? 'active' : ''}" onclick="gbSwitchTab('newBill')">🆕 নতুন বিল</div>
-        <div class="tab ${guestBillState.activeGbTab === 'billList' ? 'active' : ''}" onclick="gbSwitchTab('billList')">📋 বিল তালিকা ও ডাউনলোড</div>
-    </div>
-    <div id="gbTabContent"></div>`;
-    
+    c.innerHTML = `<div class="tabs"><div class="tab ${guestBillState.activeGbTab === 'newBill' ? 'active' : ''}" onclick="gbSwitchTab('newBill')">🆕 নতুন বিল</div><div class="tab ${guestBillState.activeGbTab === 'billList' ? 'active' : ''}" onclick="gbSwitchTab('billList')">📋 বিল তালিকা ও ডাউনলোড</div></div><div id="gbTabContent"></div>`;
     const tabContent = document.getElementById('gbTabContent');
-    if (guestBillState.activeGbTab === 'newBill') {
-        tabContent.innerHTML = getGbFormHtml();
-    } else {
-        tabContent.innerHTML = getGbListHtml();
-    }
-    gbUpdateSelects();
-    gbRenderTempGuests();
-    gbRenderBillList();
+    if (guestBillState.activeGbTab === 'newBill') tabContent.innerHTML = getGbFormHtml(); else tabContent.innerHTML = getGbListHtml();
+    gbUpdateSelects(); gbRenderTempGuests(); gbRenderBillList();
 }
 
 function gbOpenSettings() {
-    const content = `
-    <div style="margin-bottom:20px;">
-        <div class="gb-section-title" style="color:#1e40af;">🛏️ রুম ভাড়া সেটিংস</div>
-        <div id="gbRoomSettings"></div>
-        <button onclick="gbAddRoom()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #3b82f6;color:#2563eb;margin-top:8px;">➕ নতুন রুম ক্যাটাগরি</button>
-    </div>
-    <div style="margin-bottom:20px;">
-        <div class="gb-section-title" style="color:#16a34a;">👥 গেস্ট টাইপ ভাড়া</div>
-        <p style="font-size:11px;color:var(--text-light);margin-bottom:8px;">নির্দিষ্ট টাইপের জন্য ফ্ল্যাট ভাড়া দিন। খালি বা 0 থাকলে রুমের ভাড়া প্রযোজ্য হবে।</p>
-        <div id="gbGuestSettings"></div>
-        <button onclick="gbAddGuest()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #16a34a;color:#16a34a;margin-top:8px;">➕ নতুন গেস্ট টাইপ</button>
-    </div>
-    <button onclick="gbSaveSettings()" class="gb-btn gb-btn-primary" style="width:100%;">💾 সেটিংস সেভ করুন</button>`;
+    const content = `<div style="margin-bottom:20px;"><div class="gb-section-title" style="color:#1e40af;">🛏️ রুম ভাড়া সেটিংস</div><div id="gbRoomSettings"></div><button onclick="gbAddRoom()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #3b82f6;color:#2563eb;margin-top:8px;">➕ নতুন রুম ক্যাটাগরি</button></div><div style="margin-bottom:20px;"><div class="gb-section-title" style="color:#16a34a;">👥 গেস্ট টাইপ ভাড়া</div><p style="font-size:11px;color:var(--text-light);margin-bottom:8px;">নির্দিষ্ট টাইপের জন্য ফ্ল্যাট ভাড়া দিন। খালি বা 0 থাকলে রুমের ভাড়া প্রযোজ্য হবে।</p><div id="gbGuestSettings"></div><button onclick="gbAddGuest()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #16a34a;color:#16a34a;margin-top:8px;">➕ নতুন গেস্ট টাইপ</button></div><button onclick="gbSaveSettings()" class="gb-btn gb-btn-primary" style="width:100%;">💾 সেটিংস সেভ করুন</button>`;
     openModal('সেটিংস (ভাড়া কনফিগারেশন)', content, true, true);
     gbRenderSettings();
 }
@@ -1385,168 +950,88 @@ function gbRenderSettings() {
     let html = '';
     for (let id in guestBillState.settings.rooms) {
         let r = guestBillState.settings.rooms[id];
-        html += `<div class="gb-settings-item" id="gb_room_${id}">
-            <button type="button" class="gb-del-btn" onclick="gbDeleteRoom('${id}')">${gbDelIcon}</button>
-            <input type="text" value="${escapeHtml(r.name)}" id="gb_room_${id}_name" class="gb-input" style="font-weight:700;color:#1e40af;margin-bottom:10px;font-size:13px;" placeholder="ক্যাটাগরি নাম">
-            <div class="gb-settings-row"><label>রেগুলার:</label><input type="number" value="${r.x}" id="gb_room_${id}_x" class="rate"></div>
-            <div class="gb-settings-row"><input type="number" value="${r.a}" id="gb_room_${id}_a"><label>থেকে</label><input type="number" value="${r.b}" id="gb_room_${id}_b"><label>দিন:</label><input type="number" value="${r.y}" id="gb_room_${id}_y" class="rate"></div>
-            <div class="gb-settings-row"><input type="number" value="${r.c}" id="gb_room_${id}_c"><label>থেকে</label><input type="number" value="${r.d}" id="gb_room_${id}_d"><label>দিন:</label><input type="number" value="${r.z}" id="gb_room_${id}_z" class="rate"></div>
-        </div>`;
+        html += `<div class="gb-settings-item" id="gb_room_${id}"><button type="button" class="gb-del-btn" onclick="gbDeleteRoom('${id}')">${gbDelIcon}</button><input type="text" value="${escapeHtml(r.name)}" id="gb_room_${id}_name" class="gb-input" style="font-weight:700;color:#1e40af;margin-bottom:10px;font-size:13px;" placeholder="ক্যাটাগরি নাম"><div class="gb-settings-row"><label>রেগুলার:</label><input type="number" value="${r.x}" id="gb_room_${id}_x" class="rate"></div><div class="gb-settings-row"><input type="number" value="${r.a}" id="gb_room_${id}_a"><label>থেকে</label><input type="number" value="${r.b}" id="gb_room_${id}_b"><label>দিন:</label><input type="number" value="${r.y}" id="gb_room_${id}_y" class="rate"></div><div class="gb-settings-row"><input type="number" value="${r.c}" id="gb_room_${id}_c"><label>থেকে</label><input type="number" value="${r.d}" id="gb_room_${id}_d"><label>দিন:</label><input type="number" value="${r.z}" id="gb_room_${id}_z" class="rate"></div></div>`;
     }
     document.getElementById('gbRoomSettings').innerHTML = html;
     let gHtml = '';
     for (let id in guestBillState.settings.guests) {
         let g = guestBillState.settings.guests[id];
-        gHtml += `<div class="gb-guest-row" id="gb_guest_${id}">
-            <input type="text" value="${escapeHtml(g.name)}" id="gb_guest_${id}_name" class="gb-input" style="flex:1;" placeholder="গেস্ট টাইপ">
-            <input type="number" value="${g.rate}" id="gb_guest_${id}_rate" class="gb-input" style="width:90px;" placeholder="ভাড়া">
-            <button type="button" class="gb-del-btn" style="position:static;" onclick="gbDeleteGuest('${id}')">${gbDelIcon}</button>
-        </div>`;
+        gHtml += `<div class="gb-guest-row" id="gb_guest_${id}"><input type="text" value="${escapeHtml(g.name)}" id="gb_guest_${id}_name" class="gb-input" style="flex:1;" placeholder="গেস্ট টাইপ"><input type="number" value="${g.rate}" id="gb_guest_${id}_rate" class="gb-input" style="width:90px;" placeholder="ভাড়া"><button type="button" class="gb-del-btn" style="position:static;" onclick="gbDeleteGuest('${id}')">${gbDelIcon}</button></div>`;
     }
     document.getElementById('gbGuestSettings').innerHTML = gHtml;
 }
 
-function gbAddRoom() {
-    let id = 'r_' + Date.now();
-    guestBillState.settings.rooms[id] = { name: "নতুন রুম", x: 0, a: 0, b: 0, y: 0, c: 0, d: 0, z: 0 };
-    gbRenderSettings();
-}
-
-function gbDeleteRoom(id) {
-    showConfirm('এই রুম ক্যাটাগরিটি ডিলিট করতে চান?', () => {
-        delete guestBillState.settings.rooms[id];
-        gbRenderSettings();
-    });
-}
-
-function gbAddGuest() {
-    let id = 'g_' + Date.now();
-    guestBillState.settings.guests[id] = { name: "নতুন গেস্ট", rate: 0 };
-    gbRenderSettings();
-}
-
-function gbDeleteGuest(id) {
-    showConfirm('এই গেস্ট টাইপটি ডিলিট করতে চান?', () => {
-        delete guestBillState.settings.guests[id];
-        gbRenderSettings();
-    });
-}
+function gbAddRoom() { let id = 'r_' + Date.now(); guestBillState.settings.rooms[id] = { name: "নতুন রুম", x: 0, a: 0, b: 0, y: 0, c: 0, d: 0, z: 0 }; gbRenderSettings(); }
+function gbDeleteRoom(id) { showConfirm('এই রুম ক্যাটাগরিটি ডিলিট করতে চান?', () => { delete guestBillState.settings.rooms[id]; gbRenderSettings(); }); }
+function gbAddGuest() { let id = 'g_' + Date.now(); guestBillState.settings.guests[id] = { name: "নতুন গেস্ট", rate: 0 }; gbRenderSettings(); }
+function gbDeleteGuest(id) { showConfirm('এই গেস্ট টাইপটি ডিলিট করতে চান?', () => { delete guestBillState.settings.guests[id]; gbRenderSettings(); }); }
 
 async function gbSaveSettings() {
     let updatedRooms = {};
     for (let id in guestBillState.settings.rooms) {
-        updatedRooms[id] = {
-            name: document.getElementById(`gb_room_${id}_name`).value || "Unnamed",
-            x: parseFloat(document.getElementById(`gb_room_${id}_x`).value) || 0,
-            a: parseInt(document.getElementById(`gb_room_${id}_a`).value) || 0,
-            b: parseInt(document.getElementById(`gb_room_${id}_b`).value) || 0,
-            y: parseFloat(document.getElementById(`gb_room_${id}_y`).value) || 0,
-            c: parseInt(document.getElementById(`gb_room_${id}_c`).value) || 0,
-            d: parseInt(document.getElementById(`gb_room_${id}_d`).value) || 0,
-            z: parseFloat(document.getElementById(`gb_room_${id}_z`).value) || 0
-        };
+        updatedRooms[id] = { name: document.getElementById(`gb_room_${id}_name`).value || "Unnamed", x: parseFloat(document.getElementById(`gb_room_${id}_x`).value) || 0, a: parseInt(document.getElementById(`gb_room_${id}_a`).value) || 0, b: parseInt(document.getElementById(`gb_room_${id}_b`).value) || 0, y: parseFloat(document.getElementById(`gb_room_${id}_y`).value) || 0, c: parseInt(document.getElementById(`gb_room_${id}_c`).value) || 0, d: parseInt(document.getElementById(`gb_room_${id}_d`).value) || 0, z: parseFloat(document.getElementById(`gb_room_${id}_z`).value) || 0 };
     }
     guestBillState.settings.rooms = updatedRooms;
     let updatedGuests = {};
     for (let id in guestBillState.settings.guests) {
-        updatedGuests[id] = {
-            name: document.getElementById(`gb_guest_${id}_name`).value || "Unnamed",
-            rate: parseFloat(document.getElementById(`gb_guest_${id}_rate`).value) || 0
-        };
+        updatedGuests[id] = { name: document.getElementById(`gb_guest_${id}_name`).value || "Unnamed", rate: parseFloat(document.getElementById(`gb_guest_${id}_rate`).value) || 0 };
     }
     guestBillState.settings.guests = updatedGuests;
-    forceCloseModal();
-    gbUpdateSelects();
+    forceCloseModal(); gbUpdateSelects();
     try { await GbStore.saveSettings(guestBillState.settings); showToast('সেটিংস সফলভাবে সেভ হয়েছে!'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); }
 }
 
 function gbUpdateSelects() {
-    const roomSelect = document.getElementById('gbRoomType');
-    if (!roomSelect) return;
-    let roomHtml = '';
-    for (let id in guestBillState.settings.rooms) roomHtml += `<option value="${id}">${escapeHtml(guestBillState.settings.rooms[id].name)}</option>`;
-    roomSelect.innerHTML = roomHtml;
-    const guestSelect = document.getElementById('gbGuestType');
-    let guestHtml = '';
-    for (let id in guestBillState.settings.guests) guestHtml += `<option value="${id}">${escapeHtml(guestBillState.settings.guests[id].name)}</option>`;
-    guestHtml += `<option value="Others">Others</option>`;
-    guestSelect.innerHTML = guestHtml;
-    gbToggleOther();
+    const roomSelect = document.getElementById('gbRoomType'); if (!roomSelect) return;
+    let roomHtml = ''; for (let id in guestBillState.settings.rooms) roomHtml += `<option value="${id}">${escapeHtml(guestBillState.settings.rooms[id].name)}</option>`; roomSelect.innerHTML = roomHtml;
+    const guestSelect = document.getElementById('gbGuestType'); let guestHtml = ''; for (let id in guestBillState.settings.guests) guestHtml += `<option value="${id}">${escapeHtml(guestBillState.settings.guests[id].name)}</option>`; guestHtml += `<option value="Others">Others</option>`; guestSelect.innerHTML = guestHtml; gbToggleOther();
 }
 
-function gbToggleOther() {
-    const type = document.getElementById('gbGuestType')?.value;
-    const field = document.getElementById('gbOtherField');
-    if (field) field.style.display = type === "Others" ? 'block' : 'none';
-}
+function gbToggleOther() { const type = document.getElementById('gbGuestType')?.value; const field = document.getElementById('gbOtherField'); if (field) field.style.display = type === "Others" ? 'block' : 'none'; }
 
 function gbFormatDate(dateStr) {
     if (!dateStr) return '-';
     try {
         let d = new Date(dateStr);
         if (typeof dateStr === 'object' && dateStr !== null && dateStr.seconds !== undefined) d = new Date(dateStr.seconds * 1000);
-        let day = d.getDate().toString().padStart(2, '0');
-        let month = (d.getMonth() + 1).toString().padStart(2, '0');
-        let year = d.getFullYear();
+        let day = d.getDate().toString().padStart(2, '0'); let month = (d.getMonth() + 1).toString().padStart(2, '0'); let year = d.getFullYear();
         return `${day}-${month}-${year}`;
     } catch(e) { return String(dateStr); }
 }
 
 function gbUpdateDays() {
-    const ci = document.getElementById('gbCheckIn')?.value;
-    const co = document.getElementById('gbCheckOut')?.value;
-    const ex = document.getElementById('gbExcluded')?.value;
+    const ci = document.getElementById('gbCheckIn')?.value; const co = document.getElementById('gbCheckOut')?.value; const ex = document.getElementById('gbExcluded')?.value;
     if (!ci || !co) return;
     const start = new Date(ci), end = new Date(co);
     if (end < start) { document.getElementById('gbTotalDays').value = "ভুল তারিখ"; return; }
-    let diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-    let excludedCount = 0;
+    let diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1; let excludedCount = 0;
     if (ex && ex.trim()) excludedCount = ex.split(',').map(d => d.trim()).filter(d => d !== "").length;
     document.getElementById('gbTotalDays').value = (diffDays - excludedCount) + " দিন";
 }
 
 function gbGetFormData() {
-    const guestName = document.getElementById('gbGuestName').value.trim();
-    const mobile = document.getElementById('gbMobile').value.trim();
-    const address = document.getElementById('gbAddress').value.trim();
+    const guestName = document.getElementById('gbGuestName').value.trim(); const mobile = document.getElementById('gbMobile').value.trim(); const address = document.getElementById('gbAddress').value.trim();
     const guestTypeId = document.getElementById('gbGuestType').value;
     let guestTypeName = guestTypeId === "Others" ? (document.getElementById('gbCustomType').value || "Others") : (guestBillState.settings.guests[guestTypeId]?.name || "");
-    const roomTypeId = document.getElementById('gbRoomType').value;
-    const roomTypeName = guestBillState.settings.rooms[roomTypeId]?.name || "";
-    const roomNumber = document.getElementById('gbRoomNumber').value.trim();
-    const checkIn = document.getElementById('gbCheckIn').value;
-    const checkOut = document.getElementById('gbCheckOut').value;
-    const excludedDatesRaw = document.getElementById('gbExcluded').value;
-    const excludedDates = excludedDatesRaw ? excludedDatesRaw.split(',').map(d => d.trim()) : [];
-    const purpose = document.getElementById('gbPurpose').value;
-    const totalDays = document.getElementById('gbTotalDays').value;
-    const comments = document.getElementById('gbComments').value;
+    const roomTypeId = document.getElementById('gbRoomType').value; const roomTypeName = guestBillState.settings.rooms[roomTypeId]?.name || "";
+    const roomNumber = document.getElementById('gbRoomNumber').value.trim(); const checkIn = document.getElementById('gbCheckIn').value; const checkOut = document.getElementById('gbCheckOut').value;
+    const excludedDatesRaw = document.getElementById('gbExcluded').value; const excludedDates = excludedDatesRaw ? excludedDatesRaw.split(',').map(d => d.trim()) : [];
+    const purpose = document.getElementById('gbPurpose').value; const totalDays = document.getElementById('gbTotalDays').value; const comments = document.getElementById('gbComments').value;
     const totalAmount = gbCalculateBill(checkIn, checkOut, excludedDates, roomTypeId, guestTypeName);
     return { guestName, mobile, address, guestType: guestTypeName, roomType: roomTypeId, roomTypeName, roomNumber, checkIn, checkOut, excludedDates, purpose, totalDays, comments, totalAmount };
 }
 
 function gbCalculateBill(checkIn, checkOut, excludedDates, roomTypeId, guestTypeName) {
-    let total = 0;
-    let current = new Date(checkIn);
-    let end = new Date(checkOut);
-    let consecutiveDays = 0;
+    let total = 0; let current = new Date(checkIn); let end = new Date(checkOut); let consecutiveDays = 0;
     const r = guestBillState.settings.rooms[roomTypeId];
     let guestRate = 0;
-    for (let id in guestBillState.settings.guests) {
-        if (guestBillState.settings.guests[id].name === guestTypeName) { guestRate = guestBillState.settings.guests[id].rate; break; }
-    }
+    for (let id in guestBillState.settings.guests) { if (guestBillState.settings.guests[id].name === guestTypeName) { guestRate = guestBillState.settings.guests[id].rate; break; } }
     while (current <= end) {
         const dateStr = gbFormatDate(current);
         if (!excludedDates.includes(dateStr)) {
-            consecutiveDays++;
-            let dailyRate = 0;
+            consecutiveDays++; let dailyRate = 0;
             if (guestRate > 0) dailyRate = guestRate;
-            else if (r) {
-                if (consecutiveDays >= r.a && consecutiveDays <= r.b) dailyRate = r.y;
-                else if (consecutiveDays >= r.c && consecutiveDays <= r.d) dailyRate = r.z;
-                else if (consecutiveDays > r.d) dailyRate = r.z;
-                else dailyRate = r.x;
-            }
+            else if (r) { if (consecutiveDays >= r.a && consecutiveDays <= r.b) dailyRate = r.y; else if (consecutiveDays >= r.c && consecutiveDays <= r.d) dailyRate = r.z; else if (consecutiveDays > r.d) dailyRate = r.z; else dailyRate = r.x; }
             total += dailyRate;
         } else { consecutiveDays = 0; }
         current.setDate(current.getDate() + 1);
@@ -1555,25 +1040,16 @@ function gbCalculateBill(checkIn, checkOut, excludedDates, roomTypeId, guestType
 }
 
 function gbAddTemp() {
-    const name = document.getElementById('gbGuestName').value.trim();
-    const ci = document.getElementById('gbCheckIn').value;
-    const co = document.getElementById('gbCheckOut').value;
+    const name = document.getElementById('gbGuestName').value.trim(); const ci = document.getElementById('gbCheckIn').value; const co = document.getElementById('gbCheckOut').value;
     if (!name) { showToast('অন্তত নামটি লিখুন!', 'error'); return; }
     if (!ci || !co) { showToast('চেক-ইন এবং চেক-আউট তারিখ দিন!', 'error'); return; }
-    guestBillState.tempGuests.push(gbGetFormData());
-    gbRenderTempGuests();
-    document.getElementById('gbGuestName').value = '';
-    document.getElementById('gbMobile').value = '';
-    document.getElementById('gbAddress').value = '';
-    document.getElementById('gbRoomNumber').value = '';
-    document.getElementById('gbPurpose').value = '';
-    document.getElementById('gbComments').value = '';
+    guestBillState.tempGuests.push(gbGetFormData()); gbRenderTempGuests();
+    document.getElementById('gbGuestName').value = ''; document.getElementById('gbMobile').value = ''; document.getElementById('gbAddress').value = ''; document.getElementById('gbRoomNumber').value = ''; document.getElementById('gbPurpose').value = ''; document.getElementById('gbComments').value = '';
     document.getElementById('gbGuestName').focus();
 }
 
 function gbRenderTempGuests() {
-    const el = document.getElementById('gbTempList');
-    if (!el) return;
+    const el = document.getElementById('gbTempList'); if (!el) return;
     if (guestBillState.tempGuests.length === 0) { el.innerHTML = '<p style="color:var(--text-light);font-size:12px;text-align:center;padding:8px;">কোনো গেস্ট এন্ট্রি দেওয়া হয়নি।</p>'; return; }
     el.innerHTML = guestBillState.tempGuests.map((g, i) => `<div class="gb-temp-item"><span><strong>${i + 1}.</strong> ${escapeHtml(g.guestName)} <span style="color:var(--text-light);font-size:11px;">(${escapeHtml(g.roomTypeName)})</span></span><button onclick="gbRemoveTemp(${i})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;">✖</button></div>`).join('');
 }
@@ -1588,16 +1064,11 @@ function gbConfirmSubmitBill() {
     const heading = document.getElementById('gbBillHeading').value.trim();
     if (!heading) { showToast('হেডিং লিখুন!', 'error'); return; }
     forceCloseModal();
-    
     const guestsWithIds = guestBillState.tempGuests.map(g => ({ id: genId('gbg'), ...g }));
     const batchId = 'batch_' + Date.now();
     const newBillDoc = { heading, batchId, guests: guestsWithIds, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
-    
     GbStore.saveBatchBill(newBillDoc).then(() => {
-        guestBillState.tempGuests = [];
-        showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`);
-        gbRenderTempGuests();
-        gbSwitchTab('billList');
+        guestBillState.tempGuests = []; showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`); gbRenderTempGuests(); gbSwitchTab('billList');
     }).catch(e => showToast('সেভ করতে সমস্যা', 'error'));
 }
 
@@ -1606,15 +1077,9 @@ async function gbSubmitBill() {
     if (editId) {
         const bill = guestBillState.bills.find(b => b.id === editId);
         if (bill) {
-            const data = gbGetFormData();
-            const gId = document.getElementById('gbEditGuestId').value;
-            if (gId && bill.guests) {
-                const idx = bill.guests.findIndex(g => g.id === gId);
-                if (idx > -1) bill.guests[idx] = { ...bill.guests[idx], ...data };
-            } else {
-                bill.guests = bill.guests || [];
-                bill.guests.push({ id: genId('gbg'), ...data });
-            }
+            const data = gbGetFormData(); const gId = document.getElementById('gbEditGuestId').value;
+            if (gId && bill.guests) { const idx = bill.guests.findIndex(g => g.id === gId); if (idx > -1) bill.guests[idx] = { ...bill.guests[idx], ...data }; }
+            else { bill.guests = bill.guests || []; bill.guests.push({ id: genId('gbg'), ...data }); }
             try { await GbStore.updateBill(bill); showToast('বিল সফলভাবে আপডেট হয়েছে!'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); }
         }
     } else {
@@ -1625,42 +1090,23 @@ async function gbSubmitBill() {
 }
 
 function gbEditGuest(billId, guestId) {
-    const bill = guestBillState.bills.find(b => b.id === billId);
-    if (!bill || !bill.guests) return;
-    const guest = bill.guests.find(g => g.id === guestId);
-    if (!guest) return;
-    
-    document.getElementById('gbEditId').value = bill.id;
-    document.getElementById('gbEditGuestId').value = guest.id;
-    document.getElementById('gbGuestName').value = guest.guestName || '';
-    document.getElementById('gbMobile').value = guest.mobile || '';
-    document.getElementById('gbAddress').value = guest.address || '';
-    const guestSelect = document.getElementById('gbGuestType');
-    let matched = false;
-    for (let id in guestBillState.settings.guests) {
-        if (guestBillState.settings.guests[id].name === guest.guestType) { guestSelect.value = id; matched = true; break; }
-    }
+    const bill = guestBillState.bills.find(b => b.id === billId); if (!bill || !bill.guests) return;
+    const guest = bill.guests.find(g => g.id === guestId); if (!guest) return;
+    document.getElementById('gbEditId').value = bill.id; document.getElementById('gbEditGuestId').value = guest.id;
+    document.getElementById('gbGuestName').value = guest.guestName || ''; document.getElementById('gbMobile').value = guest.mobile || ''; document.getElementById('gbAddress').value = guest.address || '';
+    const guestSelect = document.getElementById('gbGuestType'); let matched = false;
+    for (let id in guestBillState.settings.guests) { if (guestBillState.settings.guests[id].name === guest.guestType) { guestSelect.value = id; matched = true; break; } }
     if (!matched) { guestSelect.value = "Others"; gbToggleOther(); document.getElementById('gbCustomType').value = guest.guestType || ''; }
-    document.getElementById('gbRoomType').value = guest.roomType || '';
-    document.getElementById('gbRoomNumber').value = guest.roomNumber || '';
-    document.getElementById('gbCheckIn').value = guest.checkIn || '';
-    document.getElementById('gbCheckOut').value = guest.checkOut || '';
-    document.getElementById('gbExcluded').value = (guest.excludedDates || []).join(', ');
-    document.getElementById('gbPurpose').value = guest.purpose || '';
-    document.getElementById('gbTotalDays').value = guest.totalDays || '';
-    document.getElementById('gbComments').value = guest.comments || '';
-    document.getElementById('gbSubmitBtn').innerHTML = '✏️ আপডেট করুন';
-    document.getElementById('gbTempBtn').style.display = 'none';
-    gbSwitchTab('newBill');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('gbRoomType').value = guest.roomType || ''; document.getElementById('gbRoomNumber').value = guest.roomNumber || '';
+    document.getElementById('gbCheckIn').value = guest.checkIn || ''; document.getElementById('gbCheckOut').value = guest.checkOut || '';
+    document.getElementById('gbExcluded').value = (guest.excludedDates || []).join(', '); document.getElementById('gbPurpose').value = guest.purpose || '';
+    document.getElementById('gbTotalDays').value = guest.totalDays || ''; document.getElementById('gbComments').value = guest.comments || '';
+    document.getElementById('gbSubmitBtn').innerHTML = '✏️ আপডেট করুন'; document.getElementById('gbTempBtn').style.display = 'none';
+    gbSwitchTab('newBill'); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function gbDeleteBill(id) {
-    checkPassword(() => {
-        showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?', async () => {
-            try { await GbStore.deleteBill(id); showToast('বিল ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); }
-        });
-    });
+    checkPassword(() => { showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?', async () => { try { await GbStore.deleteBill(id); showToast('বিল ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); } }); });
 }
 
 function gbRenderBillList() {
@@ -1668,25 +1114,15 @@ function gbRenderBillList() {
     guestBillState.filteredBills = guestBillState.bills.filter(b => {
         if (!b.guests) return false;
         const billDate = b.createdAt ? gbFormatDate(b.createdAt) : '';
-        const headingMatch = (b.heading || '').toLowerCase().includes(searchTerm);
-        const dateMatch = billDate.toLowerCase().includes(searchTerm);
-        const guestMatch = b.guests.some(g =>
-            (g.guestName || '').toLowerCase().includes(searchTerm) ||
-            (g.mobile || '').toLowerCase().includes(searchTerm) ||
-            (g.address || '').toLowerCase().includes(searchTerm) ||
-            (g.guestType || '').toLowerCase().includes(searchTerm) ||
-            (g.roomTypeName || '').toLowerCase().includes(searchTerm) ||
-            (g.roomNumber || '').toLowerCase().includes(searchTerm)
-        );
+        const headingMatch = (b.heading || '').toLowerCase().includes(searchTerm); const dateMatch = billDate.toLowerCase().includes(searchTerm);
+        const guestMatch = b.guests.some(g => (g.guestName || '').toLowerCase().includes(searchTerm) || (g.mobile || '').toLowerCase().includes(searchTerm) || (g.address || '').toLowerCase().includes(searchTerm) || (g.guestType || '').toLowerCase().includes(searchTerm) || (g.roomTypeName || '').toLowerCase().includes(searchTerm) || (g.roomNumber || '').toLowerCase().includes(searchTerm));
         return headingMatch || dateMatch || guestMatch;
     });
     const totalPages = Math.ceil(guestBillState.filteredBills.length / guestBillState.itemsPerPage);
     if (guestBillState.currentPage > totalPages && totalPages > 0) guestBillState.currentPage = totalPages;
     if (totalPages === 0) guestBillState.currentPage = 1;
-    const start = (guestBillState.currentPage - 1) * guestBillState.itemsPerPage;
-    const pageItems = guestBillState.filteredBills.slice(start, start + guestBillState.itemsPerPage);
-    const container = document.getElementById('gbBillList');
-    if (!container) return;
+    const start = (guestBillState.currentPage - 1) * guestBillState.itemsPerPage; const pageItems = guestBillState.filteredBills.slice(start, start + guestBillState.itemsPerPage);
+    const container = document.getElementById('gbBillList'); if (!container) return;
     if (pageItems.length === 0) { container.innerHTML = '<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size:40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>'; }
     else {
         container.innerHTML = pageItems.map(bill => {
@@ -1694,45 +1130,8 @@ function gbRenderBillList() {
             const title = bill.heading ? escapeHtml(bill.heading.toUpperCase()) : (guests.length === 1 ? escapeHtml(guests[0].guestName) : `${guests.length} জন গেস্টের বিল`);
             const subtitle = guests.length > 1 ? guests.map(g => escapeHtml(g.guestName)).join(', ') : escapeHtml(guests[0]?.roomTypeName || '');
             const billDate = bill.createdAt ? gbFormatDate(bill.createdAt) : 'নতুন';
-            let detailsHtml = guests.map((g, i) => `
-                <div class="gb-guest-info-box">
-                    <div class="flex-between mb-8">
-                        <strong>${escapeHtml(g.guestName)}</strong>
-                        ${guests.length > 1 ? `<button onclick="event.stopPropagation();gbEditGuest('${bill.id}', '${g.id}')" class="gb-btn gb-btn-outline gb-btn-sm">✏️</button>` : ''}
-                    </div>
-                    <p>📱 ${escapeHtml(g.mobile || 'নেই')}</p>
-                    <p>🚪 ${escapeHtml(g.roomTypeName)} (নং: ${escapeHtml(g.roomNumber || 'নেই')})</p>
-                    <p>👤 ${escapeHtml(g.guestType)}</p>
-                    <p>📍 ${escapeHtml(g.address || 'নেই')}</p>
-                    <p>📅 ${gbFormatDate(g.checkIn)} → ${gbFormatDate(g.checkOut)}</p>
-                    <p>⏱️ মোট দিন: ${escapeHtml(g.totalDays || '-')}</p>
-                    <p>🎯 উদ্দেশ্য: ${escapeHtml(g.purpose || 'নেই')}</p>
-                    <p>💬 মন্তব্য: ${escapeHtml(g.comments || 'নেই')}</p>
-                    <div class="gb-total-display"><span>মোট বিল: ৳${g.totalAmount || 0}</span></div>
-                </div>
-            `).join('');
-            
-            return `
-            <div class="gb-bill-card" onclick="gbToggleExpand('${bill.id}')">
-                <div class="flex-between">
-                    <div>
-                        <h3 style="font-size:16px;font-weight:700;color:var(--primary-dark);">${title}</h3>
-                        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}<br>🗓️ তৈরির তারিখ: ${billDate}</p>
-                    </div>
-                    <span id="gb_icon_${bill.id}" style="color:var(--text-light);">▼</span>
-                </div>
-                <div id="gb_details_${bill.id}" style="display:none;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:13px;">
-                    ${detailsHtml}
-                    <div style="display:flex;gap:6px;margin-top:10px;">
-                        <button onclick="event.stopPropagation();gbDownloadPDF('${bill.id}')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;">📥 PDF</button>
-                        <button onclick="event.stopPropagation();gbDownloadExcel('${bill.id}')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;">📥 Excel</button>
-                    </div>
-                    <div class="gb-actions">
-                        ${guests.length === 1 ? `<button onclick="event.stopPropagation();gbEditGuest('${bill.id}', '${guests[0].id}')">✏️ এডিট</button>` : ''}
-                        <button class="danger" onclick="event.stopPropagation();gbDeleteBill('${bill.id}')">🗑️ ডিলিট</button>
-                    </div>
-                </div>
-            </div>`;
+            let detailsHtml = guests.map((g, i) => `<div class="gb-guest-info-box"><div class="flex-between mb-8"><strong>${escapeHtml(g.guestName)}</strong>${guests.length > 1 ? `<button onclick="event.stopPropagation();gbEditGuest('${bill.id}', '${g.id}')" class="gb-btn gb-btn-outline gb-btn-sm">✏️</button>` : ''}</div><p>📱 ${escapeHtml(g.mobile || 'নেই')}</p><p>🚪 ${escapeHtml(g.roomTypeName)} (নং: ${escapeHtml(g.roomNumber || 'নেই')})</p><p>👤 ${escapeHtml(g.guestType)}</p><p>📍 ${escapeHtml(g.address || 'নেই')}</p><p>📅 ${gbFormatDate(g.checkIn)} → ${gbFormatDate(g.checkOut)}</p><p>⏱️ মোট দিন: ${escapeHtml(g.totalDays || '-')}</p><p>🎯 উদ্দেশ্য: ${escapeHtml(g.purpose || 'নেই')}</p><p>💬 মন্তব্য: ${escapeHtml(g.comments || 'নেই')}</p><div class="gb-total-display"><span>মোট বিল: ৳${g.totalAmount || 0}</span></div></div>`).join('');
+            return `<div class="gb-bill-card" onclick="gbToggleExpand('${bill.id}')"><div class="flex-between"><div><h3 style="font-size:16px;font-weight:700;color:var(--primary-dark);">${title}</h3><p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}<br>🗓️ তৈরির তারিখ: ${billDate}</p></div><span id="gb_icon_${bill.id}" style="color:var(--text-light);">▼</span></div><div id="gb_details_${bill.id}" style="display:none;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:13px;">${detailsHtml}<div style="display:flex;gap:6px;margin-top:10px;"><button onclick="event.stopPropagation();gbDownloadPDF('${bill.id}')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;">📥 PDF</button><button onclick="event.stopPropagation();gbDownloadExcel('${bill.id}')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;">📥 Excel</button></div><div class="gb-actions">${guests.length === 1 ? `<button onclick="event.stopPropagation();gbEditGuest('${bill.id}', '${guests[0].id}')">✏️ এডিট</button>` : ''}<button class="danger" onclick="event.stopPropagation();gbDeleteBill('${bill.id}')">🗑️ ডিলিট</button></div></div></div>`;
         }).join('');
     }
     const pag = document.getElementById('gbPagination');
@@ -1742,39 +1141,24 @@ function gbRenderBillList() {
 function gbToggleExpand(id) {
     const allDetails = document.querySelectorAll('div[id^="gb_details_"]');
     allDetails.forEach(div => {
-        const dId = div.id.split('_')[2];
-        const icon = document.getElementById(`gb_icon_${dId}`);
-        if (dId === id) {
-            const isVisible = div.style.display === 'block';
-            div.style.display = isVisible ? 'none' : 'block';
-            if (icon) icon.textContent = isVisible ? '▼' : '▲';
-        } else {
-            div.style.display = 'none';
-            if (icon) icon.textContent = '▼';
-        }
+        const dId = div.id.split('_')[2]; const icon = document.getElementById(`gb_icon_${dId}`);
+        if (dId === id) { const isVisible = div.style.display === 'block'; div.style.display = isVisible ? 'none' : 'block'; if (icon) icon.textContent = isVisible ? '▼' : '▲'; }
+        else { div.style.display = 'none'; if (icon) icon.textContent = '▼'; }
     });
 }
 function gbPrevPage() { if (guestBillState.currentPage > 1) { guestBillState.currentPage--; gbRenderBillList(); } }
 function gbNextPage() { const t = Math.ceil(guestBillState.filteredBills.length / guestBillState.itemsPerPage); if (guestBillState.currentPage < t) { guestBillState.currentPage++; gbRenderBillList(); } }
 
 function gbGetFilteredBills() {
-    const from = document.getElementById('gbFromDate')?.value;
-    const to = document.getElementById('gbToDate')?.value;
+    const from = document.getElementById('gbFromDate')?.value; const to = document.getElementById('gbToDate')?.value;
     return guestBillState.bills.filter(bill => {
         if(!bill.guests || bill.guests.length === 0) return false;
-        return bill.guests.some(g => {
-            let d = new Date(g.checkIn);
-            let fromOk = true, toOk = true;
-            if (from) fromOk = d >= new Date(from);
-            if (to) toOk = d <= new Date(to);
-            return fromOk && toOk;
-        });
+        return bill.guests.some(g => { let d = new Date(g.checkIn); let fromOk = true, toOk = true; if (from) fromOk = d >= new Date(from); if (to) toOk = d <= new Date(to); return fromOk && toOk; });
     });
 }
 
 function getGbNbNote(roomTypeId, totalDaysStr) {
-    const r = guestBillState.settings.rooms[roomTypeId];
-    if (!r) return '';
+    const r = guestBillState.settings.rooms[roomTypeId]; if (!r) return '';
     let days = parseInt(totalDaysStr) || 0;
     if (days >= r.a && days <= r.b) return `N.B: ${r.name} রুমে ${r.a} থেকে ${r.b} তম দিনের ভাড়া ${r.y} টাকা`;
     if (days >= r.c && days <= r.d) return `N.B: ${r.name} রুমে ${r.c} থেকে ${r.d} তম দিনের ভাড়া ${r.z} টাকা`;
@@ -1785,47 +1169,73 @@ function getGbNbNote(roomTypeId, totalDaysStr) {
 function generateBillTableHtml(bill) {
     let html = `<h2 style="text-align:center;margin-bottom:5px;color:#1e40af;">${escapeHtml(bill.heading || 'Rest House Bill')}</h2>`;
     html += `<p style="text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;">তারিখ: ${new Date().toLocaleDateString()}</p>`;
-    html += `<table style="width:100%;border-collapse:collapse;margin-bottom:20px;">`;
-    html += `<thead><tr style="background:#2563eb;color:#fff;"><th style="padding:8px;border:1px solid #cbd5e1;">ক্রম</th><th style="padding:8px;border:1px solid #cbd5e1;">নাম</th><th style="padding:8px;border:1px solid #cbd5e1;">মোবাইল</th><th style="padding:8px;border:1px solid #cbd5e1;">ঠিকানা</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম টাইপ</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম নং</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-ইন</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-আউট</th><th style="padding:8px;border:1px solid #cbd5e1;">দিন</th><th style="padding:8px;border:1px solid #cbd5e1;">মোট বিল</th></tr></thead><tbody>`;
+    html += `<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="background:#2563eb;color:#fff;"><th style="padding:8px;border:1px solid #cbd5e1;">ক্রম</th><th style="padding:8px;border:1px solid #cbd5e1;">নাম</th><th style="padding:8px;border:1px solid #cbd5e1;">মোবাইল</th><th style="padding:8px;border:1px solid #cbd5e1;">ঠিকানা</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম টাইপ</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম নং</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-ইন</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-আউট</th><th style="padding:8px;border:1px solid #cbd5e1;">দিন</th><th style="padding:8px;border:1px solid #cbd5e1;">মোট বিল</th></tr></thead><tbody>`;
     bill.guests.forEach((g, i) => {
-        html += `<tr>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${i+1}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.guestName)}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.mobile || '-')}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.address || '-')}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomTypeName)}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomNumber)}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkIn)}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkOut)}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.totalDays)}</td>
-            <td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;color:#16a34a;">৳${g.totalAmount}</td>
-        </tr>`;
+        html += `<tr><td style="padding:8px;border:1px solid #cbd5e1;">${i+1}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.guestName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.mobile || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.address || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomTypeName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomNumber)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkIn)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkOut)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.totalDays)}</td><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;color:#16a34a;">৳${g.totalAmount}</td></tr>`;
     });
     html += `</tbody></table>`;
-    
     let nbNotesSet = new Set();
-    bill.guests.forEach(g => {
-        let note = getGbNbNote(g.roomType, g.totalDays);
-        if (note) nbNotesSet.add(note);
-    });
-    if (nbNotesSet.size > 0) {
-        html += `<div style="font-size:12px;color:#555;margin-top:15px;padding:8px;background:#f8fafc;border-left:3px solid #2563eb;">${Array.from(nbNotesSet).join('<br>')}</div>`;
-    }
+    bill.guests.forEach(g => { let note = getGbNbNote(g.roomType, g.totalDays); if (note) nbNotesSet.add(note); });
+    if (nbNotesSet.size > 0) html += `<div style="font-size:12px;color:#555;margin-top:15px;padding:8px;background:#f8fafc;border-left:3px solid #2563eb;">${Array.from(nbNotesSet).join('<br>')}</div>`;
     return html;
 }
 
 function gbDownloadPDF(billId) {
-    const bill = guestBillState.bills.find(b => b.id === billId);
-    if (!bill || !bill.guests) return;
-    
+    const bill = guestBillState.bills.find(b => b.id === billId); if (!bill || !bill.guests) return;
     const win = window.open('', '_blank');
     win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Bill</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{body{padding:10px;}@page{margin:1cm;}}</style></head><body>${generateBillTableHtml(bill)}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
-    win.document.close();
-    showToast('PDF প্রিভিউ খোলা হচ্ছে...');
+    win.document.close(); showToast('PDF প্রিভিউ খোলা হচ্ছে...');
 }
 
 function gbDownloadExcel(billId) {
-    const bill = guestBillState.bills.find(b => b.id === billId);
-    if (!bill || !bill.guests) return;
+    const bill = guestBillState.bills.find(b => b.id === billId); if (!bill || !bill.guests) return;
+    const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
+    const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `৳${g.totalAmount}`]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Bill"); XLSX.writeFile(wb, `Bill_${bill.id}.xlsx`); showToast('Excel ডাউনলোড হচ্ছে...');
+}
 
-    const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'ম
+function gbDownloadBulkPDF() {
+    const bills = gbGetFilteredBills();
+    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
+    const win = window.open('', '_blank');
+    let content = bills.map(bill => generateBillTableHtml(bill) + '<div style="page-break-after: always;"></div>').join('');
+    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${content}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+    win.document.close(); showToast('PDF প্রিভিউ খোলা হচ্ছে...');
+}
+
+function gbDownloadBulkExcel() {
+    const bills = gbGetFilteredBills();
+    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
+    const wb = XLSX.utils.book_new();
+    bills.forEach(bill => {
+        const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
+        const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `৳${g.totalAmount}`]);
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+        let sheetName = bill.heading ? bill.heading.substring(0, 28) : `Bill_${bill.id.substring(0,5)}`;
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`); showToast('Excel ডাউনলোড হচ্ছে...');
+}
+
+function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
+
+function initApp() {
+    document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+        showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error"); hideLoader();
+        document.getElementById('authContainer').style.display = 'flex'; showLoginView(); return;
+    }
+    firebase.auth().onAuthStateChanged((user) => {
+        const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
+        if (user && isLogged) { isExplicitLogout = false; if (!currentUser || currentUser.uid !== user.uid) loadAppData(user); }
+        else if (user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+        else if (!user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+        else if (!user && isLogged && !isExplicitLogout) { console.warn("Firebase user became null temporarily. Ignoring to prevent data loss."); }
+        else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+    });
+}
+
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
+</script>
+</body>
+</html>
