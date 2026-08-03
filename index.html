@@ -1901,4 +1901,169 @@ function gb_renderBills() {
                         
                         <div class="flex gap-2 mt-3">
                             <button onclick="gb_downloadSinglePDF('${bill.id}')" class="flex-1 bg-red-500 text-white px-2 py-1.5 rounded text-xs btn-icon hover:bg-red-600"><i class="fas fa-download"></i> Pdf</button>
-                            <button onclick="gb_downloadSingleExcel('${bill.id}')" class="flex-1 bg-green-600 text-white px-2 py-1.5
+                            <button onclick="gb_downloadSingleExcel('${bill.id}')" class="flex-1 bg-green-600 text-white px-2 py-1.5 rounded text-xs btn-icon hover:bg-green-700"><i class="fas fa-download"></i> Excel</button>
+                        </div>
+                        <div class="flex gap-2 mt-2 justify-end text-gray-500">
+                            <button onclick="gb_editBill('${bill.id}')" class="hover:text-blue-600 px-2"><i class="fas fa-edit"></i> এডিট</button>
+                            <button onclick="gb_deleteBill('${bill.id}')" class="hover:text-red-600 px-2"><i class="fas fa-trash"></i> ডিলিট</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    document.getElementById('billListContainer').innerHTML = html;
+    const pageInfo = document.getElementById('pageInfo');
+    if(pageInfo) pageInfo.innerText = `পেজ ${gb_currentPage} / ${totalPages || 1}`;
+}
+
+function gb_toggleExpand(id) {
+    const div = document.getElementById(`details_${id}`);
+    const icon = document.getElementById(`icon_${id}`);
+    if(div) {
+        div.classList.toggle('hidden');
+        if(icon) {
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
+    }
+}
+
+function gb_prevPage() { if (gb_currentPage > 1) { gb_currentPage--; gb_renderBills(); } }
+function gb_nextPage() { 
+    const totalPages = Math.ceil(gb_filteredBills.length / gb_itemsPerPage);
+    if (gb_currentPage < totalPages) { gb_currentPage++; gb_renderBills(); } 
+}
+
+function gb_getBulkFilteredBills() {
+    const fromDate = document.getElementById('bulkFromDate').value;
+    const toDate = document.getElementById('bulkToDate').value;
+    
+    return gb_bills.filter(bill => {
+        let d = new Date(bill.checkIn);
+        let fromOk = true, toOk = true;
+        if(fromDate) fromOk = d >= new Date(fromDate);
+        if(toDate) toOk = d <= new Date(toDate);
+        return fromOk && toOk;
+    });
+}
+
+function gb_downloadSinglePDF(id) {
+    const bill = gb_bills.find(b => b.id === id);
+    if(!bill) return;
+    
+    // আলাদা উইন্ডোতে প্রিভিউ দেখানো ও সেভ করার জন্য
+    const win = window.open('', '_blank');
+    win.document.write(`
+        <html><head><title>Guest Bill - ${bill.guestName}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; }
+            h2 { text-align: center; margin-bottom: 5px; }
+            p { text-align: center; margin-top: 0; margin-bottom: 20px; color: #555; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+            th { background-color: #2563eb; color: #fff; width: 25%; }
+            .text-right { text-align: right; }
+            .total { font-weight: bold; font-size: 16px; color: #16a34a; }
+        </style></head><body>
+            <h2>Rest House Bill</h2>
+            <p>Date: ${gb_formatDateToCustom(new Date())}</p>
+            <table>
+                <tr><th>নাম</th><td>${bill.guestName}</td><th>মোবাইল</th><td>${bill.mobile || ''}</td></tr>
+                <tr><th>ঠিকানা</th><td colspan="3">${bill.address || ''}</td></tr>
+                <tr><th>গেস্ট টাইপ</th><td>${bill.guestType}</td><th>রুম টাইপ</th><td>${bill.roomTypeName}</td></tr>
+                <tr><th>রুম নম্বর</th><td>${bill.roomNumber || ''}</td><th>মোট দিন</th><td>${bill.totalDays}</td></tr>
+                <tr><th>চেক-ইন</th><td>${gb_formatDateToCustom(bill.checkIn)}</td><th>চেক-আউট</th><td>${gb_formatDateToCustom(bill.checkOut)}</td></tr>
+                <tr><th>আগমনের উদ্দেশ্য</th><td colspan="3">${bill.purpose || ''}</td></tr>
+                <tr><th>মন্তব্য</th><td colspan="3">${bill.comments || ''}</td></tr>
+                <tr><th colspan="3" class="text-right">মোট বিল</th><td class="total">৳${bill.totalAmount}</td></tr>
+            </table>
+            <script>
+                window.onload = function() { window.print(); }
+            <\/script>
+        </body></html>
+    `);
+    win.document.close();
+    win.focus();
+}
+
+function gb_downloadSingleExcel(id) {
+    const bill = gb_bills.find(b => b.id === id);
+    if(!bill) return;
+    const headers = ['নাম', 'মোবাইল', 'ঠিকানা', 'গেস্ট টাইপ', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'উদ্দেশ্য', 'মন্তব্য', 'মোট বিল'];
+    const data = [[bill.guestName, bill.mobile || '', bill.address || '', bill.guestType, bill.roomTypeName, bill.roomNumber || '', gb_formatDateToCustom(bill.checkIn), gb_formatDateToCustom(bill.checkOut), bill.totalDays, bill.purpose || '', bill.comments || '', `৳${bill.totalAmount}`]];
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Bill");
+    XLSX.writeFile(wb, `Bill_${bill.guestName}.xlsx`);
+}
+
+function gb_downloadBulkPDF() {
+    const bulkBills = gb_getBulkFilteredBills();
+    if(bulkBills.length === 0) { showToast("এই তারিখে কোনো বিল পাওয়া যায়নি।", 'error'); return; }
+    
+    const win = window.open('', '_blank');
+    let tableRows = bulkBills.map(bill => `
+        <tr>
+            <td>${bill.guestName}</td>
+            <td>${bill.mobile || ''}</td>
+            <td>${bill.roomTypeName}</td>
+            <td>${bill.roomNumber || ''}</td>
+            <td>${bill.guestType}</td>
+            <td>${gb_formatDateToCustom(bill.checkIn)}</td>
+            <td>${gb_formatDateToCustom(bill.checkOut)}</td>
+            <td>${bill.totalDays}</td>
+            <td>${bill.purpose || ''}</td>
+            <td>৳${bill.totalAmount}</td>
+        </tr>
+    `).join('');
+    
+    win.document.write(`
+        <html><head><title>Bulk Bills</title>
+        <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; }
+            h2 { text-align: center; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 12px; }
+            th { background-color: #2563eb; color: #fff; }
+        </style></head><body>
+            <h2>Rest House Bill List</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>নাম</th><th>মোবাইল</th><th>রুম টাইপ</th><th>রুম নং</th><th>গেস্ট টাইপ</th>
+                        <th>চেক-ইন</th><th>চেক-আউট</th><th>দিন</th><th>উদ্দেশ্য</th><th>বিল</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+            <script>
+                window.onload = function() { window.print(); }
+            <\/script>
+        </body></html>
+    `);
+    win.document.close();
+    win.focus();
+}
+
+function gb_downloadBulkExcel() {
+    const bulkBills = gb_getBulkFilteredBills();
+    if(bulkBills.length === 0) { showToast("এই তারিখে কোনো বিল পাওয়া যায়নি।", 'error'); return; }
+    
+    const headers = ['নাম', 'মোবাইল', 'ঠিকানা', 'গেস্ট টাইপ', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'উদ্দেশ্য', 'মন্তব্য', 'মোট বিল'];
+    const data = bulkBills.map(bill => [
+        bill.guestName, bill.mobile || '', bill.address || '', bill.guestType, bill.roomTypeName, bill.roomNumber || '',
+        gb_formatDateToCustom(bill.checkIn), gb_formatDateToCustom(bill.checkOut), bill.totalDays, bill.purpose || '', bill.comments || '', `৳${bill.totalAmount}`
+    ]);
+    
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Bills");
+    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`);
+}
+
+</script>
+</body>
+</html>
