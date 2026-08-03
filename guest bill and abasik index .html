@@ -1946,11 +1946,8 @@ function gb_getBulkFilteredBills() {
     });
 }
 
-function gb_downloadSinglePDF(id) {
-    const bill = gb_bills.find(b => b.id === id);
-    if(!bill) return;
-    const win = window.open('', '_blank');
-    const rows = [
+function gb_generateBillTableData(bill) {
+    return [
         ['নাম', bill.guestName],
         ['মোবাইল', bill.mobile || ''],
         ['ঠিকানা', bill.address || ''],
@@ -1964,6 +1961,80 @@ function gb_downloadSinglePDF(id) {
         ['মন্তব্য', bill.comments || ''],
         ['মোট বিল', `৳${bill.totalAmount}`]
     ];
-    const tableHtml = rows.map(r => `<tr><td style="width: 40%; font-weight:600;">${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+}
+
+function gb_downloadSinglePDF(id) {
+    const bill = gb_bills.find(b => b.id === id);
+    if(!bill) return;
+    const win = window.open('', '_blank');
+    const rows = gb_generateBillTableData(bill);
+    const tableHtml = rows.map(r => `<tr><td style="width:40%;font-weight:600">${r[0]}</td><td>${r[1]}</td></tr>`).join('');
     
-    win.document.write(`<html><head><title>গেস্ট
+    win.document.write(`<html><head><title>গেস্ট বিল - ${bill.guestName}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>body{font-family:'Hind Siliguri',sans-serif;padding:20px}h2{text-align:center;margin-bottom:5px}p{text-align:center;margin-bottom:20px;color:#555}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:8px;text-align:left;font-size:13px}@media print{body{padding:0}}</style>
+    </head><body>
+    <h2>রেস্ট হাউস বিল</h2>
+    <table><thead><tr><th>বিবরণ</th><th>তথ্য</th></tr></thead><tbody>${tableHtml}</tbody></table>
+    <script>setTimeout(function(){window.print();},500);<\/script>
+    </body></html>`);
+    win.document.close();
+    win.focus();
+}
+
+function gb_downloadSingleExcel(id) {
+    const bill = gb_bills.find(b => b.id === id);
+    if(!bill) return;
+    const ws = XLSX.utils.aoa_to_sheet([['Field', 'Details'], ...gb_generateBillTableData(bill)]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Bill");
+    XLSX.writeFile(wb, `Bill_${bill.guestName}.xlsx`);
+}
+
+function gb_downloadBulkPDF() {
+    const bulkBills = gb_getBulkFilteredBills();
+    if(bulkBills.length === 0) { showToast("এই তারিখে কোনো বিল পাওয়া যায়নি।", 'error'); return; }
+    
+    const win = window.open('', '_blank');
+    
+    let tableRowsHtml = '';
+    bulkBills.forEach(bill => {
+        tableRowsHtml += `<tr><td style="font-weight:bold;color:#2563eb" colspan="2">নাম: ${bill.guestName} | রুম: ${bill.roomTypeName} (${bill.roomNumber || 'নেই'}) | মোট বিল: ৳${bill.totalAmount}</td></tr>`;
+        const rows = gb_generateBillTableData(bill);
+        tableRowsHtml += rows.map(r => `<tr><td style="width:40%;font-weight:600">${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+        tableRowsHtml += `<tr><td colspan="2" style="border:none;height:15px;"></td></tr>`;
+    });
+    
+    win.document.write(`<html><head><title>গেস্ট বিল তালিকা</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>body{font-family:'Hind Siliguri',sans-serif;padding:20px}h2{text-align:center;margin-bottom:5px}p{text-align:center;margin-bottom:20px;color:#555}table{width:100%;border-collapse:collapse;margin-bottom:20px}th,td{border:1px solid #999;padding:6px;text-align:left;font-size:12px}@media print{body{padding:0}}</style>
+    </head><body>
+    <h2>রেস্ট হাউস বিল তালিকা</h2>
+    <p>তারিখ: ${new Date().toLocaleDateString()}</p>
+    <table><tbody>${tableRowsHtml}</tbody></table>
+    <script>setTimeout(function(){window.print();},500);<\/script>
+    </body></html>`);
+    win.document.close();
+    win.focus();
+}
+
+function gb_downloadBulkExcel() {
+    const bulkBills = gb_getBulkFilteredBills();
+    if(bulkBills.length === 0) { showToast("এই তারিখে কোনো বিল পাওয়া যায়নি।", 'error'); return; }
+    
+    const headers = ['নাম','মোবাইল','ঠিকানা','গেস্ট টাইপ','রুম টাইপ','রুম নম্বর','চেক-ইন','চেক-আউট','মোট দিন','মোট বিল'];
+    const data = bulkBills.map(bill => [
+        bill.guestName, bill.mobile || '', bill.address || '', bill.guestType,
+        bill.roomTypeName, bill.roomNumber || '',
+        gb_formatDateToCustom(bill.checkIn), gb_formatDateToCustom(bill.checkOut),
+        bill.totalDays, `৳${bill.totalAmount}`
+    ]);
+    
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Bills");
+    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`);
+}
+</script>
+</body>
+</html>
