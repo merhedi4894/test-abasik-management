@@ -146,6 +146,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
         background: #fff7ed;
         border: 1px solid #fed7aa;
         border-left: 5px solid #f97316;
+        border-radius: 8px;
     }
     .btn {
         padding: 10px 16px;
@@ -187,10 +188,12 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 @media(min-width:768px) { .gb-bill-grid { grid-template-columns: 1fr 1fr; } }
 @media(min-width:1280px) { .gb-bill-grid { grid-template-columns: 1fr 1fr 1fr; } }
 .gb-temp-item { display: flex; justify-content: space-between; align-items: center; background: #eff6ff; padding: 8px 12px; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; margin-bottom: 6px; }
-.gb-settings-item { padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; position: relative; margin-bottom: 12px; }
-.gb-settings-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.gb-settings-row label { font-size: 12px; min-width: 80px; }
-.gb-settings-row input { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.gb-guest-info-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: #f8fafc; }
+.gb-settings-item { padding: 12px; padding-right: 35px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; position: relative; margin-bottom: 12px; }
+.gb-settings-row { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+.gb-settings-row label { font-size: 11px; min-width: 35px; text-align: right; }
+.gb-settings-row input { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; width: 50px; }
+.gb-settings-row input.rate { width: 65px; }
 .gb-guest-row { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; margin-bottom: 8px; }
 .gb-guest-row input { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
 .gb-del-btn { position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: var(--danger); font-size: 14px; padding: 4px; }
@@ -347,7 +350,9 @@ let guestBillState = {
     itemsPerPage: window.innerWidth < 768 ? 10 : 25,
     filteredBills: [],
     activePaymentTab: 'guestBill',
+    activeMbTab: 'newBill',
     editId: null,
+    editGuestId: null,
     isLoading: false
 };
 let unsubGuestBills = null, unsubGuestSettings = null;
@@ -358,18 +363,10 @@ const GbStore = {
         if (!db) return;
         await db.collection('guestBillSettings').doc('config').set(settings);
     },
-    async saveBatchBills(bills) {
-        if (!db) return [];
-        const batch = db.batch();
-        const saved = [];
-        bills.forEach(bill => {
-            bill.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            const ref = db.collection('guestBills').doc();
-            batch.set(ref, bill);
-            saved.push({ id: ref.id, ...bill });
-        });
-        await batch.commit();
-        return saved;
+    async saveBatchBill(billDoc) {
+        if (!db) return;
+        const ref = await db.collection('guestBills').add(billDoc);
+        return { id: ref.id, ...billDoc };
     },
     async updateBill(bill) {
         if (!db) return;
@@ -528,7 +525,6 @@ function loadStateFromCache() {
             state.templates = data.templates || {};
             state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             
-            // Load Guest Bill Cache
             const gbBillsCache = localStorage.getItem('rms_gb_bills');
             const gbSettingsCache = localStorage.getItem('rms_gb_settings');
             if (gbBillsCache) guestBillState.bills = JSON.parse(gbBillsCache);
@@ -693,7 +689,9 @@ function handleLogout() {
     guestBillState.bills = [];
     guestBillState.tempGuests = [];
     guestBillState.editId = null;
+    guestBillState.editGuestId = null;
     guestBillState.activePaymentTab = 'guestBill';
+    guestBillState.activeMbTab = 'newBill';
     try { localStorage.removeItem('rms_gb_bills'); localStorage.removeItem('rms_gb_settings'); } catch(e) {}
     sessionStorage.removeItem('rms_is_logged_in');
     currentUser = null;
@@ -861,7 +859,7 @@ function renderItemsTab(rId, page = 1) {
     if (items.length === 0) { iHtml = `<div class="empty-state"><p style="font-size:32px">📦</p><p>কোন মালামাল নেই।</p><div class="flex gap-8" style="justify-content:center"><button class="btn btn-outline btn-sm" onclick="addItemsFromTemplate('${rId}')">📋 টেম্পলেট</button><button class="btn btn-primary btn-sm" onclick="addItemModal('${rId}')">+ নতুন</button></div></div>`; } 
     else {
         iHtml = `<div class="flex-between mb-16"><h4>📦 মালামাল (${items.length})</h4><div class="flex gap-8"><button class="btn btn-outline btn-sm" onclick="addItemsFromTemplate('${rId}')">📋</button><button class="btn btn-primary btn-sm" onclick="addItemModal('${rId}')">+ যোগ</button></div></div>`;
-        iHtml += `<div class="table-wrapper"><table class="material-table"><thead><tr><th>নাম</th><th>পরি.</th><th>অবস্থা</th><th>রিপেয়ার/রিপ্লেস</th><th>অ্যাকশন</th></tr></thead><tbody>${paginatedItems.map(i => { 
+        iHtml += `<div class="table-wrapper"><table class="material-table"><thead><tr><th>নাম</th><th>পরি.</th><th>অবস্থা</th><th>রিপেয়ার/রিপ্লেস</th><th>অ্যাকশন</th></tr></thead><tbody>${paginatedItems.map(i => { 
             let dateHtml = '-';
             if (i.lastRepairDate || i.lastReplaceDate) {
                 dateHtml = '';
@@ -1276,72 +1274,99 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
 // ===== GUEST BILL FUNCTIONS =====
-function renderGuestBillTab(c) {
-    const bills = guestBillState.bills;
-    c.innerHTML = `
-    <div class="gb-wrapper">
-        <div class="gb-form-card">
-            <div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:8px;">
-                <h3 style="font-size:16px;font-weight:700;">নতুন বিল তৈরি করুন</h3>
-                <button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbOpenSettings()">⚙️</button>
-            </div>
-            <form id="gbBillForm" onsubmit="event.preventDefault(); gbSubmitBill();">
-                <input type="hidden" id="gbEditId">
-                <div class="gb-grid-2 mb-16">
-                    <div><label class="gb-label">নাম</label><input type="text" id="gbGuestName" class="gb-input"></div>
-                    <div><label class="gb-label">মোবাইল</label><input type="text" id="gbMobile" class="gb-input"></div>
-                </div>
-                <div class="mb-16"><label class="gb-label">ঠিকানা</label><input type="text" id="gbAddress" class="gb-input"></div>
-                <div class="gb-grid-2 mb-16">
-                    <div><label class="gb-label">গেস্ট টাইপ</label><select id="gbGuestType" onchange="gbToggleOther()" class="gb-input"></select></div>
-                    <div><label class="gb-label">রুম টাইপ</label><select id="gbRoomType" class="gb-input"></select></div>
-                </div>
-                <div id="gbOtherField" class="mb-16" style="display:none;"><label class="gb-label">অন্যান্য গেস্ট টাইপ</label><input type="text" id="gbCustomType" class="gb-input" placeholder="গেস্ট টাইপ লিখুন"></div>
-                <div class="mb-16"><label class="gb-label">রুম নম্বর</label><input type="text" id="gbRoomNumber" class="gb-input" placeholder="যেমন: 101"></div>
-                <div class="gb-grid-2 mb-16">
-                    <div><label class="gb-label">চেক ইন</label><input type="date" id="gbCheckIn" onchange="gbUpdateDays()" class="gb-input"></div>
-                    <div><label class="gb-label">চেক আউট</label><input type="date" id="gbCheckOut" onchange="gbUpdateDays()" class="gb-input"></div>
-                </div>
-                <div class="mb-16"><label class="gb-label">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label><input type="text" id="gbExcluded" onchange="gbUpdateDays()" class="gb-input" placeholder="যেমন: 12-10-2023, 15-10-2023"></div>
-                <div class="mb-16"><label class="gb-label">আগমনের উদ্দেশ্য</label><input type="text" id="gbPurpose" class="gb-input"></div>
-                <div class="gb-grid-2 mb-16">
-                    <div><label class="gb-label">মোট দিন (অটো)</label><input type="text" id="gbTotalDays" readonly class="gb-input" style="background:#f1f5f9;cursor:not-allowed;"></div>
-                    <div><label class="gb-label">মন্তব্য</label><input type="text" id="gbComments" class="gb-input"></div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    <button type="button" onclick="gbAddTemp()" id="gbTempBtn" class="gb-btn gb-btn-yellow" style="width:100%;">➕ গেস্ট ডাটা এন্ট্রি</button>
-                    <div style="display:flex;gap:8px;">
-                        <button type="submit" id="gbSubmitBtn" class="gb-btn gb-btn-primary" style="flex:1;">📄 বিল তৈরি করুন</button>
-                        <button type="button" onclick="gbResetForm()" class="gb-btn gb-btn-outline" style="width:25%;">🔄</button>
-                    </div>
-                </div>
-            </form>
-            <div style="margin-top:16px;">
-                <div class="gb-section-title">এন্ট্রি দেওয়া গেস্টগণ:</div>
-                <div id="gbTempList" style="max-height:160px;overflow-y:auto;"></div>
-            </div>
+function gbSwitchMobileTab(tab) {
+    guestBillState.activeMbTab = tab;
+    renderPage();
+}
+
+function getGbFormHtml() {
+    return `<div class="gb-form-card" style="position:static;max-height:none;">
+        <div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:8px;">
+            <h3 style="font-size:16px;font-weight:700;">নতুন বিল তৈরি করুন</h3>
+            <button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbOpenSettings()">⚙️</button>
         </div>
-        <div class="gb-list-card">
-            <div class="gb-bulk-panel">
-                <div class="gb-section-title" style="color:#1e40af;">📥 বিল ডাউনলোড করুন</div>
-                <div class="gb-bulk-grid">
-                    <div><label class="gb-label" style="font-size:11px;">শুরু তারিখ (চেক-ইন)</label><input type="date" id="gbFromDate" class="gb-input" style="font-size:13px;padding:6px;"></div>
-                    <div><label class="gb-label" style="font-size:11px;">শেষ তারিখ (চেক-ইন)</label><input type="date" id="gbToDate" class="gb-input" style="font-size:13px;padding:6px;"></div>
-                    <button onclick="gbDownloadBulkPDF()" class="gb-btn gb-btn-danger">📄 PDF</button>
-                    <button onclick="gbDownloadBulkExcel()" class="gb-btn gb-btn-success">📊 Excel</button>
+        <form id="gbBillForm" onsubmit="event.preventDefault(); gbSubmitBill();">
+            <input type="hidden" id="gbEditId">
+            <input type="hidden" id="gbEditGuestId">
+            <div class="gb-grid-2 mb-16">
+                <div><label class="gb-label">নাম</label><input type="text" id="gbGuestName" class="gb-input"></div>
+                <div><label class="gb-label">মোবাইল</label><input type="text" id="gbMobile" class="gb-input"></div>
+            </div>
+            <div class="mb-16"><label class="gb-label">ঠিকানা</label><input type="text" id="gbAddress" class="gb-input"></div>
+            <div class="gb-grid-2 mb-16">
+                <div><label class="gb-label">গেস্ট টাইপ</label><select id="gbGuestType" onchange="gbToggleOther()" class="gb-input"></select></div>
+                <div><label class="gb-label">রুম টাইপ</label><select id="gbRoomType" class="gb-input"></select></div>
+            </div>
+            <div id="gbOtherField" class="mb-16" style="display:none;"><label class="gb-label">অন্যান্য গেস্ট টাইপ</label><input type="text" id="gbCustomType" class="gb-input" placeholder="গেস্ট টাইপ লিখুন"></div>
+            <div class="mb-16"><label class="gb-label">রুম নম্বর</label><input type="text" id="gbRoomNumber" class="gb-input" placeholder="যেমন: 101"></div>
+            <div class="gb-grid-2 mb-16">
+                <div><label class="gb-label">চেক ইন</label><input type="date" id="gbCheckIn" onchange="gbUpdateDays()" class="gb-input"></div>
+                <div><label class="gb-label">চেক আউট</label><input type="date" id="gbCheckOut" onchange="gbUpdateDays()" class="gb-input"></div>
+            </div>
+            <div class="mb-16"><label class="gb-label">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label><input type="text" id="gbExcluded" onchange="gbUpdateDays()" class="gb-input" placeholder="যেমন: 12-10-2023, 15-10-2023"></div>
+            <div class="mb-16"><label class="gb-label">আগমনের উদ্দেশ্য</label><input type="text" id="gbPurpose" class="gb-input"></div>
+            <div class="gb-grid-2 mb-16">
+                <div><label class="gb-label">মোট দিন (অটো)</label><input type="text" id="gbTotalDays" readonly class="gb-input" style="background:#f1f5f9;cursor:not-allowed;"></div>
+                <div><label class="gb-label">মন্তব্য</label><input type="text" id="gbComments" class="gb-input"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <button type="button" onclick="gbAddTemp()" id="gbTempBtn" class="gb-btn gb-btn-yellow" style="width:100%;">➕ গেস্ট ডাটা এন্ট্রি</button>
+                <div style="display:flex;gap:8px;">
+                    <button type="submit" id="gbSubmitBtn" class="gb-btn gb-btn-primary" style="flex:1;">📄 বিল তৈরি করুন</button>
+                    <button type="button" onclick="gbResetForm()" class="gb-btn gb-btn-outline" style="width:25%;">🔄</button>
                 </div>
             </div>
-            <div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:12px;">
-                <h3 style="font-size:16px;font-weight:700;">বিলের তালিকা (${bills.length})</h3>
-                <div style="position:relative;width:100%;max-width:240px;">
-                    <input type="text" id="gbSearch" oninput="gbRenderBills()" placeholder="নাম দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;">
-                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
-                </div>
-            </div>
-            <div id="gbBillList" class="gb-bill-grid"></div>
-            <div id="gbPagination" class="gb-pagination"></div>
+        </form>
+        <div style="margin-top:16px;">
+            <div class="gb-section-title">এন্ট্রি দেওয়া গেস্টগণ:</div>
+            <div id="gbTempList" style="max-height:160px;overflow-y:auto;"></div>
         </div>
     </div>`;
+}
+
+function getGbListHtml() {
+    const bills = guestBillState.bills;
+    return `<div class="gb-list-card">
+        <div class="gb-bulk-panel">
+            <div class="gb-section-title" style="color:#1e40af;">📥 বিল ডাউনলোড করুন</div>
+            <div class="gb-bulk-grid">
+                <div><label class="gb-label" style="font-size:11px;">শুরু তারিখ (চেক-ইন)</label><input type="date" id="gbFromDate" class="gb-input" style="font-size:13px;padding:6px;"></div>
+                <div><label class="gb-label" style="font-size:11px;">শেষ তারিখ (চেক-ইন)</label><input type="date" id="gbToDate" class="gb-input" style="font-size:13px;padding:6px;"></div>
+                <button onclick="gbDownloadBulkPDF()" class="gb-btn gb-btn-danger">📄 PDF</button>
+                <button onclick="gbDownloadBulkExcel()" class="gb-btn gb-btn-success">📊 Excel</button>
+            </div>
+        </div>
+        <div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:12px;">
+            <h3 style="font-size:16px;font-weight:700;">বিলের তালিকা (${bills.length})</h3>
+            <div style="position:relative;width:100%;max-width:240px;">
+                <input type="text" id="gbSearch" oninput="gbRenderBills()" placeholder="নাম দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;">
+                <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
+            </div>
+        </div>
+        <div id="gbBillList" class="gb-bill-grid"></div>
+        <div id="gbPagination" class="gb-pagination"></div>
+    </div>`;
+}
+
+function renderGuestBillTab(c) {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+        c.innerHTML = `
+        <div class="tabs">
+            <div class="tab ${guestBillState.activeMbTab === 'newBill' ? 'active' : ''}" onclick="gbSwitchMobileTab('newBill')">➕ বিল</div>
+            <div class="tab ${guestBillState.activeMbTab === 'billList' ? 'active' : ''}" onclick="gbSwitchMobileTab('billList')">📋 বিল ডাউনলোড</div>
+        </div>
+        <div id="gbMbContent"></div>`;
+        
+        const mbContent = document.getElementById('gbMbContent');
+        if (guestBillState.activeMbTab === 'newBill') {
+            mbContent.innerHTML = getGbFormHtml();
+        } else {
+            mbContent.innerHTML = getGbListHtml();
+        }
+    } else {
+        c.innerHTML = `<div class="gb-wrapper">${getGbFormHtml()}${getGbListHtml()}</div>`;
+    }
     gbUpdateSelects();
     gbRenderTempGuests();
     gbRenderBills();
@@ -1371,10 +1396,10 @@ function gbRenderSettings() {
         let r = guestBillState.settings.rooms[id];
         html += `<div class="gb-settings-item" id="gb_room_${id}">
             <button type="button" class="gb-del-btn" onclick="gbDeleteRoom('${id}')">🗑️</button>
-            <input type="text" value="${escapeHtml(r.name)}" id="gb_room_${id}_name" class="gb-input" style="font-weight:700;color:#1e40af;margin-bottom:10px;" placeholder="ক্যাটাগরি নাম">
-            <div class="gb-settings-row"><label>রেগুলার:</label><input type="number" value="${r.x}" id="gb_room_${id}_x" style="width:80px;"></div>
-            <div class="gb-settings-row"><input type="number" value="${r.a}" id="gb_room_${id}_a" style="width:50px;"><label>থেকে</label><input type="number" value="${r.b}" id="gb_room_${id}_b" style="width:50px;"><label>দিন:</label><input type="number" value="${r.y}" id="gb_room_${id}_y" style="width:80px;"></div>
-            <div class="gb-settings-row"><input type="number" value="${r.c}" id="gb_room_${id}_c" style="width:50px;"><label>থেকে</label><input type="number" value="${r.d}" id="gb_room_${id}_d" style="width:50px;"><label>দিন:</label><input type="number" value="${r.z}" id="gb_room_${id}_z" style="width:80px;"></div>
+            <input type="text" value="${escapeHtml(r.name)}" id="gb_room_${id}_name" class="gb-input" style="font-weight:700;color:#1e40af;margin-bottom:10px;font-size:13px;" placeholder="ক্যাটাগরি নাম">
+            <div class="gb-settings-row"><label>রেগুলার:</label><input type="number" value="${r.x}" id="gb_room_${id}_x" class="rate"></div>
+            <div class="gb-settings-row"><input type="number" value="${r.a}" id="gb_room_${id}_a"><label>থেকে</label><input type="number" value="${r.b}" id="gb_room_${id}_b"><label>দিন:</label><input type="number" value="${r.y}" id="gb_room_${id}_y" class="rate"></div>
+            <div class="gb-settings-row"><input type="number" value="${r.c}" id="gb_room_${id}_c"><label>থেকে</label><input type="number" value="${r.d}" id="gb_room_${id}_d"><label>দিন:</label><input type="number" value="${r.z}" id="gb_room_${id}_z" class="rate"></div>
         </div>`;
     }
     document.getElementById('gbRoomSettings').innerHTML = html;
@@ -1570,19 +1595,30 @@ async function gbSubmitBill() {
         const bill = guestBillState.bills.find(b => b.id === editId);
         if (bill) {
             const data = gbGetFormData();
-            Object.assign(bill, data);
+            const gId = document.getElementById('gbEditGuestId').value;
+            if (gId && bill.guests) {
+                const idx = bill.guests.findIndex(g => g.id === gId);
+                if (idx > -1) bill.guests[idx] = { ...bill.guests[idx], ...data };
+            } else {
+                bill.guests = bill.guests || [];
+                bill.guests.push({ id: genId('gbg'), ...data });
+            }
             try { await GbStore.updateBill(bill); showToast('বিল সফলভাবে আপডেট হয়েছে!'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); }
         }
     } else {
         if (document.getElementById('gbGuestName').value.trim() !== '') gbAddTemp();
         if (guestBillState.tempGuests.length === 0) { showToast('অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!', 'error'); return; }
+        
+        const guestsWithIds = guestBillState.tempGuests.map(g => ({ id: genId('gbg'), ...g }));
         const batchId = 'batch_' + Date.now();
-        const billsToSave = guestBillState.tempGuests.map(g => ({ ...g, batchId }));
+        const newBillDoc = { batchId, guests: guestsWithIds, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
+        
         try {
-            await GbStore.saveBatchBills(billsToSave);
+            await GbStore.saveBatchBill(newBillDoc);
             guestBillState.tempGuests = [];
-            showToast(`${billsToSave.length} টি বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`);
+            showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`);
             gbRenderTempGuests();
+            if (window.innerWidth < 768) gbSwitchMobileTab('billList');
         } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); }
     }
     gbResetForm();
@@ -1592,6 +1628,7 @@ function gbResetForm() {
     const form = document.getElementById('gbBillForm');
     if (form) form.reset();
     document.getElementById('gbEditId').value = '';
+    document.getElementById('gbEditGuestId').value = '';
     const submitBtn = document.getElementById('gbSubmitBtn');
     if (submitBtn) submitBtn.innerHTML = '📄 বিল তৈরি করুন';
     const tempBtn = document.getElementById('gbTempBtn');
@@ -1601,29 +1638,34 @@ function gbResetForm() {
     gbToggleOther();
 }
 
-function gbEditBill(id) {
-    const bill = guestBillState.bills.find(b => b.id === id);
-    if (!bill) return;
+function gbEditGuest(billId, guestId) {
+    const bill = guestBillState.bills.find(b => b.id === billId);
+    if (!bill || !bill.guests) return;
+    const guest = bill.guests.find(g => g.id === guestId);
+    if (!guest) return;
+    
     document.getElementById('gbEditId').value = bill.id;
-    document.getElementById('gbGuestName').value = bill.guestName || '';
-    document.getElementById('gbMobile').value = bill.mobile || '';
-    document.getElementById('gbAddress').value = bill.address || '';
+    document.getElementById('gbEditGuestId').value = guest.id;
+    document.getElementById('gbGuestName').value = guest.guestName || '';
+    document.getElementById('gbMobile').value = guest.mobile || '';
+    document.getElementById('gbAddress').value = guest.address || '';
     const guestSelect = document.getElementById('gbGuestType');
     let matched = false;
     for (let id in guestBillState.settings.guests) {
-        if (guestBillState.settings.guests[id].name === bill.guestType) { guestSelect.value = id; matched = true; break; }
+        if (guestBillState.settings.guests[id].name === guest.guestType) { guestSelect.value = id; matched = true; break; }
     }
-    if (!matched) { guestSelect.value = "Others"; gbToggleOther(); document.getElementById('gbCustomType').value = bill.guestType || ''; }
-    document.getElementById('gbRoomType').value = bill.roomType || '';
-    document.getElementById('gbRoomNumber').value = bill.roomNumber || '';
-    document.getElementById('gbCheckIn').value = bill.checkIn || '';
-    document.getElementById('gbCheckOut').value = bill.checkOut || '';
-    document.getElementById('gbExcluded').value = (bill.excludedDates || []).join(', ');
-    document.getElementById('gbPurpose').value = bill.purpose || '';
-    document.getElementById('gbTotalDays').value = bill.totalDays || '';
-    document.getElementById('gbComments').value = bill.comments || '';
+    if (!matched) { guestSelect.value = "Others"; gbToggleOther(); document.getElementById('gbCustomType').value = guest.guestType || ''; }
+    document.getElementById('gbRoomType').value = guest.roomType || '';
+    document.getElementById('gbRoomNumber').value = guest.roomNumber || '';
+    document.getElementById('gbCheckIn').value = guest.checkIn || '';
+    document.getElementById('gbCheckOut').value = guest.checkOut || '';
+    document.getElementById('gbExcluded').value = (guest.excludedDates || []).join(', ');
+    document.getElementById('gbPurpose').value = guest.purpose || '';
+    document.getElementById('gbTotalDays').value = guest.totalDays || '';
+    document.getElementById('gbComments').value = guest.comments || '';
     document.getElementById('gbSubmitBtn').innerHTML = '✏️ আপডেট করুন';
     document.getElementById('gbTempBtn').style.display = 'none';
+    if (window.innerWidth < 768) gbSwitchMobileTab('newBill');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1635,7 +1677,9 @@ function gbDeleteBill(id) {
 
 function gbRenderBills() {
     const searchTerm = (document.getElementById('gbSearch')?.value || '').toLowerCase();
-    guestBillState.filteredBills = guestBillState.bills.filter(b => (b.guestName || '').toLowerCase().includes(searchTerm));
+    guestBillState.filteredBills = guestBillState.bills.filter(b => {
+        return (b.guests || []).some(g => (g.guestName || '').toLowerCase().includes(searchTerm));
+    });
     const totalPages = Math.ceil(guestBillState.filteredBills.length / guestBillState.itemsPerPage);
     if (guestBillState.currentPage > totalPages && totalPages > 0) guestBillState.currentPage = totalPages;
     if (totalPages === 0) guestBillState.currentPage = 1;
@@ -1645,33 +1689,50 @@ function gbRenderBills() {
     if (!container) return;
     if (pageItems.length === 0) { container.innerHTML = '<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size:40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>'; }
     else {
-        container.innerHTML = pageItems.map(bill => `
+        container.innerHTML = pageItems.map(bill => {
+            const guests = bill.guests || [];
+            const title = guests.length === 1 ? escapeHtml(guests[0].guestName) : `${guests.length} জন গেস্টের বিল`;
+            const subtitle = guests.length > 1 ? guests.map(g => escapeHtml(g.guestName)).join(', ') : escapeHtml(guests[0].roomTypeName);
+            let detailsHtml = guests.map((g, i) => `
+                <div class="gb-guest-info-box">
+                    <div class="flex-between mb-8">
+                        <strong>${escapeHtml(g.guestName)}</strong>
+                        ${guests.length > 1 ? `<button onclick="event.stopPropagation();gbEditGuest('${bill.id}', '${g.id}')" class="gb-btn gb-btn-outline gb-btn-sm">✏️</button>` : ''}
+                    </div>
+                    <p>📱 ${escapeHtml(g.mobile || 'নেই')}</p>
+                    <p>🚪 ${escapeHtml(g.roomTypeName)} (নং: ${escapeHtml(g.roomNumber || 'নেই')})</p>
+                    <p>👤 ${escapeHtml(g.guestType)}</p>
+                    <p>📍 ${escapeHtml(g.address || 'নেই')}</p>
+                    <p>📅 ${gbFormatDate(g.checkIn)} → ${gbFormatDate(g.checkOut)}</p>
+                    <p>⏱️ মোট দিন: ${escapeHtml(g.totalDays || '-')}</p>
+                    <p>🎯 উদ্দেশ্য: ${escapeHtml(g.purpose || 'নেই')}</p>
+                    <p>💬 মন্তব্য: ${escapeHtml(g.comments || 'নেই')}</p>
+                    <div class="gb-total-display"><span>মোট বিল: ৳${g.totalAmount || 0}</span></div>
+                </div>
+            `).join('');
+            
+            return `
             <div class="gb-bill-card" onclick="gbToggleExpand('${bill.id}')">
                 <div class="flex-between">
                     <div>
-                        <h3 style="font-size:16px;font-weight:700;">${escapeHtml(bill.guestName)}</h3>
-                        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">🚪 ${escapeHtml(bill.roomTypeName)} (নং: ${escapeHtml(bill.roomNumber || 'নেই')})<br>👤 ${escapeHtml(bill.guestType)}</p>
+                        <h3 style="font-size:16px;font-weight:700;">${title}</h3>
+                        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}</p>
                     </div>
                     <span id="gb_icon_${bill.id}" style="color:var(--text-light);">▼</span>
                 </div>
                 <div id="gb_details_${bill.id}" style="display:none;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:13px;">
-                    <p>📱 ${escapeHtml(bill.mobile || 'নেই')}</p>
-                    <p>📍 ${escapeHtml(bill.address || 'নেই')}</p>
-                    <p>📅 ${gbFormatDate(bill.checkIn)} → ${gbFormatDate(bill.checkOut)}</p>
-                    <p>⏱️ মোট দিন: ${escapeHtml(bill.totalDays || '-')}</p>
-                    <p>🎯 উদ্দেশ্য: ${escapeHtml(bill.purpose || 'নেই')}</p>
-                    <p>💬 মন্তব্য: ${escapeHtml(bill.comments || 'নেই')}</p>
-                    <div class="gb-total-display"><span>মোট বিল: ৳${bill.totalAmount || 0}</span></div>
+                    ${detailsHtml}
                     <div style="display:flex;gap:6px;margin-top:10px;">
                         <button onclick="event.stopPropagation();gbDownloadPDF('${bill.id}')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;">📥 PDF</button>
                         <button onclick="event.stopPropagation();gbDownloadExcel('${bill.id}')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;">📥 Excel</button>
                     </div>
                     <div class="gb-actions">
-                        <button onclick="event.stopPropagation();gbEditBill('${bill.id}')">✏️ এডিট</button>
+                        ${guests.length === 1 ? `<button onclick="event.stopPropagation();gbEditGuest('${bill.id}', '${guests[0].id}')">✏️ এডিট</button>` : ''}
                         <button class="danger" onclick="event.stopPropagation();gbDeleteBill('${bill.id}')">🗑️ ডিলিট</button>
                     </div>
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     }
     const pag = document.getElementById('gbPagination');
     if (pag) pag.innerHTML = `<button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbPrevPage()" ${guestBillState.currentPage === 1 ? 'disabled' : ''}>◀ Prev</button><span style="font-weight:600;color:var(--text-light);">পেজ ${guestBillState.currentPage} / ${totalPages || 1}</span><button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbNextPage()" ${guestBillState.currentPage === totalPages ? 'disabled' : ''}>Next ▶</button>`;
@@ -1689,114 +1750,5 @@ function gbGetFilteredBills() {
     const from = document.getElementById('gbFromDate')?.value;
     const to = document.getElementById('gbToDate')?.value;
     return guestBillState.bills.filter(bill => {
-        let d = new Date(bill.checkIn);
-        let fromOk = true, toOk = true;
-        if (from) fromOk = d >= new Date(from);
-        if (to) toOk = d <= new Date(to);
-        return fromOk && toOk;
-    });
-}
-
-function gbGenerateRows(bill) {
-    return [
-        ['নাম', bill.guestName || ''], ['মোবাইল', bill.mobile || ''],
-        ['ঠিকানা', bill.address || ''], ['গেস্ট টাইপ', bill.guestType || ''],
-        ['রুম টাইপ', bill.roomTypeName || ''], ['রুম নম্বর', bill.roomNumber || ''],
-        ['চেক-ইন', gbFormatDate(bill.checkIn)], ['চেক-আউট', gbFormatDate(bill.checkOut)],
-        ['বাদ দেওয়া তারিখ', (bill.excludedDates || []).join(', ') || 'নেই'],
-        ['মোট দিন', bill.totalDays || ''], ['আগমনের উদ্দেশ্য', bill.purpose || ''],
-        ['মন্তব্য', bill.comments || ''], ['মোট বিল', `৳${bill.totalAmount || 0}`]
-    ];
-}
-
-function gbDownloadPDF(billId) {
-    const bill = guestBillState.bills.find(b => b.id === billId);
-    if (!bill) return;
-    const rows = gbGenerateRows(bill);
-    const win = window.open('', '_blank');
-    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Bill_${bill.guestName}</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}h2{text-align:center;margin-bottom:5px;color:#1e40af;}.sub{text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #cbd5e1;padding:8px 12px;text-align:left;font-size:14px;}td:first-child{font-weight:600;width:35%;background:#f8fafc;}.total-row td{font-size:16px;font-weight:700;color:#16a34a;background:#f0fdf4;}@media print{body{padding:10px;}@page{margin:1cm;}}</style></head><body><h2>Rest House Bill</h2><p class="sub">তারিখ: ${new Date().toLocaleDateString()}</p><table><tbody>${rows.map(r => `<tr${r[0] === 'মোট বিল' ? ' class="total-row"' : ''}><td>${r[0]}</td><td>${escapeHtml(String(r[1]))}</td></tr>`).join('')}</tbody></table><script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
-    win.document.close();
-    showToast('PDF প্রিভিউ খোলা হচ্ছে...');
-}
-
-function gbDownloadExcel(billId) {
-    const bill = guestBillState.bills.find(b => b.id === billId);
-    if (!bill) return;
-    const rows = gbGenerateRows(bill);
-    const ws = XLSX.utils.aoa_to_sheet([['Field', 'Details'], ...rows]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Bill");
-    XLSX.writeFile(wb, `Bill_${bill.guestName}.xlsx`);
-    showToast('Excel ডাউনলোড হচ্ছে...');
-}
-
-function gbDownloadBulkPDF() {
-    const bills = gbGetFilteredBills();
-    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
-    const win = window.open('', '_blank');
-    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;}h2{text-align:center;margin-bottom:5px;color:#1e40af;}.sub{text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left;font-size:12px;}th{background:#2563eb;color:#fff;font-weight:600;}tr:nth-child(even){background:#f8fafc;}.total-col{font-weight:700;color:#16a34a;}@media print{@page{margin:1cm;landscape;}}</style></head><body><h2>Rest House Bills</h2><p class="sub">মোট বিল: ${bills.length} টি | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr><th>#</th><th>নাম</th><th>মোবাইল</th><th>ঠিকানা</th><th>গেস্ট টাইপ</th><th>রুম টাইপ</th><th>রুম নম্বর</th><th>চেক-ইন</th><th>চেক-আউট</th><th>মোট দিন</th><th>উদ্দেশ্য</th><th>মন্তব্য</th><th>মোট বিল</th></tr></thead><tbody>${bills.map((b, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(b.guestName || '')}</td><td>${escapeHtml(b.mobile || '-')}</td><td>${escapeHtml(b.address || '-')}</td><td>${escapeHtml(b.guestType || '-')}</td><td>${escapeHtml(b.roomTypeName || '-')}</td><td>${escapeHtml(b.roomNumber || '-')}</td><td>${gbFormatDate(b.checkIn)}</td><td>${gbFormatDate(b.checkOut)}</td><td>${escapeHtml(b.totalDays || '-')}</td><td>${escapeHtml(b.purpose || '-')}</td><td>${escapeHtml(b.comments || '-')}</td><td class="total-col">৳${b.totalAmount || 0}</td></tr>`).join('')}</tbody></table><script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
-    win.document.close();
-    showToast('PDF প্রিভিউ খোলা হচ্ছে...');
-}
-
-function gbDownloadBulkExcel() {
-    const bills = gbGetFilteredBills();
-    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
-    const headers = ['#', 'নাম', 'মোবাইল', 'ঠিকানা', 'গেস্ট টাইপ', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'উদ্দেশ্য', 'মন্তব্য', 'মোট বিল'];
-    const data = bills.map((b, i) => [i + 1, b.guestName || '', b.mobile || '', b.address || '', b.guestType || '', b.roomTypeName || '', b.roomNumber || '', gbFormatDate(b.checkIn), gbFormatDate(b.checkOut), b.totalDays || '', b.purpose || '', b.comments || '', `৳${b.totalAmount || 0}`]);
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Bills");
-    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`);
-    showToast('Excel ডাউনলোড হচ্ছে...');
-}
-
-function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
-
-function initApp() {
-    document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
-
-    if (typeof firebase === 'undefined' || !firebase.auth) {
-        showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error");
-        hideLoader();
-        document.getElementById('authContainer').style.display = 'flex';
-        showLoginView();
-        return;
-    }
-    
-    firebase.auth().onAuthStateChanged((user) => {
-        const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
-        
-        if (user && isLogged) {
-            isExplicitLogout = false; 
-            if (!currentUser || currentUser.uid !== user.uid) {
-                loadAppData(user);
-            }
-        } else if (user && !isLogged) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        } else if (!user && !isLogged) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        } else if (!user && isLogged && !isExplicitLogout) {
-            console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
-        } else if (!user && isLogged && isExplicitLogout) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        }
-    });
-}
-
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
-</script>
-</body>
-</html>
+        if(!bill.guests || bill.guests.length === 0) return false;
+        let d = new Date(bill.guests[0].checkIn);
