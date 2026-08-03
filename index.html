@@ -196,7 +196,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-settings-row input.rate { width: 65px; }
 .gb-guest-row { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; margin-bottom: 8px; }
 .gb-guest-row input { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
-.gb-del-btn { position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: var(--danger); font-size: 14px; padding: 4px; }
+.gb-del-btn { position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: var(--danger); font-size: 14px; padding: 4px; display: flex; align-items: center; }
 .gb-del-btn:hover { color: #be123c; }
 .gb-section-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 .gb-pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 16px; }
@@ -221,7 +221,8 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
 .gb-actions button { padding: 4px 8px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: #64748b; }
 .gb-actions button:hover { color: var(--primary); }
-.gb-actions button.danger:hover { color: var(--danger); }
+.gb-actions button.danger { color: var(--danger); }
+.gb-actions button.danger:hover { color: #be123c; }
 .gb-empty { text-align: center; padding: 40px 10px; color: var(--text-light); }
 </style>
 </head>
@@ -327,6 +328,7 @@ let isExplicitLogout = false;
 
 const delIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+const gbDelIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--danger);"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
 // ===== GUEST BILL STATE =====
 let guestBillState = {
@@ -350,7 +352,7 @@ let guestBillState = {
     itemsPerPage: window.innerWidth < 768 ? 10 : 25,
     filteredBills: [],
     activePaymentTab: 'guestBill',
-    activeMbTab: 'newBill',
+    activeGbTab: 'newBill',
     editId: null,
     editGuestId: null,
     isLoading: false
@@ -691,7 +693,7 @@ function handleLogout() {
     guestBillState.editId = null;
     guestBillState.editGuestId = null;
     guestBillState.activePaymentTab = 'guestBill';
-    guestBillState.activeMbTab = 'newBill';
+    guestBillState.activeGbTab = 'newBill';
     try { localStorage.removeItem('rms_gb_bills'); localStorage.removeItem('rms_gb_settings'); } catch(e) {}
     sessionStorage.removeItem('rms_is_logged_in');
     currentUser = null;
@@ -1265,7 +1267,7 @@ async function resolveReport(id) { const r = state.reports.find(x=>x.id===id); r
 async function deleteReport(id) { checkPassword(async () => { state.reports = state.reports.filter(r => r.id !== id); renderPage(); try { await Store.deleteReport(id); showToast('ডিলিট হয়েছে'); } catch(e) { renderPage(); showToast('ডিলিট করতে সমস্যা', 'error'); } }); }
 async function renderDownload(c) { if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>কোন বিল্ডিং নেই।</p></div></div>`; return; } c.innerHTML = `<div class="card"><h3 class="mb-16">রিপোর্ট ডাউনলোড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="dlBuilding" onchange="loadDlFloors()"><option value="">সিলেক্ট করুন</option><option value="all">সকল বিল্ডিং</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা (ঐচ্ছিক)</label><select id="dlFloor" onchange="loadDlRooms()" disabled><option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম (ঐচ্ছিক)</label><select id="dlRoom" disabled><option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option></select></div><div class="form-group"><label>ধরন</label><select id="dlType" onchange="checkDlFields()"><option value="">সিলেক্ট করুন</option><option value="items">মালামাল</option><option value="tenants">ভাড়াটে</option><option value="guests">গেস্ট</option><option value="rooms">রুম</option><option value="payments">পেমেন্ট</option><option value="reports">ট্রাবল রিপোর্ট</option></select></div></div><div class="flex gap-8 mt-16"><button class="btn btn-success" id="dlExcel" style="flex:1" onclick="downloadReport('xlsx')" disabled>📊 Excel</button><button class="btn btn-danger" id="dlPdf" style="flex:1" onclick="downloadReport('pdf')" disabled>📄 PDF</button></div></div>`; checkDlFields(); }
 function loadDlFloors() { const bId = document.getElementById('dlBuilding').value; const fS = document.getElementById('dlFloor'); const rS = document.getElementById('dlRoom'); fS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option>'; rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (bId === 'all' || bId === '') { fS.disabled = true; rS.disabled = true; fS.value = 'all'; rS.value = 'all'; } else { const b = state.buildings.find(x=>x.id===bId); for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; rS.disabled = true; fS.value = ''; rS.value = 'all'; } checkDlFields(); }
-function loadDlRooms() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rS = document.getElementById('dlRoom'); rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (fId === 'all' || fId === '') { rS.disabled = true; rS.value = 'all'; } else { const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; rS.value = ''; } checkDlFields(); }
+function loadDlRooms() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rS = document.getElementById('dlRoom'); rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (fId === 'all' or fId === '') { rS.disabled = true; rS.value = 'all'; } else { const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; rS.value = ''; } checkDlFields(); }
 function checkDlFields() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; let isValid = bId !== '' && t !== ''; const fEl = document.getElementById('dlFloor'); const rEl = document.getElementById('dlRoom'); if (fEl && !fEl.disabled && fId === '') isValid = false; if (rEl && !rEl.disabled && rId === '') isValid = false; const dlExcel = document.getElementById('dlExcel'); const dlPdf = document.getElementById('dlPdf'); if (dlExcel && dlPdf) { if(isValid) { dlExcel.disabled = false; dlPdf.disabled = false; } else { dlExcel.disabled = true; dlPdf.disabled = true; } } }
 async function downloadReport(fmt) { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; if (!t) { showToast('ধরন সিলেক্ট করুন', 'error'); return; } let rs = state.rooms; if (bId !== 'all') rs = rs.filter(r => r.buildingId === bId); if (fId !== 'all' && fId !== '') rs = rs.filter(r => r.floor === fId); if (rId !== 'all' && rId !== '') rs = rs.filter(r => r.id === rId); const bName = bId === 'all' ? 'সকল' : (state.buildings.find(b => b.id === bId)?.name || ''); const fName = fId === 'all' ? 'সকল' : fId; const rName = rId === 'all' ? 'সকল' : (state.rooms.find(r => r.id === rId)?.number || ''); const dStr = new Date().toISOString().split('T')[0]; let data = [], headers = [], title = ''; if (t === 'reports') { title='ট্রাবল রিপোর্ট'; headers=['#','বিল্ডিং/রিপোর্টকারী','তলা','রুম','তারিখ','বিভাগ','মিস্ত্রি','সমস্যা','রিপোর্টকারী','পদবী','স্ট্যাটাস','সমাধানের তারিখ']; const reps = state.reports; reps.forEach((r,i)=>{ if((bId === 'all' || r.building === bName) && (fId === 'all' || r.floor === fName) && (rId === 'all' || r.room === rName)) { data.push([i+1, r.building ? r.building : r.reporter, r.floor, r.room, formatDate(r.reportDate || r.createdAt), r.department || '-', r.mistry || '-', r.description, r.reporter, r.reporterDesignation || '-', r.status === 'resolved' ? 'সমাধান হয়েছে' : 'চলমান', r.resolvedAt ? formatDate(r.resolvedAt) : '-']); } }); } else if (t === 'payments') { title='পেমেন্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','ব্যক্তি','টাকা','মাস','বছর','তারিখ']; const pays = await Store.getPayments(); pays.forEach((p,i)=>{ if((bId === 'all' || p.building === bName) && (fId === 'all' || p.floor === fName) && (rId === 'all' || p.room === rName)) { data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]]); } }); } else if (t === 'items') { title='মালামাল তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','পরিমাণ','অবস্থা','রিপেয়ার তারিখ','রিপ্লেস তারিখ','মন্তব্য','ভাড়াটে']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.items || []).forEach(item => { let note = '-'; if (item.history && item.history.length > 0) { note = item.history[item.history.length - 1].note || '-'; } data.push([data.length+1, bN, room.floor, room.number, item.name, item.quantity || 1, item.condition, item.lastRepairDate ? formatDate(item.lastRepairDate) : '-', item.lastReplaceDate ? formatDate(item.lastReplaceDate) : '-', note, room.tenants?.map(t=>t.name).join(', ') || 'খালি']); }); }); } else if (t === 'tenants') { title='ভাড়াটে তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','পদবী','ফোন','প্রকার','পরিবারের তথ্য','বরাদ্ব তারিখ']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; let tArr = room.tenants || (room.tenant ? [room.tenant] : []); tArr.forEach(t => data.push([data.length+1, bN, room.floor, room.number, t.name, t.designation || '-', t.phone || '-', t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', t.familyInfo || '-', t.startDate])); (room.previousTenants || []).forEach(pt => data.push([data.length+1, bN, room.floor, room.number, pt.name + ' (পূর্বের)', pt.designation || '-', pt.phone || '-', pt.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', pt.familyInfo || '-', pt.startDate])); }); } else if (t === 'guests') { title='গেস্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','মোবাইল','ঠিকানা','রেফারেন্স','প্রবেশ','চেক-আউট','স্ট্যাটাস','মোট বিল']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.guests || []).forEach(g => data.push([data.length+1, bN, room.floor, room.number, g.name, g.mobile || '-', g.address || '-', g.reference || '-', g.startDate, g.endDate || 'উপস্থিত', g.isPaid ? 'Paid' : 'Non-Paid', g.totalBill || '-'])); }); } else if (t === 'rooms') { title='রুম তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','ভাড়াটে','প্রকার','তারিখ']; rs.forEach((room, i) => data.push([i+1, state.buildings.find(b => b.id === room.buildingId)?.name || '', room.floor, room.number, (room.items || []).length, room.tenants?.map(t=>t.name).join(', ') || 'খালি', room.tenants?.some(t=>t.type==='family') ? 'পরিবার' : 'ব্যাচেলর', room.tenants?.[0]?.startDate || '-'])); } if (data.length === 0) { showToast('কোন ডেটা নেই', 'error'); return; } if (fmt === 'xlsx') { const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, title); XLSX.writeFile(wb, `${title}_${bName}_${dStr}.xlsx`); } else { const win = window.open('', '_blank'); win.document.write(`<html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; } h2 { text-align: center; margin-bottom: 5px; font-weight: 700; } p { text-align: center; margin-top: 0; margin-bottom: 20px; color: #555; font-weight: 600; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 11px; } th { background-color: #2563eb; color: #fff; font-weight: 700; } @media print { body { padding: 0; } }</style></head><body><h2>${title}</h2><p>বিল্ডিং: ${bName} | তলা: ${fName} | রুম: ${rName} | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`); win.document.close(); win.focus(); setTimeout(() => { win.print(); }, 500); } showToast('ডাউনলোড হচ্ছে...'); }
 function handleGlobalSearch(v) { const d = document.getElementById('searchDropdown'); if (!v.trim()) { d.style.display = 'none'; return; } const res = state.rooms.filter(r => roomMatchesSearch(v, r.number) || r.tenants?.some(t => t.name.toLowerCase().includes(v.toLowerCase())) || r.tenant?.name.toLowerCase().includes(v.toLowerCase())); d.innerHTML = res.length === 0 ? '-কোন ফলাফল নেই-' : res.map(r => { const bN = state.buildings.find(b => b.id === r.buildingId)?.name || ''; const tN = r.tenants?.map(t=>t.name).join(', ') || r.tenant?.name || 'খালি'; return `<div class="search-item" onclick="showRoomDetail('${r.id}'); document.getElementById('searchDropdown').style.display='none';"><strong>${escapeHtml(tN)}</strong><br><span class="text-sm">${escapeHtml(bN)} - রুম: ${escapeHtml(r.number)}</span></div>`; }).join(''); d.style.display = 'block'; }
@@ -1274,8 +1276,8 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
 // ===== GUEST BILL FUNCTIONS =====
-function gbSwitchMobileTab(tab) {
-    guestBillState.activeMbTab = tab;
+function gbSwitchTab(tab) {
+    guestBillState.activeGbTab = tab;
     renderPage();
 }
 
@@ -1339,7 +1341,7 @@ function getGbListHtml() {
         <div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:12px;">
             <h3 style="font-size:16px;font-weight:700;">বিলের তালিকা (${bills.length})</h3>
             <div style="position:relative;width:100%;max-width:240px;">
-                <input type="text" id="gbSearch" oninput="gbRenderBills()" placeholder="নাম দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;">
+                <input type="text" id="gbSearch" oninput="gbRenderBills()" placeholder="যেকোনো তথ্য দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;">
                 <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
             </div>
         </div>
@@ -1349,23 +1351,18 @@ function getGbListHtml() {
 }
 
 function renderGuestBillTab(c) {
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-        c.innerHTML = `
-        <div class="tabs">
-            <div class="tab ${guestBillState.activeMbTab === 'newBill' ? 'active' : ''}" onclick="gbSwitchMobileTab('newBill')">➕ বিল</div>
-            <div class="tab ${guestBillState.activeMbTab === 'billList' ? 'active' : ''}" onclick="gbSwitchMobileTab('billList')">📋 বিল ডাউনলোড</div>
-        </div>
-        <div id="gbMbContent"></div>`;
-        
-        const mbContent = document.getElementById('gbMbContent');
-        if (guestBillState.activeMbTab === 'newBill') {
-            mbContent.innerHTML = getGbFormHtml();
-        } else {
-            mbContent.innerHTML = getGbListHtml();
-        }
+    c.innerHTML = `
+    <div class="tabs">
+        <div class="tab ${guestBillState.activeGbTab === 'newBill' ? 'active' : ''}" onclick="gbSwitchTab('newBill')">🆕 নতুন বিল</div>
+        <div class="tab ${guestBillState.activeGbTab === 'billList' ? 'active' : ''}" onclick="gbSwitchTab('billList')">📋 বিল তালিকা ও ডাউনলোড</div>
+    </div>
+    <div id="gbTabContent"></div>`;
+    
+    const tabContent = document.getElementById('gbTabContent');
+    if (guestBillState.activeGbTab === 'newBill') {
+        tabContent.innerHTML = getGbFormHtml();
     } else {
-        c.innerHTML = `<div class="gb-wrapper">${getGbFormHtml()}${getGbListHtml()}</div>`;
+        tabContent.innerHTML = getGbListHtml();
     }
     gbUpdateSelects();
     gbRenderTempGuests();
@@ -1395,7 +1392,7 @@ function gbRenderSettings() {
     for (let id in guestBillState.settings.rooms) {
         let r = guestBillState.settings.rooms[id];
         html += `<div class="gb-settings-item" id="gb_room_${id}">
-            <button type="button" class="gb-del-btn" onclick="gbDeleteRoom('${id}')">🗑️</button>
+            <button type="button" class="gb-del-btn" onclick="gbDeleteRoom('${id}')">${gbDelIcon}</button>
             <input type="text" value="${escapeHtml(r.name)}" id="gb_room_${id}_name" class="gb-input" style="font-weight:700;color:#1e40af;margin-bottom:10px;font-size:13px;" placeholder="ক্যাটাগরি নাম">
             <div class="gb-settings-row"><label>রেগুলার:</label><input type="number" value="${r.x}" id="gb_room_${id}_x" class="rate"></div>
             <div class="gb-settings-row"><input type="number" value="${r.a}" id="gb_room_${id}_a"><label>থেকে</label><input type="number" value="${r.b}" id="gb_room_${id}_b"><label>দিন:</label><input type="number" value="${r.y}" id="gb_room_${id}_y" class="rate"></div>
@@ -1409,7 +1406,7 @@ function gbRenderSettings() {
         gHtml += `<div class="gb-guest-row" id="gb_guest_${id}">
             <input type="text" value="${escapeHtml(g.name)}" id="gb_guest_${id}_name" class="gb-input" style="flex:1;" placeholder="গেস্ট টাইপ">
             <input type="number" value="${g.rate}" id="gb_guest_${id}_rate" class="gb-input" style="width:90px;" placeholder="ভাড়া">
-            <button type="button" class="gb-del-btn" style="position:static;" onclick="gbDeleteGuest('${id}')">🗑️</button>
+            <button type="button" class="gb-del-btn" style="position:static;" onclick="gbDeleteGuest('${id}')">${gbDelIcon}</button>
         </div>`;
     }
     document.getElementById('gbGuestSettings').innerHTML = gHtml;
@@ -1618,7 +1615,7 @@ async function gbSubmitBill() {
             guestBillState.tempGuests = [];
             showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`);
             gbRenderTempGuests();
-            if (window.innerWidth < 768) gbSwitchMobileTab('billList');
+            gbSwitchTab('billList');
         } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); }
     }
     gbResetForm();
@@ -1665,20 +1662,30 @@ function gbEditGuest(billId, guestId) {
     document.getElementById('gbComments').value = guest.comments || '';
     document.getElementById('gbSubmitBtn').innerHTML = '✏️ আপডেট করুন';
     document.getElementById('gbTempBtn').style.display = 'none';
-    if (window.innerWidth < 768) gbSwitchMobileTab('newBill');
+    gbSwitchTab('newBill');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function gbDeleteBill(id) {
-    showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?', async () => {
-        try { await GbStore.deleteBill(id); showToast('বিল ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); }
+    checkPassword(() => {
+        showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?', async () => {
+            try { await GbStore.deleteBill(id); showToast('বিল ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); }
+        });
     });
 }
 
 function gbRenderBills() {
     const searchTerm = (document.getElementById('gbSearch')?.value || '').toLowerCase();
     guestBillState.filteredBills = guestBillState.bills.filter(b => {
-        return (b.guests || []).some(g => (g.guestName || '').toLowerCase().includes(searchTerm));
+        if (!b.guests) return false;
+        return b.guests.some(g =>
+            (g.guestName || '').toLowerCase().includes(searchTerm) ||
+            (g.mobile || '').toLowerCase().includes(searchTerm) ||
+            (g.address || '').toLowerCase().includes(searchTerm) ||
+            (g.guestType || '').toLowerCase().includes(searchTerm) ||
+            (g.roomTypeName || '').toLowerCase().includes(searchTerm) ||
+            (g.roomNumber || '').toLowerCase().includes(searchTerm)
+        );
     });
     const totalPages = Math.ceil(guestBillState.filteredBills.length / guestBillState.itemsPerPage);
     if (guestBillState.currentPage > totalPages && totalPages > 0) guestBillState.currentPage = totalPages;
@@ -1693,6 +1700,7 @@ function gbRenderBills() {
             const guests = bill.guests || [];
             const title = guests.length === 1 ? escapeHtml(guests[0].guestName) : `${guests.length} জন গেস্টের বিল`;
             const subtitle = guests.length > 1 ? guests.map(g => escapeHtml(g.guestName)).join(', ') : escapeHtml(guests[0].roomTypeName);
+            const billDate = bill.createdAt ? gbFormatDate(bill.createdAt) : 'নতুন';
             let detailsHtml = guests.map((g, i) => `
                 <div class="gb-guest-info-box">
                     <div class="flex-between mb-8">
@@ -1716,7 +1724,7 @@ function gbRenderBills() {
                 <div class="flex-between">
                     <div>
                         <h3 style="font-size:16px;font-weight:700;">${title}</h3>
-                        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}</p>
+                        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}<br>🗓️ তৈরির তারিখ: ${billDate}</p>
                     </div>
                     <span id="gb_icon_${bill.id}" style="color:var(--text-light);">▼</span>
                 </div>
@@ -1761,6 +1769,16 @@ function gbGetFilteredBills() {
     });
 }
 
+function getGbNbNote(roomTypeId, totalDaysStr) {
+    const r = guestBillState.settings.rooms[roomTypeId];
+    if (!r) return '';
+    let days = parseInt(totalDaysStr) || 0;
+    if (days >= r.a && days <= r.b) return `N.B: ${r.a} থেকে ${r.b} তম দিনের ভাড়া ${r.y} টাকা`;
+    if (days >= r.c && days <= r.d) return `N.B: ${r.c} থেকে ${r.d} তম দিনের ভাড়া ${r.z} টাকা`;
+    if (days > r.d) return `N.B: ${r.c} থেকে ${r.d} তম দিনের ভাড়া ${r.z} টাকা (এর বেশি দিনের জন্য প্রযোজ্য)`;
+    return '';
+}
+
 function gbGenerateRows(bill) {
     return bill.guests.map((g, index) => {
         return [
@@ -1786,8 +1804,11 @@ function gbDownloadPDF(billId) {
     if (!bill || !bill.guests) return;
     
     const rows = gbGenerateRows(bill);
+    let nbNotes = bill.guests.map(g => getGbNbNote(g.roomType, g.totalDays)).filter(n => n);
+    let uniqueNbNotes = [...new Set(nbNotes)];
+    
     const win = window.open('', '_blank');
-    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Bill</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}h2{text-align:center;margin-bottom:5px;color:#1e40af;}.sub{text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;}table{width:100%;border-collapse:collapse;margin-bottom:20px;}th,td{border:1px solid #cbd5e1;padding:8px 12px;text-align:left;font-size:14px;}td:first-child{font-weight:600;width:35%;background:#f8fafc;}.total-row td{font-size:16px;font-weight:700;color:#16a34a;background:#f0fdf4;}@media print{body{padding:10px;}@page{margin:1cm;}}</style></head><body><h2>Rest House Bill</h2><p class="sub">তারিখ: ${new Date().toLocaleDateString()}</p><table><tbody>${rows.map(r => `<tr${r[0].includes('মোট বিল') ? ' class="total-row"' : ''}><td>${r[0]}</td><td>${escapeHtml(String(r[1]))}</td></tr>`).join('')}</tbody></table><script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Bill</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}h2{text-align:center;margin-bottom:5px;color:#1e40af;}.sub{text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;}table{width:100%;border-collapse:collapse;margin-bottom:20px;}th,td{border:1px solid #cbd5e1;padding:8px 12px;text-align:left;font-size:14px;}td:first-child{font-weight:600;width:35%;background:#f8fafc;}.total-row td{font-size:16px;font-weight:700;color:#16a34a;background:#f0fdf4;}.nb-note{font-size:12px;color:#555;margin-top:15px;padding:8px;background:#f8fafc;border-left:3px solid #2563eb;}@media print{body{padding:10px;}@page{margin:1cm;}}</style></head><body><h2>Rest House Bill</h2><p class="sub">তারিখ: ${new Date().toLocaleDateString()}</p><table><tbody>${rows.map(r => `<tr${r[0].includes('মোট বিল') ? ' class="total-row"' : ''}><td>${r[0]}</td><td>${escapeHtml(String(r[1]))}</td></tr>`).join('')}</tbody></table>${uniqueNbNotes.length > 0 ? `<div class="nb-note">${uniqueNbNotes.join('<br>')}</div>` : ''}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
     win.document.close();
     showToast('PDF প্রিভিউ খোলা হচ্ছে...');
 }
@@ -1798,6 +1819,12 @@ function gbDownloadExcel(billId) {
 
     const headers = ['Field', 'Details'];
     const data = gbGenerateRows(bill);
+    let nbNotes = bill.guests.map(g => getGbNbNote(g.roomType, g.totalDays)).filter(n => n);
+    let uniqueNbNotes = [...new Set(nbNotes)];
+    
+    if (uniqueNbNotes.length > 0) {
+        data.push(['নোট', uniqueNbNotes.join(' | ')]);
+    }
     
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
     const wb = XLSX.utils.book_new();
@@ -1812,13 +1839,19 @@ function gbDownloadBulkPDF() {
     
     const win = window.open('', '_blank');
     let tableRows = '';
+    let nbNotesSet = new Set();
+    
     bills.forEach(bill => {
         (bill.guests || []).forEach(g => {
             tableRows += `<tr><td>${escapeHtml(g.guestName || '')}</td><td>${escapeHtml(g.mobile || '-')}</td><td>${escapeHtml(g.address || '-')}</td><td>${escapeHtml(g.guestType || '-')}</td><td>${escapeHtml(g.roomTypeName || '-')}</td><td>${escapeHtml(g.roomNumber || '-')}</td><td>${gbFormatDate(g.checkIn)}</td><td>${gbFormatDate(g.checkOut)}</td><td>${escapeHtml(g.totalDays || '-')}</td><td>${escapeHtml(g.purpose || '-')}</td><td>${escapeHtml(g.comments || '-')}</td><td class="total-col">৳${g.totalAmount || 0}</td></tr>`;
+            let note = getGbNbNote(g.roomType, g.totalDays);
+            if (note) nbNotesSet.add(note);
         });
     });
 
-    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;}h2{text-align:center;margin-bottom:5px;color:#1e40af;}.sub{text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left;font-size:12px;}th{background:#2563eb;color:#fff;font-weight:600;}tr:nth-child(even){background:#f8fafc;}.total-col{font-weight:700;color:#16a34a;}@media print{@page{margin:1cm;landscape;}}</style></head><body><h2>Rest House Bills</h2><p class="sub">মোট বিল: ${bills.length} টি | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr><th>নাম</th><th>মোবাইল</th><th>ঠিকানা</th><th>গেস্ট টাইপ</th><th>রুম টাইপ</th><th>রুম নম্বর</th><th>চেক-ইন</th><th>চেক-আউট</th><th>মোট দিন</th><th>উদ্দেশ্য</th><th>মন্তব্য</th><th>মোট বিল</th></tr></thead><tbody>${tableRows}</tbody></table><script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+    let nbHtml = nbNotesSet.size > 0 ? `<div class="nb-note">${Array.from(nbNotesSet).join('<br>')}</div>` : '';
+
+    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;}h2{text-align:center;margin-bottom:5px;color:#1e40af;}.sub{text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left;font-size:12px;}th{background:#2563eb;color:#fff;font-weight:600;}tr:nth-child(even){background:#f8fafc;}.total-col{font-weight:700;color:#16a34a;}.nb-note{font-size:12px;color:#555;margin-top:15px;padding:8px;background:#f8fafc;border-left:3px solid #2563eb;}@media print{@page{margin:1cm;landscape;}}</style></head><body><h2>Rest House Bills</h2><p class="sub">মোট বিল: ${bills.length} টি | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr><th>নাম</th><th>মোবাইল</th><th>ঠিকানা</th><th>গেস্ট টাইপ</th><th>রুম টাইপ</th><th>রুম নম্বর</th><th>চেক-ইন</th><th>চেক-আউট</th><th>মোট দিন</th><th>উদ্দেশ্য</th><th>মন্তব্য</th><th>মোট বিল</th></tr></thead><tbody>${tableRows}</tbody></table>${nbHtml}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
     win.document.close();
     showToast('PDF প্রিভিউ খোলা হচ্ছে...');
 }
@@ -1829,11 +1862,20 @@ function gbDownloadBulkExcel() {
     
     const headers = ['নাম', 'মোবাইল', 'ঠিকানা', 'গেস্ট টাইপ', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'উদ্দেশ্য', 'মন্তব্য', 'মোট বিল'];
     const data = [];
+    let nbNotesSet = new Set();
+    
     bills.forEach(bill => {
         (bill.guests || []).forEach(g => {
             data.push([g.guestName || '', g.mobile || '', g.address || '', g.guestType || '', g.roomTypeName || '', g.roomNumber || '', gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays || '', g.purpose || '', g.comments || '', `৳${g.totalAmount || 0}`]);
+            let note = getGbNbNote(g.roomType, g.totalDays);
+            if (note) nbNotesSet.add(note);
         });
     });
+
+    if (nbNotesSet.size > 0) {
+        data.push([]);
+        data.push(['নোট:', Array.from(nbNotesSet).join(' | ')]);
+    }
 
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
     const wb = XLSX.utils.book_new();
@@ -1855,39 +1897,4 @@ function initApp() {
         return;
     }
     
-    firebase.auth().onAuthStateChanged((user) => {
-        const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
-        
-        if (user && isLogged) {
-            isExplicitLogout = false; 
-            if (!currentUser || currentUser.uid !== user.uid) {
-                loadAppData(user);
-            }
-        } else if (user && !isLogged) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        } else if (!user && !isLogged) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        } else if (!user && isLogged && !isExplicitLogout) {
-            console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
-        } else if (!user && isLogged && isExplicitLogout) {
-            currentUser = null;
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
-            showLoginView();
-            hideLoader();
-        }
-    });
-}
-
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
-</script>
-</body>
-</html>
+    firebase.auth().onAuthStateChanged((user) =>
