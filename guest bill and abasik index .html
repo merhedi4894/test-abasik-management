@@ -1411,6 +1411,48 @@ function gb_initGuestBillSystem() {
 }
 
 function gb_openSettingsModal() {
+    let roomHtml = '';
+    for (let id in gb_settings.rooms) {
+        let r = gb_settings.rooms[id];
+        roomHtml += `
+            <div class="p-4 border rounded bg-gray-50 relative" id="gb_room_${id}">
+                <button type="button" onclick="gb_deleteRoom('${id}')" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash"></i></button>
+                <input type="text" value="${r.name}" id="gb_room_${id}_name" class="w-full p-1 border rounded text-sm font-bold mb-3 text-blue-800" placeholder="ক্যাটাগরি নাম">
+                <div class="flex items-center space-x-2 mb-2">
+                    <span class="text-xs w-40">রেগুলার ভাড়া = </span>
+                    <input type="number" value="${r.x}" id="gb_room_${id}_x" class="w-24 p-1 border rounded text-sm">
+                </div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <input type="number" value="${r.a}" id="gb_room_${id}_a" class="w-12 p-1 border rounded text-sm">
+                    <span class="text-xs">থেকে</span>
+                    <input type="number" value="${r.b}" id="gb_room_${id}_b" class="w-12 p-1 border rounded text-sm">
+                    <span class="text-xs">দিনের ভাড়া =</span>
+                    <input type="number" value="${r.y}" id="gb_room_${id}_y" class="w-24 p-1 border rounded text-sm">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="number" value="${r.c}" id="gb_room_${id}_c" class="w-12 p-1 border rounded text-sm">
+                    <span class="text-xs">থেকে</span>
+                    <input type="number" value="${r.d}" id="gb_room_${id}_d" class="w-12 p-1 border rounded text-sm">
+                    <span class="text-xs">দিনের ভাড়া =</span>
+                    <input type="number" value="${r.z}" id="gb_room_${id}_z" class="w-24 p-1 border rounded text-sm">
+                </div>
+            </div>
+        `;
+    }
+    document.getElementById('gb_roomSettingsContainer').innerHTML = roomHtml;
+
+    let guestHtml = '';
+    for (let id in gb_settings.guests) {
+        let g = gb_settings.guests[id];
+        guestHtml += `
+            <div class="p-2 border rounded bg-gray-50 flex items-center gap-2" id="gb_guest_${id}">
+                <input type="text" value="${g.name}" id="gb_guest_${id}_name" class="flex-1 p-1 border rounded text-sm" placeholder="গেস্ট টাইপ নাম">
+                <input type="number" value="${g.rate}" id="gb_guest_${id}_rate" class="w-24 p-1 border rounded text-sm" placeholder="ভাড়া">
+                <button type="button" onclick="gb_deleteGuest('${id}')" class="text-red-500 hover:text-red-700 px-1"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+    }
+    document.getElementById('gb_guestSettingsContainer').innerHTML = guestHtml;
     openModal('সেটিংস (ভাড়া কনফিগারেশন)', `
         <div class="mb-6">
             <h3 class="font-bold mb-3 text-blue-700 flex items-center gap-2"><i class="fas fa-bed"></i> রুম ভাড়া সেটিংস</h3>
@@ -1433,7 +1475,7 @@ function gb_openSettingsModal() {
             <i class="fas fa-save"></i> সেটিংস সেভ করুন
         </button>
     `, true);
-    gb_renderSettings();
+    gb_renderSettings(); // Call again to populate dynamically generated fields
 }
 
 function gb_renderSettings() {
@@ -1489,6 +1531,7 @@ function gb_addNewRoom() {
     gb_renderSettings();
 }
 
+// Replaced confirm with showConfirm to remove web links/popups
 function gb_deleteRoom(id) {
     showConfirm('এই রুম ক্যাটাগরিটি ডিলিট করতে চান?', () => {
         delete gb_settings.rooms[id];
@@ -1502,6 +1545,7 @@ function gb_addNewGuest() {
     gb_renderSettings();
 }
 
+// Replaced confirm with showConfirm
 function gb_deleteGuest(id) {
     showConfirm('এই গেস্ট টাইপটি ডিলিট করতে চান?', () => {
         delete gb_settings.guests[id];
@@ -1538,9 +1582,9 @@ async function gb_saveSettings() {
         await db.collection('guestBillSettings').doc('config').set({ settings: gb_settings });
         gb_updateFormSelects();
         forceCloseModal();
-        showToast("সেটিংস সফলভাবে সেভ হয়েছে!");
+        showToast("সেটিংস সফলভাবে সেভ হয়েছে!", "success");
     } catch(e) {
-        showToast("সেটিংস সেভ করতে সমস্যা হয়েছে: " + e.message, 'error');
+        showToast("সেটিংস সেভ করতে সমস্যা হয়েছে: " + e.message, "error");
     }
 }
 
@@ -1674,12 +1718,13 @@ async function gb_submitBill() {
         const data = gb_getFormData();
         try {
             await db.collection('guestBills').doc(editId).set(data, { merge: true });
-            showToast("বিল সফলভাবে আপডেট হয়েছে!");
+            showToast("বিল সফলভাবে আপডেট হয়েছে!", "success");
             gb_resetForm();
         } catch(e) {
-            showToast("আপডেট করতে সমস্যা হয়েছে: " + e.message, 'error');
+            showToast("আপডেট করতে সমস্যা হয়েছে: " + e.message, "error");
         }
     } else {
+        // If there's data in the form but not added to temp, add it first
         if (document.getElementById('guestName').value.trim() !== '') {
             gb_addTempGuest();
         }
@@ -1689,8 +1734,123 @@ async function gb_submitBill() {
             return;
         }
         
+        // Save all bills at once
         const batch = db.batch();
-        const savedBills = [];
         gb_tempGuests.forEach(g => {
             const ref = db.collection('guestBills').doc();
-            const billData = { ...g, id: ref.id, createdAt: firebase.firestore.FieldValue.serverTimestamp
+            batch.set(ref, { ...g, id: ref.id, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        });
+        
+        try {
+            await batch.commit();
+            gb_tempGuests = [];
+            gb_renderTempGuests();
+            showToast("বিলগুলো সফলভাবে তৈরি এবং তালিকায় যুক্ত হয়েছে!", "success");
+            gb_resetForm();
+        } catch(e) {
+            showToast("সেভ করতে সমস্যা হয়েছে: " + e.message, "error");
+        }
+    }
+}
+
+function gb_calculateBill(checkIn, checkOut, excludedDates, roomTypeId, guestTypeName) {
+    let total = 0;
+    let current = new Date(checkIn);
+    let end = new Date(checkOut);
+    let consecutiveDays = 0;
+    
+    const r = gb_settings.rooms[roomTypeId];
+    let guestRate = 0;
+    for (let id in gb_settings.guests) {
+        if (gb_settings.guests[id].name === guestTypeName) {
+            guestRate = gb_settings.guests[id].rate;
+            break;
+        }
+    }
+
+    while (current <= end) {
+        const dateStr = gb_formatDateToCustom(current);
+        if (!excludedDates.includes(dateStr)) {
+            consecutiveDays++;
+            let dailyRate;
+
+            if (guestRate > 0) {
+                dailyRate = guestRate;
+            } else if (r) {
+                if (consecutiveDays >= r.a && consecutiveDays <= r.b) {
+                    dailyRate = r.y;
+                } else if (consecutiveDays >= r.c && consecutiveDays <= r.d) {
+                    dailyRate = r.z;
+                } else if (consecutiveDays > r.d) {
+                    dailyRate = r.z; 
+                } else {
+                    dailyRate = r.x;
+                }
+            } else {
+                dailyRate = 0;
+            }
+            total += dailyRate;
+        } else {
+            consecutiveDays = 0;
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    return Math.round(total);
+}
+
+function gb_resetForm() {
+    const form = document.getElementById('billForm');
+    if(form) form.reset();
+    document.getElementById('gb_editId').value = '';
+    document.getElementById('submitBtn').innerText = 'বিল তৈরি করুন';
+    document.getElementById('tempBtn').classList.remove('hidden');
+    document.getElementById('totalDays').value = '';
+    gb_toggleOtherType();
+}
+
+function gb_editBill(id) {
+    const bill = gb_bills.find(b => b.id === id);
+    if(!bill) return;
+    
+    document.getElementById('gb_editId').value = bill.id;
+    document.getElementById('guestName').value = bill.guestName;
+    document.getElementById('mobileNumbers').value = bill.mobile;
+    document.getElementById('address').value = bill.address;
+    
+    const guestSelect = document.getElementById('guestType');
+    let matched = false;
+    for (let id in gb_settings.guests) {
+        if (gb_settings.guests[id].name === bill.guestType) {
+            guestSelect.value = id;
+            matched = true;
+            break;
+        }
+    }
+    if (!matched) {
+        guestSelect.value = "Others";
+        gb_toggleOtherType();
+        document.getElementById('customGuestType').value = bill.guestType;
+    }
+
+    document.getElementById('roomType').value = bill.roomType;
+    document.getElementById('roomNumber').value = bill.roomNumber || '';
+    document.getElementById('checkIn').value = bill.checkIn;
+    document.getElementById('checkOut').value = bill.checkOut;
+    document.getElementById('excludedDates').value = bill.excludedDates.join(', ');
+    document.getElementById('purpose').value = bill.purpose;
+    document.getElementById('totalDays').value = bill.totalDays;
+    document.getElementById('comments').value = bill.comments;
+    
+    document.getElementById('submitBtn').innerText = 'আপডেট করুন';
+    document.getElementById('tempBtn').classList.add('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Replaced confirm with showConfirm
+async function gb_deleteBill(id) {
+    showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?', async () => {
+        try {
+            await db.collection('guestBills').doc(id).delete();
+            showToast('বিলটি ডিলিট হয়েছে।', 'success');
+        } catch(e) {
+            showToast('ডিলিট করতে সমস্যা হয়েছে: ' + e.message, 'error
