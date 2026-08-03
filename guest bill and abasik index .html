@@ -1533,11 +1533,12 @@ function gb_addNewRoom() {
     gb_renderSettings();
 }
 
+// Custom Confirm Notification (No Link)
 function gb_deleteRoom(id) {
-    if(confirm('এই রুম ক্যাটাগরিটি ডিলিট করতে চান?')) {
+    showConfirm('এই রুম ক্যাটাগরিটি ডিলিট করতে চান?', () => {
         delete gb_settings.rooms[id];
         gb_renderSettings();
-    }
+    });
 }
 
 function gb_addNewGuest() {
@@ -1546,11 +1547,12 @@ function gb_addNewGuest() {
     gb_renderSettings();
 }
 
+// Custom Confirm Notification (No Link)
 function gb_deleteGuest(id) {
-    if(confirm('এই গেস্ট টাইপটি ডিলিট করতে চান?')) {
+    showConfirm('এই গেস্ট টাইপটি ডিলিট করতে চান?', () => {
         delete gb_settings.guests[id];
         gb_renderSettings();
-    }
+    });
 }
 
 async function gb_saveSettings() {
@@ -1582,9 +1584,9 @@ async function gb_saveSettings() {
         await db.collection('guestBillSettings').doc('config').set({ settings: gb_settings });
         gb_updateFormSelects();
         forceCloseModal();
-        alert("সেটিংস সফলভাবে সেভ হয়েছে!");
+        showToast("সেটিংস সফলভাবে সেভ হয়েছে!");
     } catch(e) {
-        alert("সেটিংস সেভ করতে সমস্যা হয়েছে: " + e.message);
+        showToast("সেটিংস সেভ করতে সমস্যা হয়েছে: " + e.message, 'error');
     }
 }
 
@@ -1673,8 +1675,8 @@ function gb_addTempGuest() {
     const ci = document.getElementById('checkIn').value;
     const co = document.getElementById('checkOut').value;
     
-    if(!name) { alert("অন্তত নামটি লিখুন!"); return; }
-    if(!ci || !co) { alert("চেক-ইন এবং চেক-আউট তারিখ দিন!"); return; }
+    if(!name) { showToast("অন্তত নামটি লিখুন!", 'error'); return; }
+    if(!ci || !co) { showToast("চেক-ইন এবং চেক-আউট তারিখ দিন!", 'error'); return; }
     
     const data = gb_getFormData();
     gb_tempGuests.push(data);
@@ -1718,10 +1720,10 @@ async function gb_submitBill() {
         const data = gb_getFormData();
         try {
             await db.collection('guestBills').doc(editId).set(data, { merge: true });
-            alert("বিল সফলভাবে আপডেট হয়েছে!");
+            showToast("বিল সফলভাবে আপডেট হয়েছে!");
             gb_resetForm();
         } catch(e) {
-            alert("আপডেট করতে সমস্যা হয়েছে: " + e.message);
+            showToast("আপডেট করতে সমস্যা হয়েছে: " + e.message, 'error');
         }
     } else {
         if (document.getElementById('guestName').value.trim() !== '') {
@@ -1729,7 +1731,7 @@ async function gb_submitBill() {
         }
         
         if (gb_tempGuests.length === 0) {
-            alert("অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!");
+            showToast("অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!", 'error');
             return;
         }
         
@@ -1743,10 +1745,10 @@ async function gb_submitBill() {
             await batch.commit();
             gb_tempGuests = [];
             gb_renderTempGuests();
-            alert("বিলগুলো সফলভাবে তৈরি এবং তালিকায় যুক্ত হয়েছে!");
+            showToast("বিলগুলো সফলভাবে তৈরি এবং তালিকায় যুক্ত হয়েছে!");
             gb_resetForm();
         } catch(e) {
-            alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
+            showToast("সেভ করতে সমস্যা হয়েছে: " + e.message, 'error');
         }
     }
 }
@@ -1845,14 +1847,14 @@ function gb_editBill(id) {
 }
 
 async function gb_deleteBill(id) {
-    if (confirm('আপনি কি এই বিলটি ডিলিট করতে চান?')) {
+    showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?', async () => {
         try {
             await db.collection('guestBills').doc(id).delete();
-            alert('বিলটি ডিলিট হয়েছে।');
+            showToast('বিলটি ডিলিট হয়েছে।');
         } catch(e) {
-            alert('ডিলিট করতে সমস্যা হয়েছে: ' + e.message);
+            showToast('ডিলিট করতে সমস্যা হয়েছে: ' + e.message, 'error');
         }
-    }
+    });
 }
 
 function gb_renderBills() {
@@ -1874,7 +1876,7 @@ function gb_renderBills() {
         pageItems.forEach(bill => {                    
             html += `
                 <div class="border rounded-xl shadow-sm bg-white p-4 hover:shadow-md transition-shadow">
-                    <div class="flex justify-between items-center cursor-pointer" onclick="gb_toggleExpand(${bill.id})">
+                    <div class="flex justify-between items-center cursor-pointer" onclick="gb_toggleExpand('${bill.id}')">
                         <div>
                             <h3 class="font-bold text-lg text-gray-800">${bill.guestName}</h3>
                             <p class="text-xs text-gray-500 mt-1">
@@ -1899,124 +1901,4 @@ function gb_renderBills() {
                         
                         <div class="flex gap-2 mt-3">
                             <button onclick="gb_downloadSinglePDF('${bill.id}')" class="flex-1 bg-red-500 text-white px-2 py-1.5 rounded text-xs btn-icon hover:bg-red-600"><i class="fas fa-download"></i> Pdf</button>
-                            <button onclick="gb_downloadSingleExcel('${bill.id}')" class="flex-1 bg-green-600 text-white px-2 py-1.5 rounded text-xs btn-icon hover:bg-green-700"><i class="fas fa-download"></i> Excel</button>
-                        </div>
-                        <div class="flex gap-2 mt-2 justify-end text-gray-500">
-                            <button onclick="gb_editBill('${bill.id}')" class="hover:text-blue-600 px-2"><i class="fas fa-edit"></i> এডিট</button>
-                            <button onclick="gb_deleteBill('${bill.id}')" class="hover:text-red-600 px-2"><i class="fas fa-trash"></i> ডিলিট</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-    }
-    document.getElementById('billListContainer').innerHTML = html;
-    const pageInfo = document.getElementById('pageInfo');
-    if(pageInfo) pageInfo.innerText = `পেজ ${gb_currentPage} / ${totalPages || 1}`;
-}
-
-function gb_toggleExpand(id) {
-    const div = document.getElementById(`details_${id}`);
-    const icon = document.getElementById(`icon_${id}`);
-    if(div) {
-        div.classList.toggle('hidden');
-        if(icon) {
-            icon.classList.toggle('fa-chevron-down');
-            icon.classList.toggle('fa-chevron-up');
-        }
-    }
-}
-
-function gb_prevPage() { if (gb_currentPage > 1) { gb_currentPage--; gb_renderBills(); } }
-function gb_nextPage() { 
-    const totalPages = Math.ceil(gb_filteredBills.length / gb_itemsPerPage);
-    if (gb_currentPage < totalPages) { gb_currentPage++; gb_renderBills(); } 
-}
-
-function gb_getBulkFilteredBills() {
-    const fromDate = document.getElementById('bulkFromDate').value;
-    const toDate = document.getElementById('bulkToDate').value;
-    
-    return gb_bills.filter(bill => {
-        let d = new Date(bill.checkIn);
-        let fromOk = true, toOk = true;
-        if(fromDate) fromOk = d >= new Date(fromDate);
-        if(toDate) toOk = d <= new Date(toDate);
-        return fromOk && toOk;
-    });
-}
-
-function gb_generateBillTableData(bill) {
-    return [
-        ['নাম', bill.guestName],
-        ['মোবাইল', bill.mobile || ''],
-        ['ঠিকানা', bill.address || ''],
-        ['গেস্ট টাইপ', bill.guestType],
-        ['রুম টাইপ', bill.roomTypeName],
-        ['রুম নম্বর', bill.roomNumber || ''],
-        ['চেক-ইন', gb_formatDateToCustom(bill.checkIn)],
-        ['চেক-আউট', gb_formatDateToCustom(bill.checkOut)],
-        ['বাদ দেওয়া তারিখ', bill.excludedDates.join(', ') || 'নেই'],
-        ['মোট দিন', bill.totalDays],
-        ['আগমনের উদ্দেশ্য', bill.purpose || ''],
-        ['মন্তব্য', bill.comments || ''],
-        ['মোট বিল', `৳${bill.totalAmount}`]
-    ];
-}
-
-function gb_downloadSinglePDF(id) {
-    const bill = gb_bills.find(b => b.id === id);
-    if(!bill) return;
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text("Rest House Bill", 14, 15);
-    doc.autoTable({
-        startY: 25, head: [['Field', 'Details']], body: gb_generateBillTableData(bill),
-        theme: 'grid', styles: { fontSize: 10, cellPadding: 2 }
-    });
-    doc.save(`Bill_${bill.guestName}.pdf`);
-}
-
-function gb_downloadSingleExcel(id) {
-    const bill = gb_bills.find(b => b.id === id);
-    if(!bill) return;
-    const ws = XLSX.utils.aoa_to_sheet([['Field', 'Details'], ...gb_generateBillTableData(bill)]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Bill");
-    XLSX.writeFile(wb, `Bill_${bill.guestName}.xlsx`);
-}
-
-function gb_downloadBulkPDF() {
-    const bulkBills = gb_getBulkFilteredBills();
-    if(bulkBills.length === 0) { alert("এই তারিখে কোনো বিল পাওয়া যায়নি।"); return; }
-    
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    bulkBills.forEach((bill, index) => {
-        if (index > 0) doc.addPage();
-        doc.text("Rest House Bill", 14, 15);
-        doc.autoTable({
-            startY: 25, head: [['Field', 'Details']], body: gb_generateBillTableData(bill),
-            theme: 'grid', styles: { fontSize: 10, cellPadding: 2 }
-        });
-    });
-    doc.save(`Bills_${new Date().toLocaleDateString()}.pdf`);
-}
-
-function gb_downloadBulkExcel() {
-    const bulkBills = gb_getBulkFilteredBills();
-    if(bulkBills.length === 0) { alert("এই তারিখে কোনো বিল পাওয়া যায়নি।"); return; }
-    
-    const wb = XLSX.utils.book_new();
-    bulkBills.forEach(bill => {
-        const ws = XLSX.utils.aoa_to_sheet([['Field', 'Details'], ...gb_generateBillTableData(bill)]);
-        let sheetName = `${bill.guestName.substring(0, 20)}_${bill.roomNumber || 'NA'}`.replace(/[\\/?*[\]]/g, '_').substring(0, 31);
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    });
-    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`);
-}
-
-</script>
-</body>
-</html>
+                            <button onclick="gb_downloadSingleExcel('${bill.id}')" class="flex-1 bg-green-600 text-white px-2 py-1.5
