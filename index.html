@@ -910,7 +910,6 @@ function getGbFormHtml() {
 }
 
 function getGbListHtml() {
-    const bills = guestBillState.bills;
     return `<div class="gb-list-card">
         <div class="gb-bulk-panel">
             <div class="gb-section-title" style="color:#1e40af;">📥 বিল ডাউনলোড করুন</div>
@@ -922,7 +921,7 @@ function getGbListHtml() {
             </div>
         </div>
         <div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:12px;">
-            <h3 style="font-size:16px;font-weight:700;">বিলের তালিকা (${bills.length})</h3>
+            <h3 id="gbBillCount" style="font-size:16px;font-weight:700;">বিলের তালিকা (0)</h3>
             <div style="position:relative;width:100%;max-width:240px;">
                 <input type="text" id="gbSearch" oninput="gbRenderBillList()" placeholder="যেকোনো তথ্য দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;">
                 <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
@@ -934,7 +933,7 @@ function getGbListHtml() {
 }
 
 function renderGuestBillTab(c) {
-    c.innerHTML = `<div class="tabs"><div class="tab ${guestBillState.activeGbTab === 'newBill' ? 'active' : ''}" onclick="gbSwitchTab('newBill')">🆕 নতুন বিল</div><div class="tab ${guestBillState.activeGbTab === 'billList' ? 'active' : ''}" onclick="gbSwitchTab('billList')">📋 বিল তালিকা ও ডাউনলোড</div></div><div id="gbTabContent"></div>`;
+    c.innerHTML = `<div class="tabs"><div class="tab ${guestBillState.activeGbTab === 'newBill' ? 'active' : ''}" onclick="gbSwitchTab('newBill')">➕ বিল তৈরি</div><div class="tab ${guestBillState.activeGbTab === 'billList' ? 'active' : ''}" onclick="gbSwitchTab('billList')">📋 বিল তালিকা ও ডাউনলোড</div></div><div id="gbTabContent"></div>`;
     const tabContent = document.getElementById('gbTabContent');
     if (guestBillState.activeGbTab === 'newBill') tabContent.innerHTML = getGbFormHtml(); else tabContent.innerHTML = getGbListHtml();
     gbUpdateSelects(); gbRenderTempGuests(); gbRenderBillList();
@@ -1124,6 +1123,7 @@ function gbRenderBillList() {
     if (totalPages === 0) guestBillState.currentPage = 1;
     const start = (guestBillState.currentPage - 1) * guestBillState.itemsPerPage; const pageItems = guestBillState.filteredBills.slice(start, start + guestBillState.itemsPerPage);
     const container = document.getElementById('gbBillList'); if (!container) return;
+    const countEl = document.getElementById('gbBillCount'); if (countEl) countEl.innerText = `বিলের তালিকা (${guestBillState.filteredBills.length})`;
     if (pageItems.length === 0) { container.innerHTML = '<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size:40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>'; }
     else {
         container.innerHTML = pageItems.map(bill => {
