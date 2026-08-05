@@ -735,7 +735,7 @@ function viewTenantSnapshot(rId, tId) { const r = state.rooms.find(x => x.id ===
 function editTenantSnapshotItems(rId, tId) {
     const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); let itemsHtml = '';
     (t.itemsSnapshot || []).forEach(i => { itemsHtml += `<tr><td><input type="text" value="${escapeHtml(i.name)}" id="snap_name_${i.id}"></td><td><input type="number" value="${i.quantity || 1}" id="snap_qty_${i.id}"></td><td><select id="snap_cond_${i.id}">${getConditionOptions(i.condition)}</select></td></tr>`; });
-    openModal(`স্ন্যাপশট এডিট - ${escapeHtml(t.name)}`, `<table class="material-table"><thead><tr><th>নাম</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>${itemsHtml}</tbody></table><button class="btn btn-primary mt-16" style="width:100%" onclick="saveTenantSnapshotItems('${rId}','${t.id}')">সেভ করুন</button>`, true, true);
+    openModal(`স্ন্যাপশট এডিট - ${escapeHtml(t.name)}`, `<table class="material-table"><thead><tr><th>নাম</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>${itemsHtml}</tbody></table><button class="btn btn-primary mt-16" style="width:100%" onclick="saveTenantSnapshotItems('${rId}','${tId}')">সেভ করুন</button>`, true, true);
 }
 async function saveTenantSnapshotItems(rId, tId) {
     const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); const updatedItems = [];
@@ -819,7 +819,7 @@ function showDeleteReportsByYearModal() {
 }
 async function confirmDeleteReportsByYear() {
     const startYear = parseInt(document.getElementById('delStartYear').value); const endYear = parseInt(document.getElementById('delEndYear').value);
-    if (startYear > endYear) { showToast('শুরুর সাল শেষের সালের চেয়েে বড় হতে পারবে না', 'error'); return; }
+    if (startYear > endYear) { showToast('শুরুর সাল শেষের সালের চেয়েে বড় হতে পারবে না', 'error'); return; }
     checkPassword(async () => {
         showConfirm(`আপনি কি ${convertToBengali(startYear)} থেকে ${convertToBengali(endYear)} সালের সমস্ত রিপোর্ট ডিলিট করতে চান?`, async () => {
             try { const batch = db.batch(); let count = 0; state.reports.forEach(r => { const ts = r.createdAt?.seconds ? new Date(r.createdAt.seconds * 1000) : new Date(r.reportDate || 0); const rYear = ts.getFullYear(); if (rYear >= startYear && rYear <= endYear) { batch.delete(db.collection('reports').doc(r.id)); count++; } }); if (count > 0) { await batch.commit(); showToast(`${convertToBengali(count)} টি রিপোর্ট ডিলিট হয়েছে`); } else { showToast('এই সালের মধ্যে কোন রিপোর্ট পাওয়া যায়নি'); } forceCloseModal(); } catch(e) { showToast('ডিলিট করতে সমস্যা হয়েছে', 'error'); console.error(e); }
@@ -861,12 +861,83 @@ async function renderDownload(c) { if (state.buildings.length === 0) { c.innerHT
 function loadDlFloors() { const bId = document.getElementById('dlBuilding').value; const fS = document.getElementById('dlFloor'); const rS = document.getElementById('dlRoom'); fS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option>'; rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (bId === 'all' || bId === '') { fS.disabled = true; rS.disabled = true; fS.value = 'all'; rS.value = 'all'; } else { const b = state.buildings.find(x=>x.id===bId); for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; rS.disabled = true; fS.value = ''; rS.value = 'all'; } checkDlFields(); }
 function loadDlRooms() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rS = document.getElementById('dlRoom'); rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (fId === 'all' || fId === '') { rS.disabled = true; rS.value = 'all'; } else { const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; rS.value = ''; } checkDlFields(); }
 function checkDlFields() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; let isValid = bId !== '' && t !== ''; const fEl = document.getElementById('dlFloor'); const rEl = document.getElementById('dlRoom'); if (fEl && !fEl.disabled && fId === '') isValid = false; if (rEl && !rEl.disabled && rId === '') isValid = false; const dlExcel = document.getElementById('dlExcel'); const dlPdf = document.getElementById('dlPdf'); if (dlExcel && dlPdf) { if(isValid) { dlExcel.disabled = false; dlPdf.disabled = false; } else { dlExcel.disabled = true; dlPdf.disabled = true; } } }
-async function downloadReport(fmt) { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; if (!t) { showToast('ধরন সিলেক্ট করুন', 'error'); return; } let rs = state.rooms; if (bId !== 'all') rs = rs.filter(r => r.buildingId === bId); if (fId !== 'all' && fId !== '') rs = rs.filter(r => r.floor === fId); if (rId !== 'all' && rId !== '') rs = rs.filter(r => r.id === rId); const bName = bId === 'all' ? 'সকল' : (state.buildings.find(b => b.id === bId)?.name || ''); const fName = fId === 'all' ? 'সকল' : fId; const rName = rId === 'all' ? 'সকল' : (state.rooms.find(r => r.id === rId)?.number || ''); const dStr = new Date().toISOString().split('T')[0]; let data = [], headers = [], title = ''; if (t === 'reports') { title='ট্রাবল রিপোর্ট'; headers=['#','বিল্ডিং/রিপোর্টকারী','তলা','রুম','তারিখ','বিভাগ','মিস্ত্রি','সমস্যা','রিপোর্টকারী','পদবী','স্ট্যাটাস','সমাধানের তারিখ']; const reps = state.reports; reps.forEach((r,i)=>{ if((bId === 'all' || r.building === bName) && (fId === 'all' or r.floor === fName) && (rId === 'all' or r.room === rName)) { data.push([i+1, r.building ? r.building : r.reporter, r.floor, r.room, formatDate(r.reportDate || r.createdAt), r.department || '-', r.mistry || '-', r.description, r.reporter, r.reporterDesignation || '-', r.status === 'resolved' ? 'সমাধান হয়েছে' : 'চলমান', r.resolvedAt ? formatDate(r.resolvedAt) : '-']); } }); } else if (t === 'payments') { title='পেমেন্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','ব্যক্তি','টাকা','মাস','বছর','তারিখ']; const pays = await Store.getPayments(); pays.forEach((p,i)=>{ if((bId === 'all' or p.building === bName) && (fId === 'all' or p.floor === fName) && (rId === 'all' or p.room === rName)) { data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]]); } }); } else if (t === 'items') { title='মালামাল তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','পরিমাণ','অবস্থা','রিপেয়ার তারিখ','রিপ্লেস তারিখ','মন্তব্য','ভাড়াটে']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.items || []).forEach(item => { let note = '-'; if (item.history && item.history.length > 0) { note = item.history[item.history.length - 1].note || '-'; } data.push([data.length+1, bN, room.floor, room.number, item.name, item.quantity || 1, item.condition, item.lastRepairDate ? formatDate(item.lastRepairDate) : '-', item.lastReplaceDate ? formatDate(item.lastReplaceDate) : '-', note, room.tenants?.map(t=>t.name).join(', ') || 'খালি']); }); }); } else if (t === 'tenants') { title='ভাড়াটে তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','পদবী','ফোন','প্রকার','পরিবারের তথ্য','বরাদ্ব তারিখ']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; let tArr = room.tenants || (room.tenant ? [room.tenant] : []); tArr.forEach(t => data.push([data.length+1, bN, room.floor, room.number, t.name, t.designation || '-', t.phone || '-', t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', t.familyInfo || '-', t.startDate])); (room.previousTenants || []).forEach(pt => data.push([data.length+1, bN, room.floor, room.number, pt.name + ' (পূর্বের)', pt.designation || '-', pt.phone || '-', pt.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', pt.familyInfo || '-', pt.startDate])); }); } else if (t === 'guests') { title='গেস্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','মোবাইল','ঠিকানা','রেফারেন্স','প্রবেশ','চেক-আউট','স্ট্যাটাস','মোট বিল']; rs.forEach(room => { const bN = state.buildings.find(b => b.id === room.buildingId)?.name || ''; (room.guests || []).forEach(g => data.push([data.length+1, bN, room.floor, room.number, g.name, g.mobile || '-', g.address || '-', g.reference || '-', g.startDate, g.endDate || 'উপস্থিত', g.isPaid ? 'Paid' : 'Non-Paid', g.totalBill || '-'])); }); } else if (t === 'rooms') { title='রুম তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','ভাড়াটে','প্রকার','তারিখ']; rs.forEach((room, i) => data.push([i+1, state.buildings.find(b => b.id === room.buildingId)?.name || '', room.floor, room.number, (room.items || []).length, room.tenants?.map(t=>t.name).join(', ') || 'খালি', room.tenants?.some(t=>t.type==='family') ? 'পরিবার' : 'ব্যাচেলর', room.tenants?.[0]?.startDate || '-'])); } if (data.length === 0) { showToast('কোন ডেটা নেই', 'error'); return; } if (fmt === 'xlsx') { const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, title); XLSX.writeFile(wb, `${title}_${bName}_${dStr}.xlsx`); } else { const win = window.open('', '_blank'); win.document.write(`<html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; } h2 { text-align: center; margin-bottom: 5px; font-weight: 700; } p { text-align: center; margin-top: 0; margin-bottom: 20px; color: #555; font-weight: 600; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 11px; } th { background-color: #2563eb; color: #fff; font-weight: 700; } @media print { body { padding: 0; } }</style></head><body><h2>${title}</h2><p>বিল্ডিং: ${bName} | তলা: ${fName} | রুম: ${rName} | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`); win.document.close(); win.focus(); setTimeout(() => { win.print(); }, 500); } showToast('ডাউনলোড হচ্ছে...'); }
+async function downloadReport(fmt) {
+    const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value;
+    if (!t) { showToast('ধরন সিলেক্ট করুন', 'error'); return; }
+    let rs = state.rooms;
+    if (bId !== 'all') rs = rs.filter(r => r.buildingId === bId);
+    if (fId !== 'all' && fId !== '') rs = rs.filter(r => r.floor === fId);
+    if (rId !== 'all' && rId !== '') rs = rs.filter(r => r.id === rId);
+    const bName = bId === 'all' ? 'সকল' : (state.buildings.find(b => b.id === bId)?.name || '');
+    const fName = fId === 'all' ? 'সকল' : fId;
+    const rName = rId === 'all' ? 'সকল' : (state.rooms.find(r => r.id === rId)?.number || '');
+    const dStr = new Date().toISOString().split('T')[0];
+    let data = [], headers = [], title = '';
+    if (t === 'reports') {
+        title='ট্রাবল রিপোর্ট'; headers=['#','বিল্ডিং/রিপোর্টকারী','তলা','রুম','তারিখ','বিভাগ','মিস্ত্রি','সমস্যা','রিপোর্টকারী','পদবী','স্ট্যাটাস','সমাধানের তারিখ'];
+        const reps = state.reports;
+        reps.forEach((r,i)=>{
+            if((bId === 'all' || r.building === bName) && (fId === 'all' || r.floor === fName) && (rId === 'all' || r.room === rName)) {
+                data.push([i+1, r.building ? r.building : r.reporter, r.floor, r.room, formatDate(r.reportDate || r.createdAt), r.department || '-', r.mistry || '-', r.description, r.reporter, r.reporterDesignation || '-', r.status === 'resolved' ? 'সমাধান হয়েছে' : 'চলমান', r.resolvedAt ? formatDate(r.resolvedAt) : '-']);
+            }
+        });
+    } else if (t === 'payments') {
+        title='পেমেন্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','ব্যক্তি','টাকা','মাস','বছর','তারিখ'];
+        const pays = await Store.getPayments();
+        pays.forEach((p,i)=>{
+            if((bId === 'all' || p.building === bName) && (fId === 'all' || p.floor === fName) && (rId === 'all' || p.room === rName)) {
+                data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]]);
+            }
+        });
+    } else if (t === 'items') {
+        title='মালামাল তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','পরিমাণ','অবস্থা','রিপেয়ার তারিখ','রিপ্লেস তারিখ','মন্তব্য','ভাড়াটে'];
+        rs.forEach(room => {
+            const bN = state.buildings.find(b => b.id === room.buildingId)?.name || '';
+            (room.items || []).forEach(item => {
+                let note = '-';
+                if (item.history && item.history.length > 0) { note = item.history[item.history.length - 1].note || '-'; }
+                data.push([data.length+1, bN, room.floor, room.number, item.name, item.quantity || 1, item.condition, item.lastRepairDate ? formatDate(item.lastRepairDate) : '-', item.lastReplaceDate ? formatDate(item.lastReplaceDate) : '-', note, room.tenants?.map(t=>t.name).join(', ') || 'খালি']);
+            });
+        });
+    } else if (t === 'tenants') {
+        title='ভাড়াটে তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','পদবী','ফোন','প্রকার','পরিবারের তথ্য','বরাদ্ব তারিখ'];
+        rs.forEach(room => {
+            const bN = state.buildings.find(b => b.id === room.buildingId)?.name || '';
+            let tArr = room.tenants || (room.tenant ? [room.tenant] : []);
+            tArr.forEach(t => data.push([data.length+1, bN, room.floor, room.number, t.name, t.designation || '-', t.phone || '-', t.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', t.familyInfo || '-', t.startDate]));
+            (room.previousTenants || []).forEach(pt => data.push([data.length+1, bN, room.floor, room.number, pt.name + ' (পূর্বের)', pt.designation || '-', pt.phone || '-', pt.type === 'family' ? 'পরিবার' : 'ব্যাচেলর', pt.familyInfo || '-', pt.startDate]));
+        });
+    } else if (t === 'guests') {
+        title='গেস্ট তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','নাম','মোবাইল','ঠিকানা','রেফারেন্স','প্রবেশ','চেক-আউট','স্ট্যাটাস','মোট বিল'];
+        rs.forEach(room => {
+            const bN = state.buildings.find(b => b.id === room.buildingId)?.name || '';
+            (room.guests || []).forEach(g => data.push([data.length+1, bN, room.floor, room.number, g.name, g.mobile || '-', g.address || '-', g.reference || '-', g.startDate, g.endDate || 'উপস্থিত', g.isPaid ? 'Paid' : 'Non-Paid', g.totalBill || '-']));
+        });
+    } else if (t === 'rooms') {
+        title='রুম তালিকা'; headers=['#','বিল্ডিং','তলা','রুম','মালামাল','ভাড়াটে','প্রকার','তারিখ'];
+        rs.forEach((room, i) => data.push([i+1, state.buildings.find(b => b.id === room.buildingId)?.name || '', room.floor, room.number, (room.items || []).length, room.tenants?.map(t=>t.name).join(', ') || 'খালি', room.tenants?.some(t=>t.type==='family') ? 'পরিবার' : 'ব্যাচেলর', room.tenants?.[0]?.startDate || '-']));
+    }
+    if (data.length === 0) { showToast('কোন ডেটা নেই', 'error'); return; }
+    if (fmt === 'xlsx') {
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, title);
+        XLSX.writeFile(wb, `${title}_${bName}_${dStr}.xlsx`);
+    } else {
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body { font-family: 'Hind Siliguri', sans-serif; padding: 20px; } h2 { text-align: center; margin-bottom: 5px; font-weight: 700; } p { text-align: center; margin-top: 0; margin-bottom: 20px; color: #555; font-weight: 600; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 6px; text-align: left; font-size: 11px; } th { background-color: #2563eb; color: #fff; font-weight: 700; } @media print { body { padding: 0; } }</style></head><body><h2>${title}</h2><p>বিল্ডিং: ${bName} | তলা: ${fName} | রুম: ${rName} | তারিখ: ${new Date().toLocaleDateString()}</p><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`);
+        win.document.close();
+        win.focus();
+        setTimeout(() => { win.print(); }, 500);
+    }
+    showToast('ডাউনলোড হচ্ছে...');
+}
 function handleGlobalSearch(v) { const d = document.getElementById('searchDropdown'); if (!v.trim()) { d.style.display = 'none'; return; } const res = state.rooms.filter(r => roomMatchesSearch(v, r.number) || r.tenants?.some(t => t.name.toLowerCase().includes(v.toLowerCase())) || r.tenant?.name.toLowerCase().includes(v.toLowerCase())); d.innerHTML = res.length === 0 ? '-কোন ফলাফল নেই-' : res.map(r => { const bN = state.buildings.find(b => b.id === r.buildingId)?.name || ''; const tN = r.tenants?.map(t=>t.name).join(', ') || r.tenant?.name || 'খালি'; return `<div class="search-item" onclick="showRoomDetail('${r.id}'); document.getElementById('searchDropdown').style.display='none';"><strong>${escapeHtml(tN)}</strong><br><span class="text-sm">${escapeHtml(bN)} - রুম: ${escapeHtml(r.number)}</span></div>`; }).join(''); d.style.display = 'block'; }
 document.addEventListener('click', (e) => { if (!e.target.closest('.search-box')) document.getElementById('searchDropdown').style.display = 'none'; });
 document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target.id === 'modalOverlay') forceCloseModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
+// ===== GUEST BILL FUNCTIONS =====
 function gbSwitchTab(tab) { guestBillState.activeGbTab = tab; renderPage(); }
 
 function getGbFormHtml() {
