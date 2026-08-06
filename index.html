@@ -8,7 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -738,7 +738,7 @@ function editOccupantModal(rId, oId) { const room = state.rooms.find(r => r.id =
 async function saveEditOccupant(rId, oId) { const room = state.rooms.find(r => r.id === rId); const o = (room.occupants || []).find(x => x.id === oId); o.name = document.getElementById('eo_name').value.trim(); o.designation = document.getElementById('eo_desig').value.trim(); o.type = document.getElementById('eo_type').value; o.familyInfo = o.type === 'family' ? document.getElementById('eo_family').value.trim() : ''; o.relation = document.getElementById('eo_rel').value.trim(); o.phone = document.getElementById('eo_phone').value.trim(); o.address = document.getElementById('eo_address').value.trim(); o.comment = document.getElementById('eo_comment').value.trim(); forceCloseModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(room); showToast('আপডেট হয়েছে'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); showRoomDetail(rId, 'tenant', true); } }
 async function deleteOccupant(rId, oId) { checkPassword(async () => { const r = state.rooms.find(x => x.id === rId); r.occupants = (r.occupants || []).filter(t => t.id !== oId); forceCloseModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); showRoomDetail(rId, 'tenant', true); } }); }
 function editPreviousTenantModal(rId, tId) { const room = state.rooms.find(r => r.id === rId); const t = (room.previousTenants || []).find(x => x.id === tId); openModal('পূর্বের ভাড়াটে এডিট', `<div class="form-group"><label>নাম</label><input type="text" id="pt_name" value="${escapeHtml(t.name)}"></div><div class="grid grid-2"><div class="form-group"><label>পদবী</label><input type="text" id="pt_desig" value="${escapeHtml(t.designation || '')}"></div><div class="form-group"><label>ফোন</label><input type="text" id="pt_phone" value="${escapeHtml(t.phone || '')}"></div></div><div class="grid grid-2"><div class="form-group"><label>বরাদ্ব তারিখ</label><input type="date" id="pt_start" value="${t.startDate || ''}"></div><div class="form-group"><label>ছাড়া তারিখ</label><input type="date" id="pt_end" value="${t.endDate || ''}"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="savePrevTenant('${rId}','${tId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
-async function savePrevTenant(rId, tId) { const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); t.name = document.getElementById('pt_name').value.trim(); t.designation = document.getElementById('pt_desig').value.trim(); t.phone = document.getElementById('pt_phone').value.trim(); t.startDate = document.getElementById('pt_start').value; t.endDate = document.getElementById('pt_end').value; forceCloseModal(); showRoomDetail(rId, 'history', true); try { await Store.saveRoom(r); showToast('আপডেট হয়েছে'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); showRoomDetail(rId, 'history', true); } }
+async function savePrevTenant(rId, tId) { const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants or []).find(x => x.id === tId); t.name = document.getElementById('pt_name').value.trim(); t.designation = document.getElementById('pt_desig').value.trim(); t.phone = document.getElementById('pt_phone').value.trim(); t.startDate = document.getElementById('pt_start').value; t.endDate = document.getElementById('pt_end').value; forceCloseModal(); showRoomDetail(rId, 'history', true); try { await Store.saveRoom(r); showToast('আপডেট হয়েছে'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); showRoomDetail(rId, 'history', true); } }
 function showVacateModal(rId) { 
     const r = state.rooms.find(x => x.id === rId); 
     let tArr = r.tenants || (r.tenant ? [room.tenant] : []); 
@@ -795,7 +795,7 @@ function showGuestCheckoutModal(rId, gId) {
     const r = state.rooms.find(x => x.id === rId); const g = r.guests.find(x => x.id === gId); 
     openModal('গেস্ট চেক-আউট', `<div class="form-group"><label>চেক-আউট তারিখ *</label><input type="date" id="gEndDate" value="${new Date().toISOString().split('T')[0]}"></div><div class="form-group"><label>মন্তব্য</label><textarea id="gEndComment" rows="2"></textarea></div>${g.isPaid ? `<div class="form-group"><label>মোট বিল</label><input type="number" id="gTotalBill" placeholder="৳" value="${g.totalBill || ''}"></div>` : ''}<div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="confirmGuestCheckout('${rId}','${gId}')">নিশ্চিত</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); 
 }
-async function confirmGuestCheckout(rId, gId) { const eD = document.getElementById('gEndDate').value; if (!eD) { showToast('তারিখ দিন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); const g = r.guests.find(x => x.id === gId); g.endDate = eD; g.endComment = document.getElementById('gEndComment')?.value.trim() || ''; if (g.isPaid) g.totalBill = document.getElementById('gTotalBill')?.value || ''; forceCloseModal(); showRoomDetail(rId, 'guests', true); try { await Store.saveRoom(r); showToast('চেক-আউট সম্পন্ন'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
+async function confirmGuestCheckout(rId, gId) { const eD = document.getElementById('gEndDate').value; if (!eD) { showToast('তারিখ দিন', 'error'); return; } const r = state.rooms.find(x => x.id === rId); const g = r.guests.find(x => x.id === gId); g.endDate = eD; g.endComment = document.getElementById('gEndComment')?.value.trim() or ''; if (g.isPaid) g.totalBill = document.getElementById('gTotalBill')?.value || ''; forceCloseModal(); showRoomDetail(rId, 'guests', true); try { await Store.saveRoom(r); showToast('চেক-আউট সম্পন্ন'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
 async function deleteGuest(rId, gId) { checkPassword(async () => { const r = state.rooms.find(x => x.id === rId); r.guests = (r.guests || []).filter(x => x.id !== gId); forceCloseModal(); showRoomDetail(rId, 'guests', true); try { await Store.saveRoom(r); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); showRoomDetail(rId, 'guests', true); } }); }
 
 function addItemModal(rId) { openModal('নতুন মালামাল', `<div class="form-group"><label>নাম *</label><input type="text" id="iName"></div><div class="grid grid-2"><div class="form-group"><label>পরিমাণ</label><input type="number" id="iQty" value="1" min="1"></div><div class="form-group"><label>অবস্থা</label><select id="iCond">${getConditionOptions('আছে')}</select></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveItem('${rId}')">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, true); }
@@ -909,7 +909,7 @@ async function downloadReport(fmt) {
         title='ট্রাবল রিপোর্ট'; headers=['#','বিল্ডিং/রিপোর্টকারী','তলা','রুম','তারিখ','বিভাগ','মিস্ত্রি','সমস্যা','রিপোর্টকারী','পদবী','স্ট্যাটাস','সমাধানের তারিখ'];
         const reps = state.reports;
         reps.forEach((r,i)=>{
-            if((bId === 'all' || r.building === bName) && (fId === 'all' || r.floor === fName) && (rId === 'all' || r.room === rName)) {
+            if((bId === 'all' || r.building === bName) && (fId === 'all' or r.floor === fName) && (rId === 'all' || r.room === rName)) {
                 data.push([i+1, r.building ? r.building : r.reporter, r.floor, r.room, formatDate(r.reportDate || r.createdAt), r.department || '-', r.mistry || '-', r.description, r.reporter, r.reporterDesignation || '-', r.status === 'resolved' ? 'সমাধান হয়েছে' : 'চলমান', r.resolvedAt ? formatDate(r.resolvedAt) : '-']);
             }
         });
@@ -1101,7 +1101,7 @@ function gbRenderSettings() {
                     <div class="gb-room-field"><label>Currency</label><select id="gb_room_${catId}_${rtId}_curr"><option value="BDT" ${rt.currency==='BDT'?'selected':''}>BDT (৳)</option><option value="USD" ${rt.currency==='USD'?'selected':''}>USD ($)</option></select></div>
                     <div class="gb-room-field"><label>Regular Rate</label><input type="number" value="${rt.regularRate}" id="gb_room_${catId}_${rtId}_reg" placeholder="0"></div>
                     <div class="gb-room-field"><label>Day Limit</label><input type="number" value="${rt.limitDays}" id="gb_room_${catId}_${rtId}_limit" placeholder="15"></div>
-                    <div class="gb-room-field"><label>Daily Rate After Limit</label><input type="number" value="${rt.extraRate}" id="gb_room_${catId}_${rtId}_extra" placeholder="0"></div>
+                    <div class="gb-room-field"><label>Daily fare after limit</label><input type="number" value="${rt.extraRate}" id="gb_room_${catId}_${rtId}_extra" placeholder="0"></div>
                 </div>`;
             }
         }
@@ -1431,6 +1431,7 @@ function gbNextPage() { const t = Math.ceil(guestBillState.filteredBills.length 
 function gbGetFilteredBills() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
+    if (!fromStr || !toStr) return [];
     return guestBillState.bills.filter(bill => {
         if (!bill.guests || bill.guests.length === 0) return false;
         return bill.guests.some(g => {
@@ -1447,9 +1448,9 @@ function gbGetFilteredBills() {
 function getGbNbNote(catId, rtId, totalDaysStr) {
     if (!catId || catId === 'Others' || !guestBillState.settings.categories[catId] || !guestBillState.settings.categories[catId].roomTypes[rtId]) return '';
     const r = guestBillState.settings.categories[catId].roomTypes[rtId]; if (!r) return '';
-    let currSymbol = getCurrencySymbol(r.currency);
     if (r.limitDays > 0 && r.extraRate > 0) {
-        return `N.B: দিন সীমা অতিক্রমের পর দৈনিক ভাড়া ${currSymbol}${r.extraRate}`;
+        let currText = r.currency === 'USD' ? 'ডলার' : 'টাকা';
+        return `N.B: ${r.limitDays} দিন অতিক্রমের পর দৈনিক ভাড়া ${r.extraRate} ${currText}`;
     }
     return '';
 }
@@ -1505,6 +1506,14 @@ function formatExcelSheet(ws, headers, data) {
         { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } },
         { s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } }
     ];
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; R++) {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            if (!ws[cellAddress]) ws[cellAddress] = { v: '' };
+            ws[cellAddress].s = { alignment: { horizontal: 'center', vertical: 'center' } };
+        }
+    }
     const colWidths = headers.map((h, i) => {
         let maxLen = String(h).length;
         data.forEach(row => {
@@ -1532,6 +1541,9 @@ function gbDownloadExcel(billId) {
 }
 
 function gbDownloadBulkPDF() {
+    const fromStr = document.getElementById('gbFromDate')?.value;
+    const toStr = document.getElementById('gbToDate')?.value;
+    if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
     const bills = gbGetFilteredBills();
     if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
     const win = window.open('', '_blank');
@@ -1541,6 +1553,9 @@ function gbDownloadBulkPDF() {
 }
 
 function gbDownloadBulkExcel() {
+    const fromStr = document.getElementById('gbFromDate')?.value;
+    const toStr = document.getElementById('gbToDate')?.value;
+    if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
     const bills = gbGetFilteredBills();
     if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
     const wb = XLSX.utils.book_new();
