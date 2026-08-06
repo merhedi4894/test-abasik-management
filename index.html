@@ -1544,7 +1544,8 @@ function gbDownloadBulkPDF() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
     if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
-    const bills =gbGetFilteredBills();
+    const bills =
+        gbGetFilteredBills();
         if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
         const win = window.open('', '_blank');
         let content = bills.map(bill => generateBillTableHtml(bill) + '<div style="page-break-after: always;"></div>').join('');
