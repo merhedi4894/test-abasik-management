@@ -119,19 +119,19 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-bulk-panel { background: #eff6ff; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #bfdbfe; }
 .gb-bulk-grid { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; align-items: end; }
 @media(max-width:600px) { .gb-bulk-grid { grid-template-columns: 1fr; } }
-.gb-bill-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 16px; transition: all .2s; cursor: pointer; }
+.gb-bill-card { border: 1px solid #e2e8e0; border-radius: 12px; background: #fff; padding: 16px; transition: all .2s; cursor: pointer; }
 .gb-bill-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
 .gb-bill-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 @media(min-width:768px) { .gb-bill-grid { grid-template-columns: 1fr 1fr; } }
 @media(min-width:1280px) { .gb-bill-grid { grid-template-columns: 1fr 1fr 1fr; } }
 .gb-temp-item { display: flex; justify-content: space-between; align-items: center; background: #eff6ff; padding: 8px 12px; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; margin-bottom: 6px; }
-.gb-guest-info-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: #f8fafc; }
-.gb-settings-item { padding: 12px; padding-right: 35px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; position: relative; margin-bottom: 12px; }
+.gb-guest-info-box { border: 1px solid #e2e8e0; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: #f8fafc; }
+.gb-settings-item { padding: 12px; padding-right: 35px; border: 1px solid #e2e8e0; border-radius: 8px; background: #f8fafc; position: relative; margin-bottom: 12px; }
 .gb-settings-row { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
 .gb-settings-row label { font-size: 11px; min-width: 35px; text-align: right; }
 .gb-settings-row input { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; width: 50px; }
 .gb-settings-row input.rate { width: 65px; }
-.gb-guest-row { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; margin-bottom: 8px; }
+.gb-guest-row { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #e2e8e0; border-radius: 8px; background: #f8fafc; margin-bottom: 8px; }
 .gb-guest-row input { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
 .gb-del-btn { position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: #e11d48 !important; font-size: 14px; padding: 4px; display: flex; align-items: center; }
 .gb-del-btn svg { stroke: #e11d48 !important; width: 16px; height: 16px; }
@@ -146,7 +146,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-btn-danger:hover { background: #be123c; }
 .gb-btn-success { background: var(--success); color: #fff; }
 .gb-btn-success:hover { background: #15803d; }
-.gb-btn-outline { background: #e2e8f0; color: #475569; }
+.gb-btn-outline { background: #e2e8e0; color: #475569; }
 .gb-btn-outline:hover { background: #cbd5e1; }
 .gb-btn-sm { padding: 6px 10px; font-size: 12px; }
 .gb-btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -161,6 +161,16 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-actions button.danger { color: var(--danger); }
 .gb-actions button.danger:hover { color: #be123c; }
 .gb-empty { text-align: center; padding: 40px 10px; color: var(--text-light); }
+
+/* New Settings CSS */
+.gb-cat-card { border:1px solid #e2e8e0; border-radius:8px; padding:12px; margin-bottom:12px; background:#f8fafc; position: relative; }
+.gb-cat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px; }
+.gb-rt-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap:8px; align-items:end; margin-bottom:10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; }
+.gb-rt-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.gb-rt-row label { font-size: 11px; color: var(--text-light); margin-bottom: 2px; display:block; }
+.gb-rt-row input, .gb-rt-row select { padding: 6px 8px; font-size: 12px; width:100%; }
+.gb-rt-del { display:flex; align-items:center; justify-content:center; height: 100%; padding-bottom: 4px; }
+.gb-rt-del button { background: transparent; border: none; color: var(--danger); cursor: pointer; padding: 4px; }
 </style>
 </head>
 <body>
@@ -259,7 +269,17 @@ const editIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const gbDelIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
 let guestBillState = {
-    bills: [], settings: { rooms: { A: { name: "A টাইপ", x: 2000, a: 5, b: 10, y: 1500, c: 11, d: 20, z: 1000 }, B: { name: "B টাইপ", x: 1500, a: 4, b: 8, y: 1200, c: 9, d: 15, z: 800 }, C: { name: "C টাইপ", x: 1000, a: 6, b: 12, y: 800, c: 13, d: 25, z: 600 }, D: { name: "D টাইপ", x: 500, a: 3, b: 7, y: 400, c: 8, d: 12, z: 300 } }, guests: { g1: { name: "EGB Staff", rate: 1500 }, g2: { name: "Govt officer", rate: 1800 }, g3: { name: "Student", rate: 500 }, g4: { name: "Foreign Consultant", rate: 3000 } } },
+    bills: [], 
+    settings: { 
+        categories: [
+            { id: 'cat_student', name: 'Student', roomTypes: [ { id: 'rt_a', name: 'A', currency: 'BDT', regularRate: 500, extDaysLimit: 15, extendedRate: 300 } ] },
+            { id: 'cat_egb', name: 'EGB Stuff', roomTypes: [ { id: 'rt_a', name: 'A', currency: 'BDT', regularRate: 1000, extDaysLimit: 15, extendedRate: 800 } ] },
+            { id: 'cat_govt', name: 'Govt. Officer', roomTypes: [ { id: 'rt_a', name: 'A', currency: 'BDT', regularRate: 1500, extDaysLimit: 15, extendedRate: 1000 } ] },
+            { id: 'cat_foreign', name: 'Foreign consultant', roomTypes: [ { id: 'rt_a', name: 'A', currency: 'USD', regularRate: 50, extDaysLimit: 15, extendedRate: 40 } ] },
+            { id: 'cat_local', name: 'Local Conductor/Consultant', roomTypes: [ { id: 'rt_a', name: 'A', currency: 'BDT', regularRate: 1200, extDaysLimit: 15, extendedRate: 900 } ] },
+            { id: 'cat_nongovt', name: 'Non govt. Person', roomTypes: [ { id: 'rt_a', name: 'A', currency: 'BDT', regularRate: 1000, extDaysLimit: 15, extendedRate: 700 } ] }
+        ]
+    },
     tempGuests: [], currentPage: 1, itemsPerPage: window.innerWidth < 768 ? 10 : 25, filteredBills: [], activePaymentTab: 'guestBill', activeGbTab: 'newBill', editId: null, editGuestId: null, isLoading: false
 };
 let unsubGuestBills = null, unsubGuestSettings = null;
@@ -386,7 +406,12 @@ function loadStateFromCache() {
             state.reports.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             const gbBillsCache = localStorage.getItem('rms_gb_bills'); const gbSettingsCache = localStorage.getItem('rms_gb_settings');
             if (gbBillsCache) guestBillState.bills = JSON.parse(gbBillsCache);
-            if (gbSettingsCache) guestBillState.settings = JSON.parse(gbSettingsCache);
+            if (gbSettingsCache) {
+                let parsedSettings = JSON.parse(gbSettingsCache);
+                if (parsedSettings && parsedSettings.categories) {
+                    guestBillState.settings = parsedSettings;
+                }
+            }
             return true;
         }
     } catch(e) {}
@@ -466,7 +491,16 @@ async function loadAppData(user) {
         if (unsubGuestSettings) unsubGuestSettings();
         
         unsubGuestSettings = db.collection('guestBillSettings').doc('config').onSnapshot(doc => {
-            if (doc.exists) guestBillState.settings = doc.data();
+            if (doc.exists) {
+                let data = doc.data();
+                if (!data.categories) {
+                    data = guestBillState.settings; // fallback to default
+                    GbStore.saveSettings(data);
+                }
+                guestBillState.settings = data;
+            } else {
+                GbStore.saveSettings(guestBillState.settings);
+            }
             try { localStorage.setItem('rms_gb_settings', JSON.stringify(guestBillState.settings)); } catch(e) {}
             if (state.currentPage === 'payment' && guestBillState.activePaymentTab === 'guestBill') renderPage();
         }, err => { console.warn("GB Settings error:", err); });
@@ -886,7 +920,7 @@ async function downloadReport(fmt) {
         const pays = await Store.getPayments();
         pays.forEach((p,i)=>{
             if((bId === 'all' || p.building === bName) && (fId === 'all' || p.floor === fName) && (rId === 'all' || p.room === rName)) {
-                data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]]);
+                data.push([i+1, p.building, p.floor, p.room, p.person, p.amount, p.month, p.year, p.date.split('T')[0]);
             }
         });
     } else if (t === 'items') {
@@ -964,7 +998,7 @@ function getGbFormHtml() {
                 <div><label class="gb-label">চেক আউট</label><input type="date" id="gbCheckOut" onchange="gbUpdateDays()" class="gb-input"></div>
             </div>
             <div class="gb-grid-2 mb-16">
-                <div><label class="gb-label">গেস্ট টাইপ</label><select id="gbGuestType" onchange="gbToggleOther()" class="gb-input"></select></div>
+                <div><label class="gb-label">গেস্ট ক্যাটাগরি</label><select id="gbGuestType" onchange="gbUpdateRoomTypes(); gbToggleOther();" class="gb-input"></select></div>
                 <div><label class="gb-label">রুম টাইপ</label><select id="gbRoomType" class="gb-input"></select></div>
             </div>
             <div id="gbOtherField" class="mb-16" style="display:none;"><label class="gb-label">অন্যান্য গেস্ট টাইপ</label><input type="text" id="gbCustomType" class="gb-input" placeholder="গেস্ট টাইপ লিখুন"></div>
@@ -1015,53 +1049,155 @@ function renderGuestBillTab(c) {
 }
 
 function gbOpenSettings() {
-    const content = `<div style="margin-bottom:20px;"><div class="gb-section-title" style="color:#1e40af;">🛏️ রুম ভাড়া সেটিংস</div><div id="gbRoomSettings"></div><button onclick="gbAddRoom()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #3b82f6;color:#2563eb;margin-top:8px;">➕ নতুন রুম ক্যাটাগরি</button></div><div style="margin-bottom:20px;"><div class="gb-section-title" style="color:#16a34a;">👥 গেস্ট টাইপ ভাড়া</div><p style="font-size:11px;color:var(--text-light);margin-bottom:8px;">নির্দিষ্ট টাইপের জন্য ফ্ল্যাট ভাড়া দিন। খালি বা 0 থাকলে রুমের ভাড়া প্রযোজ্য হবে।</p><div id="gbGuestSettings"></div><button onclick="gbAddGuest()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #16a34a;color:#16a34a;margin-top:8px;">➕ নতুন গেস্ট টাইপ</button></div><button onclick="gbSaveSettings()" class="gb-btn gb-btn-primary" style="width:100%;">💾 সেটিংস সেভ করুন</button>`;
+    const content = `<div style="margin-bottom:20px;">
+        <div class="gb-section-title" style="color:#1e40af;">🛏️ ক্যাটাগরি ও রুম ভাড়া সেটিংস</div>
+        <div id="gbCatSettings"></div>
+        <button onclick="gbAddCategory()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #3b82f6;color:#2563eb;margin-top:8px;">➕ নতুন ক্যাটাগরি</button>
+    </div>
+    <button onclick="gbSaveSettings()" class="gb-btn gb-btn-primary" style="width:100%;">💾 সেটিংস সেভ করুন</button>`;
     openModal('সেটিংস (ভাড়া কনফিগারেশন)', content, true, true);
     gbRenderSettings();
 }
 
 function gbRenderSettings() {
     let html = '';
-    for (let id in guestBillState.settings.rooms) {
-        let r = guestBillState.settings.rooms[id];
-        html += `<div class="gb-settings-item" id="gb_room_${id}"><button type="button" class="gb-del-btn" onclick="gbDeleteRoom('${id}')">${gbDelIcon}</button><input type="text" value="${escapeHtml(r.name)}" id="gb_room_${id}_name" class="gb-input" style="font-weight:700;color:#1e40af;margin-bottom:10px;font-size:13px;" placeholder="ক্যাটাগরি নাম"><div class="gb-settings-row"><label>রেগুলার:</label><input type="number" value="${r.x}" id="gb_room_${id}_x" class="rate"></div><div class="gb-settings-row"><input type="number" value="${r.a}" id="gb_room_${id}_a"><label>থেকে</label><input type="number" value="${r.b}" id="gb_room_${id}_b"><label>দিন:</label><input type="number" value="${r.y}" id="gb_room_${id}_y" class="rate"></div><div class="gb-settings-row"><input type="number" value="${r.c}" id="gb_room_${id}_c"><label>থেকে</label><input type="number" value="${r.d}" id="gb_room_${id}_d"><label>দিন:</label><input type="number" value="${r.z}" id="gb_room_${id}_z" class="rate"></div></div>`;
-    }
-    document.getElementById('gbRoomSettings').innerHTML = html;
-    let gHtml = '';
-    for (let id in guestBillState.settings.guests) {
-        let g = guestBillState.settings.guests[id];
-        gHtml += `<div class="gb-guest-row" id="gb_guest_${id}"><input type="text" value="${escapeHtml(g.name)}" id="gb_guest_${id}_name" class="gb-input" style="flex:1;" placeholder="গেস্ট টাইপ"><input type="number" value="${g.rate}" id="gb_guest_${id}_rate" class="gb-input" style="width:90px;" placeholder="ভাড়া"><button type="button" class="gb-del-btn" style="position:static;" onclick="gbDeleteGuest('${id}')">${gbDelIcon}</button></div>`;
-    }
-    document.getElementById('gbGuestSettings').innerHTML = gHtml;
+    if (!guestBillState.settings.categories) guestBillState.settings.categories = [];
+    guestBillState.settings.categories.forEach((cat) => {
+        html += `<div class="gb-cat-card" id="gb_cat_${cat.id}">
+            <button type="button" class="gb-del-btn" onclick="gbDeleteCategory('${cat.id}')">${gbDelIcon}</button>
+            <div class="gb-cat-header">
+                <input type="text" value="${escapeHtml(cat.name)}" id="gb_cat_name_${cat.id}" class="gb-input" style="font-weight:700;color:#1e40af;font-size:14px;flex:1;" placeholder="ক্যাটাগরি নাম (যেমন: Student)">
+            </div>
+            <div class="gb-rt-list" id="gb_rt_list_${cat.id}">`;
+        
+        if (!cat.roomTypes) cat.roomTypes = [];
+        cat.roomTypes.forEach((rt) => {
+            html += gbGetRoomTypeRowHtml(cat.id, rt);
+        });
+
+        html += `</div>
+            <button type="button" onclick="gbAddRoomType('${cat.id}')" class="gb-btn gb-btn-outline gb-btn-sm" style="width:100%;border:1px dashed #16a34a;color:#16a34a;margin-top:8px;">➕ নতুন রুম টাইপ</button>
+        </div>`;
+    });
+    document.getElementById('gbCatSettings').innerHTML = html;
 }
 
-function gbAddRoom() { let id = 'r_' + Date.now(); guestBillState.settings.rooms[id] = { name: "নতুন রুম", x: 0, a: 0, b: 0, y: 0, c: 0, d: 0, z: 0 }; gbRenderSettings(); }
-function gbDeleteRoom(id) { showConfirm('এই রুম ক্যাটাগরিটি ডিলিট করতে চান?', () => { delete guestBillState.settings.rooms[id]; gbRenderSettings(); }); }
-function gbAddGuest() { let id = 'g_' + Date.now(); guestBillState.settings.guests[id] = { name: "নতুন গেস্ট", rate: 0 }; gbRenderSettings(); }
-function gbDeleteGuest(id) { showConfirm('এই গেস্ট টাইপটি ডিলিট করতে চান?', () => { delete guestBillState.settings.guests[id]; gbRenderSettings(); }); }
+function gbGetRoomTypeRowHtml(catId, rt) {
+    if (!rt) rt = { id: 'rt_' + Date.now() + Math.random().toString(36).substr(2,5), name: '', currency: 'BDT', regularRate: 0, extDaysLimit: 15, extendedRate: 0 };
+    return `<div class="gb-rt-row" id="gb_rt_${catId}_${rt.id}">
+        <div>
+            <label>রুম টাইপ</label>
+            <input type="text" value="${escapeHtml(rt.name)}" id="gb_rt_name_${catId}_${rt.id}" placeholder="A, B, C">
+        </div>
+        <div>
+            <label>কারেন্সি</label>
+            <select id="gb_rt_curr_${catId}_${rt.id}">
+                <option value="BDT" ${rt.currency==='BDT'?'selected':''}>৳ (টাকা)</option>
+                <option value="USD" ${rt.currency==='USD'?'selected':''}>$ (ডলার)</option>
+            </select>
+        </div>
+        <div>
+            <label>রেগুলার ভাড়া</label>
+            <input type="number" value="${rt.regularRate}" id="gb_rt_reg_${catId}_${rt.id}">
+        </div>
+        <div>
+            <label>দিন সীমা</label>
+            <input type="number" value="${rt.extDaysLimit}" id="gb_rt_extd_${catId}_${rt.id}">
+        </div>
+        <div>
+            <label>বাড়তি ভাড়া</label>
+            <input type="number" value="${rt.extendedRate}" id="gb_rt_ext_${catId}_${rt.id}">
+        </div>
+        <div class="gb-rt-del">
+            <button type="button" onclick="gbDeleteRoomType('${catId}','${rt.id}')">${gbDelIcon}</button>
+        </div>
+    </div>`;
+}
+
+function gbAddCategory() {
+    let id = 'cat_' + Date.now();
+    guestBillState.settings.categories.push({ id: id, name: "নতুন ক্যাটাগরি", roomTypes: [] });
+    gbRenderSettings();
+}
+
+function gbDeleteCategory(id) {
+    showConfirm('এই ক্যাটাগরিটি ডিলিট করতে চান?', () => {
+        guestBillState.settings.categories = guestBillState.settings.categories.filter(c => c.id !== id);
+        gbRenderSettings();
+    });
+}
+
+function gbAddRoomType(catId) {
+    const cat = guestBillState.settings.categories.find(c => c.id === catId);
+    if (!cat) return;
+    let newRt = { id: 'rt_' + Date.now(), name: '', currency: 'BDT', regularRate: 0, extDaysLimit: 15, extendedRate: 0 };
+    cat.roomTypes.push(newRt);
+    document.getElementById(`gb_rt_list_${catId}`).insertAdjacentHTML('beforeend', gbGetRoomTypeRowHtml(catId, newRt));
+}
+
+function gbDeleteRoomType(catId, rtId) {
+    showConfirm('এই রুম টাইপটি ডিলিট করতে চান?', () => {
+        const cat = guestBillState.settings.categories.find(c => c.id === catId);
+        if (cat) {
+            cat.roomTypes = cat.roomTypes.filter(r => r.id !== rtId);
+            const el = document.getElementById(`gb_rt_${catId}_${rtId}`);
+            if (el) el.remove();
+        }
+    });
+}
 
 async function gbSaveSettings() {
-    let updatedRooms = {};
-    for (let id in guestBillState.settings.rooms) {
-        updatedRooms[id] = { name: document.getElementById(`gb_room_${id}_name`).value || "Unnamed", x: parseFloat(document.getElementById(`gb_room_${id}_x`).value) || 0, a: parseInt(document.getElementById(`gb_room_${id}_a`).value) || 0, b: parseInt(document.getElementById(`gb_room_${id}_b`).value) || 0, y: parseFloat(document.getElementById(`gb_room_${id}_y`).value) || 0, c: parseInt(document.getElementById(`gb_room_${id}_c`).value) || 0, d: parseInt(document.getElementById(`gb_room_${id}_d`).value) || 0, z: parseFloat(document.getElementById(`gb_room_${id}_z`).value) || 0 };
-    }
-    guestBillState.settings.rooms = updatedRooms;
-    let updatedGuests = {};
-    for (let id in guestBillState.settings.guests) {
-        updatedGuests[id] = { name: document.getElementById(`gb_guest_${id}_name`).value || "Unnamed", rate: parseFloat(document.getElementById(`gb_guest_${id}_rate`).value) || 0 };
-    }
-    guestBillState.settings.guests = updatedGuests;
+    let updatedCats = [];
+    guestBillState.settings.categories.forEach(cat => {
+        let updatedRts = [];
+        cat.roomTypes.forEach(rt => {
+            updatedRts.push({
+                id: rt.id,
+                name: document.getElementById(`gb_rt_name_${cat.id}_${rt.id}`).value || "Unnamed",
+                currency: document.getElementById(`gb_rt_curr_${cat.id}_${rt.id}`).value,
+                regularRate: parseFloat(document.getElementById(`gb_rt_reg_${cat.id}_${rt.id}`).value) || 0,
+                extDaysLimit: parseInt(document.getElementById(`gb_rt_extd_${cat.id}_${rt.id}`).value) || 0,
+                extendedRate: parseFloat(document.getElementById(`gb_rt_ext_${cat.id}_${rt.id}`).value) || 0
+            });
+        });
+        updatedCats.push({
+            id: cat.id,
+            name: document.getElementById(`gb_cat_name_${cat.id}`).value || "Unnamed Category",
+            roomTypes: updatedRts
+        });
+    });
+    guestBillState.settings.categories = updatedCats;
     forceCloseModal(); gbUpdateSelects();
     try { await GbStore.saveSettings(guestBillState.settings); showToast('সেটিংস সফলভাবে সেভ হয়েছে!'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); }
 }
 
 function gbUpdateSelects() {
-    const roomSelect = document.getElementById('gbRoomType'); if (!roomSelect) return;
-    let roomHtml = ''; for (let id in guestBillState.settings.rooms) roomHtml += `<option value="${id}">${escapeHtml(guestBillState.settings.rooms[id].name)}</option>`; roomSelect.innerHTML = roomHtml;
-    const guestSelect = document.getElementById('gbGuestType'); let guestHtml = ''; for (let id in guestBillState.settings.guests) guestHtml += `<option value="${id}">${escapeHtml(guestBillState.settings.guests[id].name)}</option>`; guestHtml += `<option value="Others">Others</option>`; guestSelect.innerHTML = guestHtml; gbToggleOther();
+    const guestSelect = document.getElementById('gbGuestType'); if (!guestSelect) return;
+    let guestHtml = ''; 
+    guestBillState.settings.categories.forEach(cat => { guestHtml += `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`; });
+    guestHtml += `<option value="Others">Others</option>`; 
+    guestSelect.innerHTML = guestHtml; 
+    gbUpdateRoomTypes();
+    gbToggleOther();
 }
 
-function gbToggleOther() { const type = document.getElementById('gbGuestType')?.value; const field = document.getElementById('gbOtherField'); if (field) field.style.display = type === "Others" ? 'block' : 'none'; }
+function gbUpdateRoomTypes() {
+    const catId = document.getElementById('gbGuestType')?.value;
+    const roomSelect = document.getElementById('gbRoomType');
+    if (!roomSelect) return;
+    let roomHtml = '';
+    const cat = guestBillState.settings.categories.find(c => c.id === catId);
+    if (cat) {
+        cat.roomTypes.forEach(rt => { roomHtml += `<option value="${rt.id}">${escapeHtml(rt.name)} (${rt.currency})</option>`; });
+    }
+    roomSelect.innerHTML = roomHtml;
+}
+
+function gbToggleOther() { 
+    const type = document.getElementById('gbGuestType')?.value; 
+    const field = document.getElementById('gbOtherField'); 
+    if (field) field.style.display = type === "Others" ? 'block' : 'none'; 
+}
 
 function gbFormatDate(dateStr) {
     if (!dateStr) return '-';
@@ -1085,27 +1221,41 @@ function gbUpdateDays() {
 
 function gbGetFormData() {
     const guestName = document.getElementById('gbGuestName').value.trim(); const mobile = document.getElementById('gbMobile').value.trim(); const address = document.getElementById('gbAddress').value.trim();
-    const guestTypeId = document.getElementById('gbGuestType').value;
-    let guestTypeName = guestTypeId === "Others" ? (document.getElementById('gbCustomType').value || "Others") : (guestBillState.settings.guests[guestTypeId]?.name || "");
-    const roomTypeId = document.getElementById('gbRoomType').value; const roomTypeName = guestBillState.settings.rooms[roomTypeId]?.name || "";
+    const catId = document.getElementById('gbGuestType').value;
+    const cat = guestBillState.settings.categories.find(c => c.id === catId);
+    const guestTypeName = catId === "Others" ? (document.getElementById('gbCustomType').value || "Others") : (cat ? cat.name : "");
+    
+    const roomTypeId = document.getElementById('gbRoomType').value;
+    let roomTypeName = "", currency = "BDT";
+    if (cat) {
+        const rt = cat.roomTypes.find(r => r.id === roomTypeId);
+        if (rt) { roomTypeName = rt.name; currency = rt.currency; }
+    }
+    
     const roomNumber = document.getElementById('gbRoomNumber').value.trim(); const checkIn = document.getElementById('gbCheckIn').value; const checkOut = document.getElementById('gbCheckOut').value;
     const excludedDatesRaw = document.getElementById('gbExcluded').value; const excludedDates = excludedDatesRaw ? excludedDatesRaw.split(',').map(d => d.trim()) : [];
     const purpose = document.getElementById('gbPurpose').value; const totalDays = document.getElementById('gbTotalDays').value; const comments = document.getElementById('gbComments').value;
-    const totalAmount = gbCalculateBill(checkIn, checkOut, excludedDates, roomTypeId, guestTypeName);
-    return { guestName, mobile, address, guestType: guestTypeName, roomType: roomTypeId, roomTypeName, roomNumber, checkIn, checkOut, excludedDates, purpose, totalDays, comments, totalAmount };
+    const totalAmount = gbCalculateBill(checkIn, checkOut, excludedDates, roomTypeId, catId);
+    return { guestName, mobile, address, guestType: guestTypeName, catId, roomType: roomTypeId, roomTypeName, currency, roomNumber, checkIn, checkOut, excludedDates, purpose, totalDays, comments, totalAmount };
 }
 
-function gbCalculateBill(checkIn, checkOut, excludedDates, roomTypeId, guestTypeName) {
+function gbCalculateBill(checkIn, checkOut, excludedDates, roomTypeId, catId) {
     let total = 0; let current = new Date(checkIn); let end = new Date(checkOut); let consecutiveDays = 0;
-    const r = guestBillState.settings.rooms[roomTypeId];
-    let guestRate = 0;
-    for (let id in guestBillState.settings.guests) { if (guestBillState.settings.guests[id].name === guestTypeName) { guestRate = guestBillState.settings.guests[id].rate; break; } }
+    const cat = guestBillState.settings.categories.find(c => c.id === catId);
+    if (!cat) return 0;
+    const r = cat.roomTypes.find(rt => rt.id === roomTypeId);
+    if (!r) return 0;
+
     while (current <= end) {
         const dateStr = gbFormatDate(current);
         if (!excludedDates.includes(dateStr)) {
-            consecutiveDays++; let dailyRate = 0;
-            if (guestRate > 0) dailyRate = guestRate;
-            else if (r) { if (consecutiveDays >= r.a && consecutiveDays <= r.b) dailyRate = r.y; else if (consecutiveDays >= r.c && consecutiveDays <= r.d) dailyRate = r.z; else if (consecutiveDays > r.d) dailyRate = r.z; else dailyRate = r.x; }
+            consecutiveDays++; 
+            let dailyRate = 0;
+            if (consecutiveDays > r.extDaysLimit) {
+                dailyRate = r.extendedRate;
+            } else {
+                dailyRate = r.regularRate;
+            }
             total += dailyRate;
         } else { consecutiveDays = 0; }
         current.setDate(current.getDate() + 1);
@@ -1152,23 +1302,10 @@ async function gbSubmitBill() {
         const bill = guestBillState.bills.find(b => b.id === editId);
         if (bill) {
             if (document.getElementById('gbGuestName').value.trim() !== '') gbAddTemp();
-            
             const updatedHeading = document.getElementById('gbEditHeadingInput')?.value.trim();
-            if (updatedHeading) {
-                bill.heading = updatedHeading;
-            } else {
-                bill.heading = "Rest House Bill";
-            }
-            
+            if (updatedHeading) { bill.heading = updatedHeading; } else { bill.heading = "Rest House Bill"; }
             bill.guests = guestBillState.tempGuests.map(g => ({ id: g.id || genId('gbg'), ...g }));
-            
-            try { 
-                await GbStore.updateBill(bill); 
-                showToast('বিল সফলভাবে আপডেট হয়েছে!'); 
-                guestBillState.tempGuests = [];
-                gbResetForm(); 
-                gbSwitchTab('billList'); 
-            } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); }
+            try { await GbStore.updateBill(bill); showToast('বিল সফলভাবে আপডেট হয়েছে!'); guestBillState.tempGuests = []; gbResetForm(); gbSwitchTab('billList'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); }
         }
     } else {
         if (document.getElementById('gbGuestName').value.trim() !== '') gbAddTemp();
@@ -1180,29 +1317,19 @@ async function gbSubmitBill() {
 function gbEditBill(billId) {
     const bill = guestBillState.bills.find(b => b.id === billId);
     if (!bill) return;
-    
     gbSwitchTab('newBill');
-    
     guestBillState.tempGuests = bill.guests.map(g => ({ ...g }));
     gbRenderTempGuests();
-    
     document.getElementById('gbEditHeadingContainer').style.display = 'block';
     document.getElementById('gbEditHeadingInput').value = bill.heading || '';
-    
     document.getElementById('gbEditId').value = bill.id;
     document.getElementById('gbEditGuestId').value = '';
-    
     const form = document.getElementById('gbBillForm');
     if (form) form.reset();
     document.getElementById('gbTotalDays').value = '';
-    
     document.getElementById('gbSubmitBtn').innerHTML = '✏️ বিল আপডেট করুন';
     const tempBtn = document.getElementById('gbTempBtn');
-    if (tempBtn) {
-        tempBtn.style.display = 'block';
-        tempBtn.innerHTML = '➕ গেস্ট যোগ করুন';
-    }
-    
+    if (tempBtn) { tempBtn.style.display = 'block'; tempBtn.innerHTML = '➕ গেস্ট যোগ করুন'; }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1216,10 +1343,7 @@ function gbResetForm() {
     const submitBtn = document.getElementById('gbSubmitBtn');
     if (submitBtn) submitBtn.innerHTML = '📄 বিল তৈরি করুন';
     const tempBtn = document.getElementById('gbTempBtn');
-    if (tempBtn) {
-        tempBtn.style.display = 'block';
-        tempBtn.innerHTML = '➕ গেস্ট ডাটা এন্ট্রি';
-    }
+    if (tempBtn) { tempBtn.style.display = 'block'; tempBtn.innerHTML = '➕ গেস্ট ডাটা এন্ট্রি'; }
     const td = document.getElementById('gbTotalDays');
     if (td) td.value = '';
     gbToggleOther();
@@ -1254,8 +1378,11 @@ function gbRenderBillList() {
             const title = bill.heading ? escapeHtml(bill.heading.toUpperCase()) : (guests.length === 1 ? escapeHtml(guests[0].guestName) : `${guests.length} জন গেস্টের বিল`);
             const subtitle = guests.length > 1 ? guests.map(g => escapeHtml(g.guestName)).join(', ') : escapeHtml(guests[0]?.roomTypeName || '');
             const billDate = bill.createdAt ? gbFormatDate(bill.createdAt) : 'নতুন';
-            let detailsHtml = guests.map((g, i) => `<div class="gb-guest-info-box"><div class="flex-between mb-8"><strong>${escapeHtml(g.guestName)}</strong></div><p>📱 ${escapeHtml(g.mobile || 'নেই')}</p><p>🚪 ${escapeHtml(g.roomTypeName)} (নং: ${escapeHtml(g.roomNumber || 'নেই')})</p><p>👤 ${escapeHtml(g.guestType)}</p><p>📍 ${escapeHtml(g.address || 'নেই')}</p><p>📅 ${gbFormatDate(g.checkIn)} → ${gbFormatDate(g.checkOut)}</p><p>⏱️ মোট দিন: ${escapeHtml(g.totalDays || '-')}</p><p>🎯 উদ্দেশ্য: ${escapeHtml(g.purpose || 'নেই')}</p><p>💬 মন্তব্য: ${escapeHtml(g.comments || 'নেই')}</p><div class="gb-total-display"><span>মোট বিল: ৳${g.totalAmount || 0}</span></div></div>`).join('');
-            return `<div class="gb-bill-card" onclick="gbToggleExpand('${bill.id}')"><div class="flex-between"><div><h3 style="font-size:16px;font-weight:700;color:var(--primary-dark);">${title}</h3><p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}<br>🗓️ তৈরির তারিখ: ${billDate}</p></div><span id="gb_icon_${bill.id}" style="color:var(--text-light);">▼</span></div><div id="gb_details_${bill.id}" style="display:none;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:13px;">${detailsHtml}<div style="display:flex;gap:6px;margin-top:10px;"><button onclick="event.stopPropagation();gbDownloadPDF('${bill.id}')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;">📥 PDF</button><button onclick="event.stopPropagation();gbDownloadExcel('${bill.id}')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;">📥 Excel</button></div><div class="gb-actions"><button onclick="event.stopPropagation();gbEditBill('${bill.id}')">✏️ বিল এডিট করুন</button><button class="danger" onclick="event.stopPropagation();gbDeleteBill('${bill.id}')">🗑️ ডিলিট</button></div></div></div>`;
+            let detailsHtml = guests.map((g, i) => {
+                const currSym = g.currency === 'USD' ? '$' : '৳';
+                return `<div class="gb-guest-info-box"><div class="flex-between mb-8"><strong>${escapeHtml(g.guestName)}</strong></div><p>📱 ${escapeHtml(g.mobile || 'নেই')}</p><p>🚪 ${escapeHtml(g.roomTypeName)} (নং: ${escapeHtml(g.roomNumber || 'নেই')})</p><p>👤 ${escapeHtml(g.guestType)}</p><p>📍 ${escapeHtml(g.address || 'নেই')}</p><p>📅 ${gbFormatDate(g.checkIn)} → ${gbFormatDate(g.checkOut)}</p><p>⏱️ মোট দিন: ${escapeHtml(g.totalDays || '-')}</p><p>🎯 উদ্দেশ্য: ${escapeHtml(g.purpose || 'নেই')}</p><p>💬 মন্তব্য: ${escapeHtml(g.comments || 'নেই')}</p><div class="gb-total-display"><span>মোট বিল: ${currSym}${g.totalAmount || 0}</span></div></div>`;
+            }).join('');
+            return `<div class="gb-bill-card" onclick="gbToggleExpand('${bill.id}')"><div class="flex-between"><div><h3 style="font-size:16px;font-weight:700;color:var(--primary-dark);">${title}</h3><p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}<br>🗓️ তৈরির তারিখ: ${billDate}</p></div><span id="gb_icon_${bill.id}" style="color:var(--text-light);">▼</span></div><div id="gb_details_${bill.id}" style="display:none;margin-top:12px;border-top:1px solid #e2e8e0;padding-top:12px;font-size:13px;">${detailsHtml}<div style="display:flex;gap:6px;margin-top:10px;"><button onclick="event.stopPropagation();gbDownloadPDF('${bill.id}')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;">📥 PDF</button><button onclick="event.stopPropagation();gbDownloadExcel('${bill.id}')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;">📥 Excel</button></div><div class="gb-actions"><button onclick="event.stopPropagation();gbEditBill('${bill.id}')">✏️ বিল এডিট করুন</button><button class="danger" onclick="event.stopPropagation();gbDeleteBill('${bill.id}')">🗑️ ডিলিট</button></div></div></div>`;
         }).join('');
     }
     const pag = document.getElementById('gbPagination');
@@ -1289,12 +1416,14 @@ function gbGetFilteredBills() {
     });
 }
 
-function getGbNbNote(roomTypeId, totalDaysStr) {
-    const r = guestBillState.settings.rooms[roomTypeId]; if (!r) return '';
+function getGbNbNote(catId, roomTypeId, totalDaysStr) {
+    const cat = guestBillState.settings.categories.find(c => c.id === catId);
+    if (!cat) return '';
+    const r = cat.roomTypes.find(rt => rt.id === roomTypeId);
+    if (!r) return '';
     let days = parseInt(totalDaysStr) || 0;
-    if (days >= r.a && days <= r.b) return `N.B: ${r.name} রুমে ${r.a} থেকে ${r.b} তম দিনের ভাড়া ${r.y} টাকা`;
-    if (days >= r.c && days <= r.d) return `N.B: ${r.name} রুমে ${r.c} থেকে ${r.d} তম দিনের ভাড়া ${r.z} টাকা`;
-    if (days > r.d) return `N.B: ${r.name} রুমে ${r.c} থেকে ${r.d} তম দিনের ভাড়া ${r.z} টাকা`;
+    const currSym = r.currency === 'USD' ? '$' : '৳';
+    if (days > r.extDaysLimit) return `N.B: ${cat.name} এর ${r.name} রুমে ${r.extDaysLimit+1} দিনের বেশি থাকলে ভাড়া ${currSym}${r.extendedRate} প্রযোজ্য।`;
     return '';
 }
 
@@ -1303,11 +1432,12 @@ function generateBillTableHtml(bill) {
     html += `<p style="text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;">তারিখ: ${new Date().toLocaleDateString()}</p>`;
     html += `<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="background:#2563eb;color:#fff;"><th style="padding:8px;border:1px solid #cbd5e1;">ক্রম</th><th style="padding:8px;border:1px solid #cbd5e1;">নাম</th><th style="padding:8px;border:1px solid #cbd5e1;">মোবাইল</th><th style="padding:8px;border:1px solid #cbd5e1;">ঠিকানা</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম টাইপ</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম নং</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-ইন</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-আউট</th><th style="padding:8px;border:1px solid #cbd5e1;">দিন</th><th style="padding:8px;border:1px solid #cbd5e1;">মোট বিল</th></tr></thead><tbody>`;
     bill.guests.forEach((g, i) => {
-        html += `<tr><td style="padding:8px;border:1px solid #cbd5e1;">${i+1}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.guestName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.mobile || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.address || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomTypeName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomNumber)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkIn)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkOut)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.totalDays)}</td><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;color:#16a34a;">৳${g.totalAmount}</td></tr>`;
+        const currSym = g.currency === 'USD' ? '$' : '৳';
+        html += `<tr><td style="padding:8px;border:1px solid #cbd5e1;">${i+1}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.guestName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.mobile || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.address || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomTypeName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomNumber)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkIn)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkOut)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.totalDays)}</td><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;color:#16a34a;">${currSym}${g.totalAmount}</td></tr>`;
     });
     html += `</tbody></table>`;
     let nbNotesSet = new Set();
-    bill.guests.forEach(g => { let note = getGbNbNote(g.roomType, g.totalDays); if (note) nbNotesSet.add(note); });
+    bill.guests.forEach(g => { let note = getGbNbNote(g.catId, g.roomType, g.totalDays); if (note) nbNotesSet.add(note); });
     if (nbNotesSet.size > 0) html += `<div style="font-size:12px;color:#555;margin-top:15px;padding:8px;background:#f8fafc;border-left:3px solid #2563eb;">${Array.from(nbNotesSet).join('<br>')}</div>`;
     return html;
 }
@@ -1322,7 +1452,7 @@ function gbDownloadPDF(billId) {
 function gbDownloadExcel(billId) {
     const bill = guestBillState.bills.find(b => b.id === billId); if (!bill || !bill.guests) return;
     const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
-    const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `৳${g.totalAmount}`]);
+    const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${g.currency === 'USD' ? '$' : '৳'}${g.totalAmount}`]);
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Bill"); XLSX.writeFile(wb, `Bill_${bill.id}.xlsx`); showToast('Excel ডাউনলোড হচ্ছে...');
 }
 
@@ -1341,7 +1471,7 @@ function gbDownloadBulkExcel() {
     const wb = XLSX.utils.book_new();
     bills.forEach(bill => {
         const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
-        const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `৳${g.totalAmount}`]);
+        const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${g.currency === 'USD' ? '$' : '৳'}${g.totalAmount}`]);
         const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
         let sheetName = bill.heading ? bill.heading.substring(0, 28) : `Bill_${bill.id.substring(0,5)}`;
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
