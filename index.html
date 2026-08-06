@@ -159,6 +159,17 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-actions button.danger { color: var(--danger); }
 .gb-actions button.danger:hover { color: #be123c; }
 .gb-empty { text-align: center; padding: 40px 10px; color: var(--text-light); }
+
+/* Professional Form CSS */
+.gb-form-section { background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px; }
+.gb-form-section h4 { font-size: 14px; font-weight: 600; color: var(--primary-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.gb-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+/* Settings Labels CSS */
+.gb-room-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 70px; }
+.gb-room-field label { font-size: 11px; color: var(--text-light); font-weight: 600; text-align: left; margin-bottom: 2px; }
+.gb-room-field input, .gb-room-field select { width: 100%; padding: 6px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; background: #fff; outline: none; }
+.gb-room-field input:focus, .gb-room-field select:focus { border-color: var(--primary); }
 </style>
 </head>
 <body>
@@ -741,7 +752,7 @@ function showVacateModal(rId) {
 async function confirmVacate(rId) { 
     const eD = document.getElementById('vDate').value; const vacateTenantId = document.getElementById('vacateTenantId').value; 
     if (!eD || !vacateTenantId) { showToast('তারিখ ও ব্যক্তি নির্বাচন করুন', 'error'); return; } 
-    const r = state.rooms.find(x => x.id === rId); const tenantToVacate = (r.tenants || []).find(t => t.id === vacateTenantId); 
+    const r = state.rooms.find(x => x.id === rId); const tenantToVacate = (r.tenants || []).find(t => t.id !== vacateTenantId); 
     if (!tenantToVacate) { showToast('ভাড়াটে খুঁজে পাওয়া যায়নি', 'error'); return; } 
     const iSnap = (r.items || []).map(i => { const q = document.getElementById(`vq_${i.id}`); const s = document.getElementById(`vs_${i.id}`); i.quantity = q ? parseInt(q.value) : i.quantity; i.condition = s ? s.value : i.condition; return { id: i.id, name: i.name, quantity: i.quantity, condition: i.condition }; }); 
     if (!r.previousTenants) r.previousTenants = []; 
@@ -880,7 +891,7 @@ async function resolveReport(id) { const r = state.reports.find(x=>x.id===id); r
 async function deleteReport(id) { checkPassword(async () => { state.reports = state.reports.filter(r => r.id !== id); renderPage(); try { await Store.deleteReport(id); showToast('ডিলিট হয়েছে'); } catch(e) { renderPage(); showToast('ডিলিট করতে সমস্যা', 'error'); } }); }
 async function renderDownload(c) { if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>কোন বিল্ডিং নেই।</p></div></div>`; return; } c.innerHTML = `<div class="card"><h3 class="mb-16">রিপোর্ট ডাউনলোড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="dlBuilding" onchange="loadDlFloors()"><option value="">সিলেক্ট করুন</option><option value="all">সকল বিল্ডিং</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা (ঐচ্ছিক)</label><select id="dlFloor" onchange="loadDlRooms()" disabled><option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম (ঐচ্ছিক)</label><select id="dlRoom" disabled><option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option></select></div><div class="form-group"><label>ধরন</label><select id="dlType" onchange="checkDlFields()"><option value="">সিলেক্ট করুন</option><option value="items">মালামাল</option><option value="tenants">ভাড়াটে</option><option value="guests">গেস্ট</option><option value="rooms">রুম</option><option value="payments">পেমেন্ট</option><option value="reports">ট্রাবল রিপোর্ট</option></select></div></div><div class="flex gap-8 mt-16"><button class="btn btn-success" id="dlExcel" style="flex:1" onclick="downloadReport('xlsx')" disabled>📊 Excel</button><button class="btn btn-danger" id="dlPdf" style="flex:1" onclick="downloadReport('pdf')" disabled>📄 PDF</button></div></div>`; checkDlFields(); }
 function loadDlFloors() { const bId = document.getElementById('dlBuilding').value; const fS = document.getElementById('dlFloor'); const rS = document.getElementById('dlRoom'); fS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option>'; rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (bId === 'all' || bId === '') { fS.disabled = true; rS.disabled = true; fS.value = 'all'; rS.value = 'all'; } else { const b = state.buildings.find(x=>x.id===bId); for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; rS.disabled = true; fS.value = ''; rS.value = 'all'; } checkDlFields(); }
-function loadDlRooms() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rS = document.getElementById('dlRoom'); rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (fId === 'all' || fId === '') { rS.disabled = true; rS.value = 'all'; } else { const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; rS.value = ''; } checkDlFields(); }
+function loadDlRooms() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rS = document.getElementById('dlRoom'); rS.innerHTML = '-সিলেক্ট করুন-'; rS.innerHTML = '<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>'; if (fId === 'all' || fId === '') { rS.disabled = true; rS.value = 'all'; } else { const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; rS.value = ''; } checkDlFields(); }
 function checkDlFields() { const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value; let isValid = bId !== '' && t !== ''; const fEl = document.getElementById('dlFloor'); const rEl = document.getElementById('dlRoom'); if (fEl && !fEl.disabled && fId === '') isValid = false; if (rEl && !rEl.disabled && rId === '') isValid = false; const dlExcel = document.getElementById('dlExcel'); const dlPdf = document.getElementById('dlPdf'); if (dlExcel && dlPdf) { if(isValid) { dlExcel.disabled = false; dlPdf.disabled = false; } else { dlExcel.disabled = true; dlPdf.disabled = true; } } }
 async function downloadReport(fmt) {
     const bId = document.getElementById('dlBuilding').value; const fId = document.getElementById('dlFloor').value; const rId = document.getElementById('dlRoom').value; const t = document.getElementById('dlType').value;
@@ -965,7 +976,7 @@ function getGbFormHtml() {
     return `<div class="gb-form-card">
         <div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:8px;">
             <h3 style="font-size:16px;font-weight:700;">নতুন বিল তৈরি করুন</h3>
-            <button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbOpenSettings()">⚙️</button>
+            <button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbOpenSettings()">⚙️ সেটিংস</button>
         </div>
         <div id="gbEditHeadingContainer" class="mb-16" style="display:none;">
             <label class="gb-label">বিলের হেডিং *</label>
@@ -974,27 +985,49 @@ function getGbFormHtml() {
         <form id="gbBillForm" onsubmit="event.preventDefault(); gbSubmitBill();">
             <input type="hidden" id="gbEditId">
             <input type="hidden" id="gbEditGuestId">
-            <div class="gb-grid-3 mb-16">
-                <div><label class="gb-label">নাম</label><input type="text" id="gbGuestName" class="gb-input"></div>
-                <div><label class="gb-label">মোবাইল</label><input type="text" id="gbMobile" class="gb-input"></div>
-                <div><label class="gb-label">ঠিকানা</label><input type="text" id="gbAddress" class="gb-input"></div>
+            
+            <div class="gb-form-section">
+                <h4>👤 গেস্টের তথ্য</h4>
+                <div class="gb-grid-3 mb-16">
+                    <div><label class="gb-label">নাম</label><input type="text" id="gbGuestName" class="gb-input" placeholder="যেমন: রহিম উদ্দিন"></div>
+                    <div><label class="gb-label">মোবাইল</label><input type="text" id="gbMobile" class="gb-input" placeholder="01XXXXXXXXX"></div>
+                    <div><label class="gb-label">ঠিকানা</label><input type="text" id="gbAddress" class="gb-input" placeholder="ঢাকা, বাংলাদেশ"></div>
+                </div>
+                <div class="gb-grid-2">
+                    <div><label class="gb-label">গেস্ট টাইপ / ক্যাটাগরি</label><select id="gbGuestType" onchange="gbToggleOther()" class="gb-input"></select></div>
+                    <div><label class="gb-label">রুম টাইপ</label><select id="gbRoomType" class="gb-input"></select></div>
+                </div>
+                <div id="gbOtherField" class="mt-16" style="display:none;">
+                    <label class="gb-label">অন্যান্য গেস্ট টাইপ</label>
+                    <input type="text" id="gbCustomType" class="gb-input" placeholder="গেস্ট টাইপ লিখুন">
+                </div>
             </div>
-            <div class="gb-grid-3 mb-16">
-                <div><label class="gb-label">রুম নম্বর</label><input type="text" id="gbRoomNumber" class="gb-input" placeholder="যেমন: 101"></div>
-                <div><label class="gb-label">চেক ইন</label><input type="date" id="gbCheckIn" onchange="gbUpdateDays()" class="gb-input"></div>
-                <div><label class="gb-label">চেক আউট</label><input type="date" id="gbCheckOut" onchange="gbUpdateDays()" class="gb-input"></div>
+
+            <div class="gb-form-section">
+                <h4>🏨 বুকিং ও রুম ডিটেইলস</h4>
+                <div class="gb-grid-3 mb-16">
+                    <div><label class="gb-label">রুম নম্বর</label><input type="text" id="gbRoomNumber" class="gb-input" placeholder="যেমন: 101"></div>
+                    <div><label class="gb-label">চেক ইন</label><input type="date" id="gbCheckIn" onchange="gbUpdateDays()" class="gb-input"></div>
+                    <div><label class="gb-label">চেক আউট</label><input type="date" id="gbCheckOut" onchange="gbUpdateDays()" class="gb-input"></div>
+                </div>
+                <div>
+                    <label class="gb-label">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label>
+                    <input type="text" id="gbExcluded" onchange="gbUpdateDays()" class="gb-input" placeholder="যেমন: 12-10-2023, 15-10-2023">
+                </div>
             </div>
-            <div class="gb-grid-2 mb-16">
-                <div><label class="gb-label">গেস্ট টাইপ / ক্যাটাগরি</label><select id="gbGuestType" onchange="gbToggleOther()" class="gb-input"></select></div>
-                <div><label class="gb-label">রুম টাইপ</label><select id="gbRoomType" class="gb-input"></select></div>
+
+            <div class="gb-form-section">
+                <h4>📝 অন্যান্য তথ্য</h4>
+                <div class="mb-16">
+                    <label class="gb-label">আগমনের উদ্দেশ্য</label>
+                    <input type="text" id="gbPurpose" class="gb-input" placeholder="যেমন: অফিসিয়াল কাজ">
+                </div>
+                <div class="gb-grid-2">
+                    <div><label class="gb-label">মোট দিন (অটো)</label><input type="text" id="gbTotalDays" readonly class="gb-input" style="background:#e2e8f0;font-weight:700;color:#1e40af;cursor:not-allowed;"></div>
+                    <div><label class="gb-label">মন্তব্য</label><input type="text" id="gbComments" class="gb-input" placeholder="মন্তব্য লিখুন"></div>
+                </div>
             </div>
-            <div id="gbOtherField" class="mb-16" style="display:none;"><label class="gb-label">অন্যান্য গেস্ট টাইপ</label><input type="text" id="gbCustomType" class="gb-input" placeholder="গেস্ট টাইপ লিখুন"></div>
-            <div class="mb-16"><label class="gb-label">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label><input type="text" id="gbExcluded" onchange="gbUpdateDays()" class="gb-input" placeholder="যেমন: 12-10-2023, 15-10-2023"></div>
-            <div class="mb-16"><label class="gb-label">আগমনের উদ্দেশ্য</label><input type="text" id="gbPurpose" class="gb-input"></div>
-            <div class="gb-grid-2 mb-16">
-                <div><label class="gb-label">মোট দিন (অটো)</label><input type="text" id="gbTotalDays" readonly class="gb-input" style="background:#f1f5f9;cursor:not-allowed;"></div>
-                <div><label class="gb-label">মন্তব্য</label><input type="text" id="gbComments" class="gb-input"></div>
-            </div>
+
             <button type="button" onclick="gbAddTemp()" id="gbTempBtn" class="gb-btn gb-btn-yellow" style="width:100%;">➕ গেস্ট ডাটা এন্ট্রি</button>
             <div style="margin-top:16px;">
                 <div class="gb-section-title">এন্ট্রি দেওয়া গেস্টগণ:</div>
@@ -1062,16 +1095,31 @@ function gbRenderSettings() {
         if (cat.roomTypes) {
             for (let rtId in cat.roomTypes) {
                 let rt = cat.roomTypes[rtId];
-                html += `<div class="gb-room-row" id="gb_room_${catId}_${rtId}">
-                    <button type="button" class="gb-del-btn" style="position:static;" onclick="gbDeleteRoomType('${catId}','${rtId}')">${gbDelIcon}</button>
-                    <input type="text" value="${escapeHtml(rt.name)}" id="gb_room_${catId}_${rtId}_name" class="gb-input" style="width:60px;font-weight:600;" placeholder="A">
-                    <select id="gb_room_${catId}_${rtId}_curr" class="gb-input" style="width:80px;">
-                        <option value="BDT" ${rt.currency==='BDT'?'selected':''}>টাকা (৳)</option>
-                        <option value="USD" ${rt.currency==='USD'?'selected':''}>ডলার ($)</option>
-                    </select>
-                    <input type="number" value="${rt.regularRate}" id="gb_room_${catId}_${rtId}_reg" class="gb-input" style="width:80px;" placeholder="রেগুলার ভাড়া">
-                    <input type="number" value="${rt.limitDays}" id="gb_room_${catId}_${rtId}_limit" class="gb-input" style="width:60px;" placeholder="দিন সীমা">
-                    <input type="number" value="${rt.extraRate}" id="gb_room_${catId}_${rtId}_extra" class="gb-input" style="width:80px;" placeholder="অতিরিক্ত ভাড়া">
+                html += `<div class="gb-room-row" id="gb_room_${catId}_${rtId}" style="align-items:flex-end;">
+                    <button type="button" class="gb-del-btn" style="position:static;flex:0 0 auto;height:34px;" onclick="gbDeleteRoomType('${catId}','${rtId}')">${gbDelIcon}</button>
+                    <div class="gb-room-field" style="flex:0 0 80px;">
+                        <label>রুম নাম</label>
+                        <input type="text" value="${escapeHtml(rt.name)}" id="gb_room_${catId}_${rtId}_name" placeholder="A">
+                    </div>
+                    <div class="gb-room-field" style="flex:0 0 100px;">
+                        <label>কারেন্সি</label>
+                        <select id="gb_room_${catId}_${rtId}_curr">
+                            <option value="BDT" ${rt.currency==='BDT'?'selected':''}>টাকা (৳)</option>
+                            <option value="USD" ${rt.currency==='USD'?'selected':''}>ডলার ($)</option>
+                        </select>
+                    </div>
+                    <div class="gb-room-field">
+                        <label>রেগুলার ভাড়া</label>
+                        <input type="number" value="${rt.regularRate}" id="gb_room_${catId}_${rtId}_reg" placeholder="০">
+                    </div>
+                    <div class="gb-room-field">
+                        <label>দিন সীমা</label>
+                        <input type="number" value="${rt.limitDays}" id="gb_room_${catId}_${rtId}_limit" placeholder="১৫">
+                    </div>
+                    <div class="gb-room-field">
+                        <label>অতিরিক্ত ভাড়া</label>
+                        <input type="number" value="${rt.extraRate}" id="gb_room_${catId}_${rtId}_extra" placeholder="০">
+                    </div>
                 </div>`;
             }
         }
@@ -1416,14 +1464,16 @@ function gbGetFilteredBills() {
 function getGbNbNote(catId, rtId, totalDaysStr) {
     if (catId === 'Others' || !guestBillState.settings.categories[catId] || !guestBillState.settings.categories[catId].roomTypes[rtId]) return '';
     const r = guestBillState.settings.categories[catId].roomTypes[rtId]; if (!r) return '';
-    let days = parseInt(totalDaysStr) || 0;
     let currSymbol = getCurrencySymbol(r.currency);
-    if (days > r.limitDays) return `N.B: ${r.name} রুমে ${r.limitDays} দিনের বেশি থাকলে ভাড়া ${currSymbol}${r.extraRate} প্রযোজ্য।`;
-    return `N.B: ${r.name} রুমে ${r.limitDays} দিন পর্যন্ত ভাড়া ${currSymbol}${r.regularRate}।`;
+    if (r.limitDays > 0 && r.extraRate > 0) {
+        return `N.B: ${r.limitDays} দিনের অতিরিক্ত দৈনিক ভাড়া ${currSymbol}${r.extraRate}`;
+    }
+    return '';
 }
 
 function generateBillTableHtml(bill) {
-    let html = `<h2 style="text-align:center;margin-bottom:5px;color:#1e40af;">${escapeHtml(bill.heading || 'Rest House Bill')}</h2>`;
+    let html = `<h1 style="text-align:center;margin-bottom:5px;color:#1e40af;font-size:32px;letter-spacing:2px;font-weight:800;">INVOICE</h1>`;
+    html += `<h2 style="text-align:center;margin-bottom:5px;color:#1e293b;">${escapeHtml(bill.heading || 'Rest House Bill')}</h2>`;
     html += `<p style="text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;">তারিখ: ${new Date().toLocaleDateString()}</p>`;
     html += `<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="background:#2563eb;color:#fff;"><th style="padding:8px;border:1px solid #cbd5e1;">ক্রম</th><th style="padding:8px;border:1px solid #cbd5e1;">নাম</th><th style="padding:8px;border:1px solid #cbd5e1;">মোবাইল</th><th style="padding:8px;border:1px solid #cbd5e1;">ঠিকানা</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম টাইপ</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম নং</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-ইন</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-আউট</th><th style="padding:8px;border:1px solid #cbd5e1;">দিন</th><th style="padding:8px;border:1px solid #cbd5e1;">মোট বিল</th></tr></thead><tbody>`;
     bill.guests.forEach((g, i) => {
@@ -1448,7 +1498,8 @@ function gbDownloadExcel(billId) {
     const bill = guestBillState.bills.find(b => b.id === billId); if (!bill || !bill.guests) return;
     const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
     const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${getCurrencySymbol(g.currency)}${g.totalAmount}`]);
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Bill"); XLSX.writeFile(wb, `Bill_${bill.id}.xlsx`); showToast('Excel ডাউনলোড হচ্ছে...');
+    const ws = XLSX.utils.aoa_to_sheet([['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data]); 
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Bill"); XLSX.writeFile(wb, `Bill_${bill.id}.xlsx`); showToast('Excel ডাউনলোড হচ্ছে...');
 }
 
 function gbDownloadBulkPDF() {
@@ -1467,7 +1518,7 @@ function gbDownloadBulkExcel() {
     bills.forEach(bill => {
         const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
         const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${getCurrencySymbol(g.currency)}${g.totalAmount}`]);
-        const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+        const ws = XLSX.utils.aoa_to_sheet([['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data]);
         let sheetName = bill.heading ? bill.heading.substring(0, 28) : `Bill_${bill.id.substring(0,5)}`;
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
     });
