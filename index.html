@@ -702,7 +702,7 @@ function renderItemsTab(rId, page = 1) {
     }
     document.getElementById('roomTabContent').innerHTML = iHtml;
 }
-function toggleCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
+function toggleCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') or el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.expandable-3d-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
 function toggleHistoryCard(e, el) { e.stopPropagation(); const container = el.closest('#roomTabContent') || el.parentElement; const isExpanded = el.classList.contains('expanded'); container.querySelectorAll('.thin-bright-card').forEach(card => card.classList.remove('expanded')); if (!isExpanded) el.classList.add('expanded'); }
 function addOccupantModal(rId) { openModal('নতুন ব্যবহারকারী', `<div class="form-group"><label>নাম</label><input type="text" id="o_name"></div><div class="form-group"><label>পদবী</label><input type="text" id="o_desig"></div><div class="form-group"><label>প্রকার</label><select id="o_type" onchange="if(this.value==='family'){document.getElementById('o_fam_div').style.display='block'}else{document.getElementById('o_fam_div').style.display='none'}"><option value="bachelor">ব্যাচেলর</option><option value="family">পরিবার</option></select></div><div class="form-group" id="o_fam_div" style="display:none;"><label>পরিবারের তথ্য</label><input type="text" id="o_family"></div><div class="grid grid-2"><div class="form-group"><label>সম্পর্ক</label><input type="text" id="o_rel"></div><div class="form-group"><label>ফোন</label><input type="text" id="o_phone"></div></div><div class="form-group"><label>ঠিকানা</label><input type="text" id="o_address"></div><div class="form-group"><label>মন্তব্য</label><textarea id="o_comment" rows="2"></textarea></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveSingleOccupant('${rId}')">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveSingleOccupant(rId) { const r = state.rooms.find(x => x.id === rId); const name = document.getElementById('o_name').value.trim(); if (!name) { showToast('নাম লিখুন', 'error'); return; } const newOcc = { id: genId('o'), name: name, designation: document.getElementById('o_desig').value.trim(), type: document.getElementById('o_type').value, familyInfo: document.getElementById('o_type').value === 'family' ? document.getElementById('o_family').value.trim() : '', relation: document.getElementById('o_rel').value.trim(), phone: document.getElementById('o_phone').value.trim(), address: document.getElementById('o_address').value.trim(), comment: document.getElementById('o_comment').value.trim() }; if (!r.occupants) r.occupants = []; r.occupants.push(newOcc); closeModal(); showRoomDetail(rId, 'tenant', true); try { await Store.saveRoom(r); showToast('ব্যবহারকারী যোগ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } }
@@ -763,7 +763,7 @@ async function confirmVacate(rId) {
     try { await Store.saveRoom(r); showToast('ভাড়াটে রুম ছেড়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); } 
 }
 async function deletePreviousTenant(rId, tId) { checkPassword(async () => { const r = state.rooms.find(x => x.id === rId); r.previousTenants = (r.previousTenants || []).filter(t => t.id !== tId); forceCloseModal(); showRoomDetail(rId, 'history', true); try { await Store.saveRoom(r); showToast('ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); showRoomDetail(rId, 'history', true); } }); }
-function viewTenantSnapshot(rId, tId) { const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); openModal(`স্ন্যাপশট - ${escapeHtml(t.name)}`, `<p class="text-light text-sm mb-16">ছাড়ার তারিখ: ${formatDate(t.endDate)}</p>${(!t.itemsSnapshot || t.itemsSnapshot.length === 0) ? `<div class="empty-state"><p>কোন স্ন্যাপশট নেই।</p></div>` : `<table class="material-table"><thead><tr><th>মালামাল</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>${t.itemsSnapshot.map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${i.quantity || 1}</td><td>${getConditionBadge(i.condition)}</td></tr>`).join('')}</tbody></table>`}<div class="flex gap-8 mt-16" style="justify-content: flex-end"><button class="btn-icon" onclick="editTenantSnapshotItems('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="closeModal()">✖</button></div>`, true); }
+function viewTenantSnapshot(rId, tId) { const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); openModal(`স্ন্যাপশট - ${escapeHtml(t.name)}`, `<p class="text-light text-sm mb-16">ছাড়ার তারিখ: ${formatDate(t.endDate)}</p>${(!t.itemsSnapshot || t.itemsSnapshot.length === 0) ? `<div class="empty-state"><p>কোন স্ন্যাপশট নেই।</p></div>` : `<table class="material-table"><thead><tr><th>মালামাল</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody>${t.itemsSnapshot.map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${i.quantity || 1}</td><td>${getConditionBadge(i.condition)}</td></tr>`).join('}</tbody></table>`}<div class="flex gap-8 mt-16" style="justify-content: flex-end"><button class="btn-icon" onclick="editTenantSnapshotItems('${rId}','${t.id}')">${editIcon}</button><button class="btn-icon danger" onclick="closeModal()">✖</button></div>`, true); }
 function editTenantSnapshotItems(rId, tId) {
     const r = state.rooms.find(x => x.id === rId); const t = (r.previousTenants || []).find(x => x.id === tId); let itemsHtml = '';
     (t.itemsSnapshot || []).forEach(i => { itemsHtml += `<tr><td><input type="text" value="${escapeHtml(i.name)}" id="snap_name_${i.id}"></td><td><input type="number" value="${i.quantity || 1}" id="snap_qty_${i.id}"></td><td><select id="snap_cond_${i.id}">${getConditionOptions(i.condition)}</select></td></tr>`; });
@@ -816,13 +816,13 @@ async function renderTemplates(c) {
     let tableHtml = ''; const isDesktop = window.innerWidth >= 768; 
     if (isDesktop && tpls.length > 4) { const half = Math.ceil(tpls.length / 2); const leftTpls = tpls.slice(0, half); const rightTpls = tpls.slice(half); tableHtml = `<div class="grid grid-2">${renderTable(leftTpls)}${renderTable(rightTpls)}</div>`; } 
     else { tableHtml = renderTable(tpls); } 
-    c.innerHTML = `<div class="flex gap-12 mb-16 flex-wrap"><select style="padding:8px 12px;border-radius:8px;border:1px solid var(--border)" onchange="state.selectedBuilding=this.value;renderPage()">${state.buildings.map(b => `<option value="${b.id}" ${b.id === bId ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('}</select><button class="btn btn-primary btn-sm" onclick="showAddTemplateModal()">+ টেম্পলেট</button></div><div class="card"><h3 class="mb-16">মালামাল টেম্পলেট (${tpls.length})</h3>${tpls.length === 0 ? `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div>` : tableHtml}</div>`; 
+    c.innerHTML = `<div class="flex gap-12 mb-16 flex-wrap"><select style="padding:8px 12px;border-radius:8px;border:1px solid var(--border)" onchange="state.selectedBuilding=this.value;renderPage()">${state.buildings.map(b => `<option value="${b.id}" ${b.id === bId ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}</select><button class="btn btn-primary btn-sm" onclick="showAddTemplateModal()">+ টেম্পলেট</button></div><div class="card"><h3 class="mb-16">মালামাল টেম্পলেট (${tpls.length})</h3>${tpls.length === 0 ? `<div class="empty-state"><p>কোন টেম্পলেট নেই।</p></div>` : tableHtml}</div>`; 
 }
 function showAddTemplateModal() { openModal('নতুন টেম্পলেট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="tName"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="tQty" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplate()">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveTemplate() { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('tName').value.trim(); const q = parseInt(document.getElementById('tQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; if (!tpls.find(t => t.name === n)) tpls.push({ id: genId('t'), name: n, quantity: q }); await Store.saveTemplates(bId, tpls); showToast('যোগ হয়েছে'); forceCloseModal(); renderPage(); }
 async function editTemplateModal(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); openModal('টেম্পলেট এডিট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="etName" value="${escapeHtml(t.name)}"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="etQty" value="${t.quantity || 1}" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateEdit('${tId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'); forceCloseModal(); renderPage(); }
-async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding || state.buildings[0].id; let tpls = state.templates?.[bId] || []; await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
+async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding or state.buildings[0].id; let tpls = state.templates?.[bId] || []; await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
 
 function renderPayment(c) {
     if (state.buildings.length === 0) { c.innerHTML = `<div class="card"><div class="empty-state"><p>প্রথমে বিল্ডিং যোগ করুন।</p></div></div>`; return; }
@@ -833,7 +833,7 @@ function renderPayment(c) {
 }
 function switchPaymentTab(tab) { guestBillState.activePaymentTab = tab; renderPage(); }
 function renderPaymentRecordTab(c) {
-    c.innerHTML = `<div class="card"><h3 class="mb-16">💵 পেমেন্ট রেকর্ড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="payBuilding" onchange="loadPayFloors()"><option value="">সিলেক্ট করুন</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('}</select></div><div class="form-group"><label>তলা</label><select id="payFloor" onchange="loadPayRooms()" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম নম্বর</label><select id="payRoom" onchange="loadPayPersons()" disabled><option value="">সিলেক্ট করুন</option></select></div><div class="form-group"><label>ব্যক্তি</label><select id="payPerson" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-3"><div class="form-group"><label>জমা টাকার পরিমাণ</label><input type="number" id="payAmount" placeholder="৳"></div><div class="form-group"><label>মাস</label><select id="payMonth">${['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'].map(m=>`<option value="${m}">${m}</option>`).join('}</select></div><div class="form-group"><label>বছর</label><input type="number" id="payYear" value="${new Date().getFullYear()}"></div></div><button class="btn btn-primary" style="width:100%" onclick="savePayment()">পেমেন্ট সেভ করুন</button></div>`;
+    c.innerHTML = `<div class="card"><h3 class="mb-16">💵 পেমেন্ট রেকর্ড</h3><div class="grid grid-2"><div class="form-group"><label>বিল্ডিং</label><select id="payBuilding" onchange="loadPayFloors()"><option value="">সিলেক্ট করুন</option>${state.buildings.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('')}</select></div><div class="form-group"><label>তলা</label><select id="payFloor" onchange="loadPayRooms()" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-2"><div class="form-group"><label>রুম নম্বর</label><select id="payRoom" onchange="loadPayPersons()" disabled><option value="">সিলেক্ট করুন</option></select></div><div class="form-group"><label>ব্যক্তি</label><select id="payPerson" disabled><option value="">সিলেক্ট করুন</option></select></div></div><div class="grid grid-3"><div class="form-group"><label>জমা টাকার পরিমাণ</label><input type="number" id="payAmount" placeholder="৳"></div><div class="form-group"><label>মাস</label><select id="payMonth">${['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'].map(m=>`<option value="${m}">${m}</option>`).join('}</select></div><div class="form-group"><label>বছর</label><input type="number" id="payYear" value="${new Date().getFullYear()}"></div></div><button class="btn btn-primary" style="width:100%" onclick="savePayment()">পেমেন্ট সেভ করুন</button></div>`;
 }
 function loadPayFloors() { const bId = document.getElementById('payBuilding').value; const b = state.buildings.find(x=>x.id===bId); const fS = document.getElementById('payFloor'); fS.innerHTML = '-সিলেক্ট করুন-'; for(let i=1; i<=(b.floorCount||1); i++) fS.innerHTML += `<option value="${i}">তলা ${i}</option>`; fS.disabled = false; document.getElementById('payRoom').disabled = true; document.getElementById('payPerson').disabled = true; document.getElementById('payRoom').innerHTML = '-সিলেক্ট করুন-'; document.getElementById('payPerson').innerHTML = '-সিলেক্ট করুন-'; }
 function loadPayRooms() { const bId = document.getElementById('payBuilding').value; const fId = document.getElementById('payFloor').value; const rs = state.rooms.filter(r=>r.buildingId===bId && r.floor===fId); const rS = document.getElementById('payRoom'); rS.innerHTML = '-সিলেক্ট করুন-'; rs.forEach(r=>rS.innerHTML += `<option value="${r.id}">${escapeHtml(r.number)}</option>`); rS.disabled = false; document.getElementById('payPerson').disabled = true; document.getElementById('payPerson').innerHTML = '-সিলেক্ট করুন-'; }
@@ -1544,54 +1544,53 @@ function gbDownloadBulkPDF() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
     if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
-    const bills =
-        gbGetFilteredBills();
-        if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
-        const win = window.open('', '_blank');
-        let content = bills.map(bill => generateBillTableHtml(bill) + '<div style="page-break-after: always;"></div>').join('');
-        win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${content}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
-        win.document.close(); showToast('PDF প্রিভিউ খোলা হচ্ছে...');
+    const bills = gbGetFilteredBills();
+    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
+    const win = window.open('', '_blank');
+    let content = bills.map(bill => generateBillTableHtml(bill) + '<div style="page-break-after: always;"></div>').join('');
+    win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${content}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+    win.document.close(); showToast('PDF প্রিভিউ খোলা হচ্ছে...');
+}
+
+function gbDownloadBulkExcel() {
+    const fromStr = document.getElementById('gbFromDate')?.value;
+    const toStr = document.getElementById('gbToDate')?.value;
+    if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
+    const bills = gbGetFilteredBills();
+    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
+    const wb = XLSX.utils.book_new();
+    bills.forEach(bill => {
+        const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
+        const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${getCurrencySymbol(g.currency)}${g.totalAmount}`]);
+        const aoa = [['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        formatExcelSheet(ws, headers, data);
+        let sheetName = bill.heading ? bill.heading.substring(0, 28) : `Bill_${bill.id.substring(0,5)}`;
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`); 
+    showToast('Excel ডাউনলোড হচ্ছে...');
+}
+
+function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
+
+function initApp() {
+    document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+        showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error"); hideLoader();
+        document.getElementById('authContainer').style.display = 'flex'; showLoginView(); return;
     }
+    firebase.auth().onAuthStateChanged((user) => {
+        const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
+        if (user && isLogged) { isExplicitLogout = false; if (!currentUser || currentUser.uid !== user.uid) loadAppData(user); }
+        else if (user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+        else if (!user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+        else if (!user && isLogged && !isExplicitLogout) { console.warn("Firebase user became null temporarily. Ignoring to prevent data loss."); }
+        else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+    });
+}
 
-    function gbDownloadBulkExcel() {
-        const fromStr = document.getElementById('gbFromDate')?.value;
-        const toStr = document.getElementById('gbToDate')?.value;
-        if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
-        const bills = gbGetFilteredBills();
-        if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
-        const wb = XLSX.utils.book_new();
-        bills.forEach(bill => {
-            const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
-            const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${getCurrencySymbol(g.currency)}${g.totalAmount}`]);
-            const aoa = [['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data];
-            const ws = XLSX.utils.aoa_to_sheet(aoa);
-            formatExcelSheet(ws, headers, data);
-            let sheetName = bill.heading ? bill.heading.substring(0, 28) : `Bill_${bill.id.substring(0,5)}`;
-            XLSX.utils.book_append_sheet(wb, ws, sheetName);
-        });
-        XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`); 
-        showToast('Excel ডাউনলোড হচ্ছে...');
-    }
-
-    function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
-
-    function initApp() {
-        document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
-        if (typeof firebase === 'undefined' || !firebase.auth) {
-            showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error"); hideLoader();
-            document.getElementById('authContainer').style.display = 'flex'; showLoginView(); return;
-        }
-        firebase.auth().onAuthStateChanged((user) => {
-            const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
-            if (user && isLogged) { isExplicitLogout = false; if (!currentUser || currentUser.uid !== user.uid) loadAppData(user); }
-            else if (user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
-            else if (!user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
-            else if (!user && isLogged && !isExplicitLogout) { console.warn("Firebase user became null temporarily. Ignoring to prevent data loss."); }
-            else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
-        });
-    }
-
-    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
 </script>
 </body>
 </html>
