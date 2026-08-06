@@ -443,7 +443,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
+            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
@@ -454,7 +454,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
+            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
         
@@ -466,7 +466,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => {
-            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
+            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
         });
 
@@ -478,7 +478,7 @@ async function loadAppData(user) {
             if (state.isLoading) { state.isLoading = false; }
             renderPage();
         }, err => { 
-            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
+            if (err.code === 'permission-denied') { showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...", "error"); if (firebase.auth().currentUser) firebase.auth().currentUser.getIdToken(true).catch(()=>{}); }
             if (state.isLoading) { state.isLoading = false; renderPage(); }
             console.warn("Templates fetch error:", err); 
         });
@@ -645,7 +645,7 @@ function renderDashboard(c) {
 }
 function toggleExpand(id) { state.expandedBuilding = state.expandedBuilding === id ? null : id; renderPage(); }
 
-function showAddBuildingModal() { openModal('নতুন বিল্ডিং', `<div class="grid grid-2"><div class="form-group"><label>বিল্ডিং এর নাম</label><input type="text" id="buildingName"></div><div class="form-group"><label>কয়টা তলা?</label><input type="number" id="floorCount" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveBuildingModal()">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
+function showAddBuildingModal() { openModal('নতুন বিল্ডিং', `<div class="grid grid-2"><div class="form-group"><label>বিল্ডিং এর নাম</label><input type="text" id="buildingName"></div><div class="form-group"><label>কয়টা তলা?</label><input type="number" id="floorCount" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveBuildingModal()">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveBuildingModal() { const n = document.getElementById('buildingName').value.trim(); const f = parseInt(document.getElementById('floorCount').value) || 0; if (!n) { showToast('নাম লিখুন', 'error'); return; } const tempId = 'temp_' + Date.now(); const newBuilding = { id: tempId, name: n, floorCount: f }; state.buildings.push(newBuilding); closeModal(); renderPage(); try { const savedBuilding = await Store.saveBuilding(newBuilding); const idx = state.buildings.findIndex(b => b.id === tempId); if (idx > -1) state.buildings[idx] = savedBuilding; showToast('বিল্ডিং সেভ হয়েছে'); } catch(e) { showToast('সেভ করতে সমস্যা', 'error'); state.buildings = state.buildings.filter(b => b.id !== tempId); renderPage(); } }
 function editBuilding(id) { const b = state.buildings.find(x => x.id === id); openModal('বিল্ডিং এডিট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="buildingName" value="${escapeHtml(b.name)}"></div><div class="form-group"><label>তলা</label><input type="number" id="floorCount" value="${b.floorCount || 1}" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveBuildingEdit('${id}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveBuildingEdit(id) { const n = document.getElementById('buildingName').value.trim(); const f = parseInt(document.getElementById('floorCount').value) || 0; if (!n) { showToast('নাম লিখুন', 'error'); return; } const b = state.buildings.find(x => x.id === id); b.name = n; b.floorCount = f; forceCloseModal(); renderPage(); try { await Store.saveBuilding({ id, name: n, floorCount: f }); showToast('আপডেট হয়েছে'); } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); renderPage(); } }
@@ -989,7 +989,7 @@ function getGbFormHtml() {
                 <div><label class="gb-label">রুম টাইপ</label><select id="gbRoomType" class="gb-input"></select></div>
             </div>
             <div id="gbOtherField" class="mb-16" style="display:none;"><label class="gb-label">অন্যান্য গেস্ট টাইপ</label><input type="text" id="gbCustomType" class="gb-input" placeholder="গেস্ট টাইপ লিখুন"></div>
-            <div class="mb-16"><label class="gb-label">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label><input type="text" id="gbExcluded" onchange="gbUpdateDays()" class="gb-input" placeholder="যেমন: 12-10-2023, 15-10-2023"></div>
+            <div class="mb-16"><label class="gb-label">বাদ দেওয়া তারিখ (দিন-মাস-বছর)</label><input type="text" id="gbExcluded" onchange="gbUpdateDays()" class="gb-input" placeholder="যেমন: 12-10-2023, 15-10-2023"></div>
             <div class="mb-16"><label class="gb-label">আগমনের উদ্দেশ্য</label><input type="text" id="gbPurpose" class="gb-input"></div>
             <div class="gb-grid-2 mb-16">
                 <div><label class="gb-label">মোট দিন (অটো)</label><input type="text" id="gbTotalDays" readonly class="gb-input" style="background:#f1f5f9;cursor:not-allowed;"></div>
@@ -997,7 +997,7 @@ function getGbFormHtml() {
             </div>
             <button type="button" onclick="gbAddTemp()" id="gbTempBtn" class="gb-btn gb-btn-yellow" style="width:100%;">➕ গেস্ট ডাটা এন্ট্রি</button>
             <div style="margin-top:16px;">
-                <div class="gb-section-title">এন্ট্রি দেওয়া গেস্টগণ:</div>
+                <div class="gb-section-title">এন্ট্রি দেওয়া গেস্টগণ:</div>
                 <div id="gbTempList" style="max-height:160px;overflow-y:auto;margin-bottom:12px;"></div>
                 <button type="submit" id="gbSubmitBtn" class="gb-btn gb-btn-primary" style="width:100%;">📄 বিল তৈরি করুন</button>
             </div>
@@ -1019,7 +1019,7 @@ function getGbListHtml() {
         <div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:12px;">
             <h3 id="gbBillCount" style="font-size:16px;font-weight:700;">বিলের তালিকা (0)</h3>
             <div style="position:relative;width:100%;max-width:240px;">
-                <input type="text" id="gbSearch" oninput="gbRenderBillList()" placeholder="যেকোনো তথ্য দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;">
+                <input type="text" id="gbSearch" oninput="gbRenderBillList()" placeholder="যেকোনো তথ্য দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;">
                 <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
             </div>
         </div>
@@ -1036,18 +1036,20 @@ function renderGuestBillTab(c) {
 }
 
 function gbOpenSettings() {
+    if (!guestBillState.settings.categories) guestBillState.settings.categories = {};
     const content = `
     <div style="margin-bottom:20px;">
-        <div class="gb-section-title" style="color:#1e40af;">🛏️ ক্যাটাগরি ও রুম ভাড়া সেটিংস</div>
+        <div class="gb-section-title" style="color:#1e40af;">🛏️ ক্যাটাগরি ও রুম ভাড়া সেটিংস</div>
         <div id="gbRoomSettings"></div>
         <button onclick="gbAddCategory()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #3b82f6;color:#2563eb;margin-top:8px;">➕ নতুন ক্যাটাগরি যোগ করুন</button>
     </div>
     <button onclick="gbSaveSettings()" class="gb-btn gb-btn-primary" style="width:100%;">💾 সেটিংস সেভ করুন</button>`;
-    openModal('সেটিংস (ভাড়া কনফিগারেশন)', content, true, true);
+    openModal('সেটিংস (ভাড়া কনফিগারেশন)', content, true, true);
     gbRenderSettings();
 }
 
 function gbRenderSettings() {
+    if (!guestBillState.settings.categories) guestBillState.settings.categories = {};
     let html = '';
     for (let catId in guestBillState.settings.categories) {
         let cat = guestBillState.settings.categories[catId];
@@ -1057,19 +1059,21 @@ function gbRenderSettings() {
             <div class="gb-section-title" style="font-size:12px;color:#475569;">রুম টাইপসমূহ:</div>
             <div id="gb_cat_${catId}_rooms" style="display:grid;gap:8px;">`;
 
-        for (let rtId in cat.roomTypes) {
-            let rt = cat.roomTypes[rtId];
-            html += `<div class="gb-room-row" id="gb_room_${catId}_${rtId}">
-                <button type="button" class="gb-del-btn" style="position:static;" onclick="gbDeleteRoomType('${catId}','${rtId}')">${gbDelIcon}</button>
-                <input type="text" value="${escapeHtml(rt.name)}" id="gb_room_${catId}_${rtId}_name" class="gb-input" style="width:60px;font-weight:600;" placeholder="A">
-                <select id="gb_room_${catId}_${rtId}_curr" class="gb-input" style="width:80px;">
-                    <option value="BDT" ${rt.currency==='BDT'?'selected':''}>টাকা (৳)</option>
-                    <option value="USD" ${rt.currency==='USD'?'selected':''}>ডলার ($)</option>
-                </select>
-                <input type="number" value="${rt.regularRate}" id="gb_room_${catId}_${rtId}_reg" class="gb-input" style="width:80px;" placeholder="রেগুলার ভাড়া">
-                <input type="number" value="${rt.limitDays}" id="gb_room_${catId}_${rtId}_limit" class="gb-input" style="width:60px;" placeholder="দিন সীমা">
-                <input type="number" value="${rt.extraRate}" id="gb_room_${catId}_${rtId}_extra" class="gb-input" style="width:80px;" placeholder="অতিরিক্ত ভাড়া">
-            </div>`;
+        if (cat.roomTypes) {
+            for (let rtId in cat.roomTypes) {
+                let rt = cat.roomTypes[rtId];
+                html += `<div class="gb-room-row" id="gb_room_${catId}_${rtId}">
+                    <button type="button" class="gb-del-btn" style="position:static;" onclick="gbDeleteRoomType('${catId}','${rtId}')">${gbDelIcon}</button>
+                    <input type="text" value="${escapeHtml(rt.name)}" id="gb_room_${catId}_${rtId}_name" class="gb-input" style="width:60px;font-weight:600;" placeholder="A">
+                    <select id="gb_room_${catId}_${rtId}_curr" class="gb-input" style="width:80px;">
+                        <option value="BDT" ${rt.currency==='BDT'?'selected':''}>টাকা (৳)</option>
+                        <option value="USD" ${rt.currency==='USD'?'selected':''}>ডলার ($)</option>
+                    </select>
+                    <input type="number" value="${rt.regularRate}" id="gb_room_${catId}_${rtId}_reg" class="gb-input" style="width:80px;" placeholder="রেগুলার ভাড়া">
+                    <input type="number" value="${rt.limitDays}" id="gb_room_${catId}_${rtId}_limit" class="gb-input" style="width:60px;" placeholder="দিন সীমা">
+                    <input type="number" value="${rt.extraRate}" id="gb_room_${catId}_${rtId}_extra" class="gb-input" style="width:80px;" placeholder="অতিরিক্ত ভাড়া">
+                </div>`;
+            }
         }
 
         html += `</div>
@@ -1080,6 +1084,7 @@ function gbRenderSettings() {
 }
 
 function gbAddCategory() { 
+    if (!guestBillState.settings.categories) guestBillState.settings.categories = {};
     let id = 'cat_' + Date.now(); 
     guestBillState.settings.categories[id] = { name: "নতুন ক্যাটাগরি", roomTypes: {} }; 
     gbRenderSettings(); 
@@ -1093,6 +1098,7 @@ function gbDeleteCategory(id) {
     }); 
 }
 function gbAddRoomType(catId) { 
+    if (!guestBillState.settings.categories[catId].roomTypes) guestBillState.settings.categories[catId].roomTypes = {};
     let id = 'rt_' + Date.now(); 
     guestBillState.settings.categories[catId].roomTypes[id] = { name: "A", currency: "BDT", regularRate: 0, limitDays: 15, extraRate: 0 }; 
     gbRenderSettings(); 
@@ -1108,19 +1114,24 @@ function gbDeleteRoomType(catId, rtId) {
 
 async function gbSaveSettings() {
     let updatedCategories = {};
-    for (let catId in guestBillState.settings.categories) {
-        let catName = document.getElementById(`gb_cat_${catId}_name`).value || "Unnamed";
-        let updatedRooms = {};
-        for (let rtId in guestBillState.settings.categories[catId].roomTypes) {
-            updatedRooms[rtId] = {
-                name: document.getElementById(`gb_room_${catId}_${rtId}_name`).value || "Unnamed",
-                currency: document.getElementById(`gb_room_${catId}_${rtId}_curr`).value,
-                regularRate: parseFloat(document.getElementById(`gb_room_${catId}_${rtId}_reg`).value) || 0,
-                limitDays: parseInt(document.getElementById(`gb_room_${catId}_${rtId}_limit`).value) || 0,
-                extraRate: parseFloat(document.getElementById(`gb_room_${catId}_${rtId}_extra`).value) || 0
-            };
+    if (guestBillState.settings.categories) {
+        for (let catId in guestBillState.settings.categories) {
+            let catNameEl = document.getElementById(`gb_cat_${catId}_name`);
+            let catName = catNameEl ? catNameEl.value : "Unnamed";
+            let updatedRooms = {};
+            if (guestBillState.settings.categories[catId].roomTypes) {
+                for (let rtId in guestBillState.settings.categories[catId].roomTypes) {
+                    updatedRooms[rtId] = {
+                        name: document.getElementById(`gb_room_${catId}_${rtId}_name`)?.value || "Unnamed",
+                        currency: document.getElementById(`gb_room_${catId}_${rtId}_curr`)?.value || "BDT",
+                        regularRate: parseFloat(document.getElementById(`gb_room_${catId}_${rtId}_reg`)?.value) || 0,
+                        limitDays: parseInt(document.getElementById(`gb_room_${catId}_${rtId}_limit`)?.value) || 0,
+                        extraRate: parseFloat(document.getElementById(`gb_room_${catId}_${rtId}_extra`)?.value) || 0
+                    };
+                }
+            }
+            updatedCategories[catId] = { name: catName, roomTypes: updatedRooms };
         }
-        updatedCategories[catId] = { name: catName, roomTypes: updatedRooms };
     }
     guestBillState.settings.categories = updatedCategories;
     forceCloseModal(); gbUpdateSelects();
@@ -1131,6 +1142,7 @@ function gbUpdateSelects() {
     const guestSelect = document.getElementById('gbGuestType'); 
     if (!guestSelect) return;
     let guestHtml = ''; 
+    if (!guestBillState.settings.categories) guestBillState.settings.categories = {};
     for (let catId in guestBillState.settings.categories) {
         guestHtml += `<option value="${catId}">${escapeHtml(guestBillState.settings.categories[catId].name)}</option>`;
     }
@@ -1152,15 +1164,13 @@ function gbUpdateRoomTypes() {
     const roomSelect = document.getElementById('gbRoomType');
     if (!roomSelect) return;
     let roomHtml = '';
-    if (catId && catId !== 'Others' && guestBillState.settings.categories[catId]) {
+    if (catId && catId !== 'Others' && guestBillState.settings.categories[catId] && guestBillState.settings.categories[catId].roomTypes) {
         for (let rtId in guestBillState.settings.categories[catId].roomTypes) {
             roomHtml += `<option value="${rtId}">${escapeHtml(guestBillState.settings.categories[catId].roomTypes[rtId].name)}</option>`;
         }
     }
-    roomSelect.innerHTML = রুম
-                roomSelect.innerHTML = roomHtml;
-        }
-// ===== GUEST BILL CONTINUATION =====
+    roomSelect.innerHTML = roomHtml;
+}
 
 function gbFormatDate(dateStr) {
     if (!dateStr) return '-';
@@ -1238,7 +1248,7 @@ function gbAddTemp() {
 
 function gbRenderTempGuests() {
     const el = document.getElementById('gbTempList'); if (!el) return;
-    if (guestBillState.tempGuests.length === 0) { el.innerHTML = '<p style="color:var(--text-light);font-size:12px;text-align:center;padding:8px;">কোনো গেস্ট এন্ট্রি দেওয়া হয়নি।</p>'; return; }
+    if (guestBillState.tempGuests.length === 0) { el.innerHTML = '<p style="color:var(--text-light);font-size:12px;text-align:center;padding:8px;">কোনো গেস্ট এন্ট্রি দেওয়া হয়নি।</p>'; return; }
     el.innerHTML = guestBillState.tempGuests.map((g, i) => `<div class="gb-temp-item"><span><strong>${i + 1}.</strong> ${escapeHtml(g.guestName)} <span style="color:var(--text-light);font-size:11px;">(${escapeHtml(g.roomTypeName)})</span></span><button onclick="gbRemoveTemp(${i})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;">✖</button></div>`).join('');
 }
 
@@ -1361,7 +1371,7 @@ function gbRenderBillList() {
     const start = (guestBillState.currentPage - 1) * guestBillState.itemsPerPage; const pageItems = guestBillState.filteredBills.slice(start, start + guestBillState.itemsPerPage);
     const container = document.getElementById('gbBillList'); if (!container) return;
     const countEl = document.getElementById('gbBillCount'); if (countEl) countEl.innerText = `বিলের তালিকা (${guestBillState.filteredBills.length})`;
-    if (pageItems.length === 0) { container.innerHTML = '<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size:40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>'; }
+    if (pageItems.length === 0) { container.innerHTML = '<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size:40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>'; }
     else {
         container.innerHTML = pageItems.map(bill => {
             const guests = bill.guests || [];
@@ -1408,8 +1418,8 @@ function getGbNbNote(catId, rtId, totalDaysStr) {
     const r = guestBillState.settings.categories[catId].roomTypes[rtId]; if (!r) return '';
     let days = parseInt(totalDaysStr) || 0;
     let currSymbol = getCurrencySymbol(r.currency);
-    if (days > r.limitDays) return `N.B: ${r.name} রুমে ${r.limitDays} দিনের বেশি থাকলে ভাড়া ${currSymbol}${r.extraRate} প্রযোজ্য।`;
-    return `N.B: ${r.name} রুমে ${r.limitDays} দিন পর্যন্ত ভাড়া ${currSymbol}${r.regularRate}।`;
+    if (days > r.limitDays) return `N.B: ${r.name} রুমে ${r.limitDays} দিনের বেশি থাকলে ভাড়া ${currSymbol}${r.extraRate} প্রযোজ্য।`;
+    return `N.B: ${r.name} রুমে ${r.limitDays} দিন পর্যন্ত ভাড়া ${currSymbol}${r.regularRate}।`;
 }
 
 function generateBillTableHtml(bill) {
@@ -1443,7 +1453,7 @@ function gbDownloadExcel(billId) {
 
 function gbDownloadBulkPDF() {
     const bills = gbGetFilteredBills();
-    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
+    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
     const win = window.open('', '_blank');
     let content = bills.map(bill => generateBillTableHtml(bill) + '<div style="page-break-after: always;"></div>').join('');
     win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${content}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
@@ -1452,7 +1462,7 @@ function gbDownloadBulkPDF() {
 
 function gbDownloadBulkExcel() {
     const bills = gbGetFilteredBills();
-    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
+    if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
     const wb = XLSX.utils.book_new();
     bills.forEach(bill => {
         const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
