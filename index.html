@@ -1432,21 +1432,26 @@ function gbNextPage() { const t = Math.ceil(guestBillState.filteredBills.length 
 function gbGetFilteredBills() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
-    return guestBillState.bills.filter(bill => {
-        if (!bill.guests || bill.guests.length === 0) return false;
-        return bill.guests.some(g => {
-            if (!g.checkIn) return false;
-            const ciDateStr = typeof g.checkIn === 'string' ? g.checkIn.split('T')[0] : '';
-            let fromOk = true, toOk = true;
-            if (fromStr) fromOk = ciDateStr >= fromStr;
-            if (toStr) toOk = ciDateStr <= toStr;
-            return fromOk && toOk;
-        });
-    });
+function gbGetFormData() {
+    const guestName = document.getElementById('gbGuestName').value.trim(); const mobile = document.getElementById('gbMobile').value.trim(); const address = document.getElementById('gbAddress').value.trim();
+    const catId = document.getElementById('gbGuestType').value;
+    let catName = catId === "Others" ? (document.getElementById('gbCustomType').value || "Others") : (guestBillState.settings.categories[catId]?.name || "");
+    const rtId = document.getElementById('gbRoomType').value; 
+    let rtName = '', currency = 'BDT';
+    if (catId !== 'Others' && guestBillState.settings.categories[catId] && guestBillState.settings.categories[catId].roomTypes[rtId]) {
+        rtName = guestBillState.settings.categories[catId].roomTypes[rtId].name;
+        currency = guestBillState.settings.categories[catId].roomTypes[rtId].currency;
+    }
+    const roomNumber = document.getElementById('gbRoomNumber').value.trim(); const checkIn = document.getElementById('gbCheckIn').value; const checkOut = document.getElementById('gbCheckOut').value;
+    const excludedDatesRaw = document.getElementById('gbExcluded').value; const excludedDates = excludedDatesRaw ? excludedDatesRaw.split(',').map(d => d.trim()) : [];
+    const purpose = document.getElementById('gbPurpose').value; const totalDays = document.getElementById('gbTotalDays').value; const comments = document.getElementById('gbComments').value;
+    const { totalAmount, finalCurrency } = gbCalculateBill(checkIn, checkOut, excludedDates, catId, rtId);
+    // catId added here to fix the N.B. note issue
+    return { guestName, mobile, address, catId: catId, guestType: catName, roomType: rtId, roomTypeName: rtName, currency: finalCurrency, roomNumber, checkIn, checkOut, excludedDates, purpose, totalDays, comments, totalAmount };
 }
 
 function getGbNbNote(catId, rtId, totalDaysStr) {
-    if (catId === 'Others' || !guestBillState.settings.categories[catId] || !guestBillState.settings.categories[catId].roomTypes[rtId]) return '';
+    if (!catId || catId === 'Others' || !guestBillState.settings.categories[catId] || !guestBillState.settings.categories[catId].roomTypes[rtId]) return '';
     const r = guestBillState.settings.categories[catId].roomTypes[rtId]; if (!r) return '';
     let currSymbol = getCurrencySymbol(r.currency);
     if (r.limitDays > 0 && r.extraRate > 0) {
@@ -1470,7 +1475,7 @@ function generateBillTableHtml(bill) {
     let nbNotesSet = new Set();
     let excludedDatesSet = new Set();
     bill.guests.forEach(g => { 
-        let note = getGbNbNote(g.guestType, g.roomType, g.totalDays); 
+        let note = getGbNbNote(g.catId || g.guestType, g.roomType, g.totalDays); 
         if (note) nbNotesSet.add(note);
         if (g.excludedDates && g.excludedDates.length > 0) {
             g.excludedDates.forEach(d => excludedDatesSet.add(d));
@@ -1479,16 +1484,18 @@ function generateBillTableHtml(bill) {
     
     let notesHtml = '';
     if (excludedDatesSet.size > 0) {
-        notesHtml += `N.B: বাদ দেওয়া তারিখসমূহ: ${Array.from(excludedDatesSet).join(', ')}<br>`;
+        notesHtml += `<div style="margin-bottom: 4px;">N.B: বাদ দেওয়া তারিখসমূহ: ${Array.from(excludedDatesSet).join(', ')}</div>`;
     }
     if (nbNotesSet.size > 0) {
-        notesHtml += Array.from(nbNotesSet).join('<br>');
+        Array.from(nbNotesSet).forEach(note => {
+            notesHtml += `<div style="margin-bottom: 4px;">${note}</div>`;
+        });
     }
     if (notesHtml) {
         html += `<div style="font-size:12px;color:#555;margin-top:15px;padding:8px;background:#f8fafc;border-left:3px solid #2563eb;">${notesHtml}</div>`;
     }
     
-    html += `</div>`; // close margin box div
+    html += `</div>`;
     return html;
 }
 
@@ -1499,12 +1506,35 @@ function gbDownloadPDF(billId) {
     win.document.close(); showToast('PDF প্রিভিউ খোলা হচ্ছে...');
 }
 
+function formatExcelSheet(ws, headers, data) {
+    ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } }
+    ];
+    const colWidths = headers.map((h, i) => {
+        let maxLen = String(h).length;
+        data.forEach(row => {
+            if (row[i] !== undefined && row[i] !== null) {
+                let len = String(row[i]).length;
+                if (len > maxLen) maxLen = len;
+            }
+        });
+        return { wch: maxLen + 2 };
+    });
+    ws['!cols'] = colWidths;
+}
+
 function gbDownloadExcel(billId) {
     const bill = guestBillState.bills.find(b => b.id === billId); if (!bill || !bill.guests) return;
     const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
     const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${getCurrencySymbol(g.currency)}${g.totalAmount}`]);
-    const ws = XLSX.utils.aoa_to_sheet([['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data]); 
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Bill"); XLSX.writeFile(wb, `Bill_${bill.id}.xlsx`); showToast('Excel ডাউনলোড হচ্ছে...');
+    const aoa = [['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    formatExcelSheet(ws, headers, data);
+    const wb = XLSX.utils.book_new(); 
+    XLSX.utils.book_append_sheet(wb, ws, "Bill"); 
+    XLSX.writeFile(wb, `Bill_${bill.id}.xlsx`); 
+    showToast('Excel ডাউনলোড হচ্ছে...');
 }
 
 function gbDownloadBulkPDF() {
@@ -1523,11 +1553,14 @@ function gbDownloadBulkExcel() {
     bills.forEach(bill => {
         const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
         const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${getCurrencySymbol(g.currency)}${g.totalAmount}`]);
-        const ws = XLSX.utils.aoa_to_sheet([['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data]);
+        const aoa = [['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        formatExcelSheet(ws, headers, data);
         let sheetName = bill.heading ? bill.heading.substring(0, 28) : `Bill_${bill.id.substring(0,5)}`;
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
     });
-    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`); showToast('Excel ডাউনলোড হচ্ছে...');
+    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`); 
+    showToast('Excel ডাউনলোড হচ্ছে...');
 }
 
 function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
