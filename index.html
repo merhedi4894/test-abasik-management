@@ -8,7 +8,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Excel Style সাপোর্ট করার জন্য লাইব্রেরি পরিবর্তন করা হয়েছে -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -439,6 +440,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
     if (app) app.style.display = 'none';
 })();
 </script>
+
 <script>
 const firebaseConfig = { apiKey: "AIzaSyAvbD9L0YTAEkJ2d7LsvteED7BL-TVBJ8E", authDomain: "test-abasik-management.firebaseapp.com", projectId: "test-abasik-management", storageBucket: "test-abasik-management.firebasestorage.app", messagingSenderId: "732260863743", appId: "1:732260863743:web:50d4495f3b7c7e051346ca", measurementId: "G-28K4ZQC519" };
 let db = null, useFirebase = false;
@@ -1704,8 +1706,30 @@ function formatExcelSheet(ws, headers, data) {
     for (let R = range.s.r; R <= range.e.r; R++) {
         for (let C = range.s.c; C <= range.e.c; C++) {
             const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!ws[cellAddress]) ws[cellAddress] = { v: '' };
-            ws[cellAddress].s = { alignment: { horizontal: 'center', vertical: 'center' } };
+            if (!ws[cellAddress]) ws[cellAddress] = { v: '', t: 's' };
+            
+            let style = { 
+                alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+                border: {
+                    top: { style: 'thin', color: { rgb: "AAAAAA" } },
+                    bottom: { style: 'thin', color: { rgb: "AAAAAA" } },
+                    left: { style: 'thin', color: { rgb: "AAAAAA" } },
+                    right: { style: 'thin', color: { rgb: "AAAAAA" } }
+                }
+            };
+            
+            if (R === 0) {
+                style.font = { bold: true, sz: 16, color: { rgb: "1E40AF" } };
+            } else if (R === 1) {
+                style.font = { bold: true, sz: 14, color: { rgb: "000000" } };
+            } else if (R === 3) {
+                style.font = { bold: true, sz: 12, color: { rgb: "FFFFFF" } };
+                style.fill = { fgColor: { rgb: "2563EB" } };
+            } else if (R > 3) {
+                style.font = { sz: 11 };
+            }
+            
+            ws[cellAddress].s = style;
         }
     }
     const colWidths = headers.map((h, i) => {
@@ -1716,7 +1740,7 @@ function formatExcelSheet(ws, headers, data) {
                 if (len > maxLen) maxLen = len;
             }
         });
-        return { wch: maxLen + 2 };
+        return { wch: maxLen + 4 };
     });
     ws['!cols'] = colWidths;
 }
@@ -1756,35 +1780,4 @@ function gbDownloadBulkExcel() {
     bills.forEach(bill => {
         const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
         const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${getCurrencySymbol(g.currency)}${g.totalAmount}`]);
-        const aoa = [['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data];
-        const ws = XLSX.utils.aoa_to_sheet(aoa);
-        formatExcelSheet(ws, headers, data);
-        let sheetName = bill.heading ? bill.heading.substring(0, 28) : `Bill_${bill.id.substring(0,5)}`;
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    });
-    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`); 
-    showToast('Excel ডাউনলোড হচ্ছে...');
-}
-
-function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
-
-function initApp() {
-    document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
-    if (typeof firebase === 'undefined' || !firebase.auth) {
-        showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error"); hideLoader();
-        document.getElementById('authContainer').style.display = 'flex'; showLoginView(); return;
-    }
-    firebase.auth().onAuthStateChanged((user) => {
-        const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
-        if (user && isLogged) { isExplicitLogout = false; if (!currentUser || currentUser.uid !== user.uid) loadAppData(user); }
-        else if (user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
-        else if (!user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
-        else if (!user && isLogged && !isExplicitLogout) { console.warn("Firebase user became null temporarily. Ignoring to prevent data loss."); }
-        else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
-    });
-}
-
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
-</script>
-</body>
-</html>
+        const aoa = [['INVOICE'], [
