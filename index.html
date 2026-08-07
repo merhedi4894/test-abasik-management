@@ -1780,4 +1780,35 @@ function gbDownloadBulkExcel() {
     bills.forEach(bill => {
         const headers = ['ক্রম', 'নাম', 'মোবাইল', 'ঠিকানা', 'রুম টাইপ', 'রুম নম্বর', 'চেক-ইন', 'চেক-আউট', 'মোট দিন', 'মোট বিল'];
         const data = bill.guests.map((g, i) => [i+1, g.guestName, g.mobile || '-', g.address || '-', g.roomTypeName, g.roomNumber, gbFormatDate(g.checkIn), gbFormatDate(g.checkOut), g.totalDays, `${getCurrencySymbol(g.currency)}${g.totalAmount}`]);
-        const aoa = [['INVOICE'], [
+        const aoa = [['INVOICE'], [bill.heading || 'Rest House Bill'], [], headers, ...data];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        formatExcelSheet(ws, headers, data);
+        let sheetName = bill.heading ? bill.heading.substring(0, 28) : `Bill_${bill.id.substring(0,5)}`;
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+    XLSX.writeFile(wb, `Bills_${new Date().toLocaleDateString()}.xlsx`); 
+    showToast('Excel ডাউনলোড হচ্ছে...');
+}
+
+function hideLoader() { const loader = document.getElementById('loader'); if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 300); } }
+
+function initApp() {
+    document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer;
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+        showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।", "error"); hideLoader();
+        document.getElementById('authContainer').style.display = 'flex'; showLoginView(); return;
+    }
+    firebase.auth().onAuthStateChanged((user) => {
+        const isLogged = sessionStorage.getItem('rms_is_logged_in') === 'true';
+        if (user && isLogged) { isExplicitLogout = false; if (!currentUser || currentUser.uid !== user.uid) loadAppData(user); }
+        else if (user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+        else if (!user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+        else if (!user && isLogged && !isExplicitLogout) { console.warn("Firebase user became null temporarily. Ignoring to prevent data loss."); }
+        else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+    });
+}
+
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
+</script>
+</body>
+</html>
