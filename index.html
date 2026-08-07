@@ -96,9 +96,6 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
     .table-wrapper { border-radius: 10px; border: 1px solid #e2e8f0; background: #fff; }
     .material-table th { background: #1e293b; color: #fff; }
     .material-table tr:nth-child(even) { background: #f8fafc; }
-    .gb-bulk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; }
-    .gb-bulk-grid > div { grid-column: span 1; min-width: 0; }
-    .gb-bulk-grid > button { grid-column: span 1; padding: 8px 4px !important; font-size: 12px !important; white-space: nowrap; margin: 0; border-radius: 6px; width: 100%; }
 }
 .gb-wrapper { display: grid; grid-template-columns: 1fr; gap: 24px; }
 .gb-form-card { background: #ffffff; border-radius: 16px; border: 1px solid #e9d5ff; box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.1), 0 8px 10px -6px rgba(139, 92, 246, 0.01); padding: 28px; position: relative; overflow: hidden; }
@@ -107,18 +104,18 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .gb-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 @media(max-width:600px) { .gb-grid-2, .gb-grid-3 { grid-template-columns: 1fr 1fr; } }
-.gb-bulk-panel { background: #f5f3ff; padding: 18px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ddd6fe; position: relative; box-sizing: border-box; }
-.gb-bulk-grid { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end; box-sizing: border-box; }
-.gb-bill-card { border: 1px solid #e2e8e0; border-radius: 8px; background: #ffffff; padding: 10px 14px; transition: all .2s; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.06), -2px -2px 4px rgba(255,255,255,0.9); }
-.gb-bill-card:hover { box-shadow: 3px 3px 6px rgba(0,0,0,0.08), -2px -2px 4px rgba(255,255,255,1); border-color: #c4b5fd; }
-.gb-bill-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.gb-bulk-panel { background: #f5f3ff; padding: 18px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ddd6fe; position: relative; }
+.gb-bulk-grid { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end; }
+.gb-bill-card { border: 1px solid #e2e8e0; border-radius: 8px; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 8px 12px; transition: all .25s; cursor: pointer; box-shadow: 4px 4px 8px rgba(0,0,0,0.08), -4px -4px 8px rgba(255,255,255,0.9); }
+.gb-bill-card:hover { transform: translateY(-2px); box-shadow: 6px 6px 12px rgba(0,0,0,0.1), -6px -6px 12px rgba(255,255,255,1); border-color: #c4b5fd; }
+.gb-bill-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 @media(min-width:768px) { .gb-bill-grid { grid-template-columns: 1fr 1fr; } }
 @media(min-width:1280px) { .gb-bill-grid { grid-template-columns: 1fr 1fr 1fr; } }
-.gb-temp-item { display: flex; justify-content: space-between; align-items: center; background: #ede9fe; padding: 10px 14px; border-radius: 8px; border: 1px solid #c4b5fd; font-size: 13px; margin-bottom: 8px; cursor: pointer; }
-.gb-guest-info-box { border: 1px solid #e2e8e0; border-radius: 10px; padding: 14px; margin-bottom: 10px; background: #f8fafc; }
+.gb-temp-item { display: flex; justify-content: space-between; align-items: center; background: #ede9fe; padding: 8px 12px; border-radius: 6px; border: 1px solid #c4b5fd; font-size: 13px; margin-bottom: 8px; cursor:pointer; }
+.gb-guest-info-box { border: 1px solid #e2e8e0; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; background: #f8fafc; }
 .gb-cat-item { border: 1px solid #e2e8f0; padding: 16px; margin-bottom: 16px; border-radius: 10px; background: #ffffff; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
 .gb-room-row { display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px; flex-wrap: wrap; }
-.gb-room-row input, .gb-room-row select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; flex: 1; min-width: 60px; background: #fff; box-sizing: border-box; }
+.gb-room-row input, .gb-room-row select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; flex: 1; min-width: 60px; background: #fff; }
 .gb-room-row label { font-size: 11px; color: var(--text-light); margin-right: 4px; }
 @media(max-width:600px) { .gb-room-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; } .gb-room-row > button { grid-column: 1 / -1; justify-self: end; position: static !important; margin-bottom: 4px; } .gb-room-field { min-width: 100%; } }
 .gb-del-btn { position: absolute; top: 10px; right: 10px; background: transparent; border: none; cursor: pointer; color: #e11d48 !important; font-size: 14px; padding: 4px; display: flex; align-items: center; }
@@ -136,13 +133,13 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-btn-success:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-1px); box-shadow: 0 6px 10px -1px rgba(16, 185, 129, 0.3); }
 .gb-btn-outline { background: #ffffff; border: 1px solid #cbd5e1; color: #475569; }
 .gb-btn-outline:hover { background: #f8fafc; border-color: #6366f1; color: #6366f1; }
-.gb-btn-sm { padding: 4px 8px; font-size: 11px; border-radius: 5px; }
+.gb-btn-sm { padding: 6px 12px; font-size: 12px; }
 .gb-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-.gb-input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 14px; outline: none; background: #ffffff; transition: all 0.2s; color: #0f172a; box-sizing: border-box; }
-.gb-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); background: #ffffff; }
+.gb-input { width: 100%; max-width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 14px; outline: none; background: #ffffff; transition: all 0.2s; color: #0f172a; }
+.gb-input:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); background: #ffffff; }
 .gb-input::placeholder { color: #94a3b8; }
-.gb-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #475569; }
-.gb-total-display { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 10px 14px; text-align: right; margin-top: 12px; }
+.gb-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; color: #334155; }
+.gb-total-display { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 8px 12px; text-align: right; margin-top: 12px; }
 .gb-total-display span { font-size: 18px; font-weight: 800; color: #047857; }
 .gb-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
 .gb-actions button { padding: 6px 10px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; background: #fff; color: #64748b; font-weight: 500; transition: all 0.2s; }
@@ -151,33 +148,28 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-actions button.danger:hover { color: #be123c; border-color: var(--danger); }
 .gb-empty { text-align: center; padding: 60px 10px; color: var(--text-light); }
 .gb-charge-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-.gb-form-section { background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1px solid #ddd6fe; border-radius: 12px; padding: 20px; margin-bottom: 18px; transition: box-shadow 0.2s; }
+.gb-form-section { background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1px solid #ddd6fe; border-radius: 12px; padding: 18px; margin-bottom: 18px; transition: box-shadow 0.2s; }
 .gb-form-section:hover { box-shadow: 0 4px 10px rgba(139, 92, 246, 0.05); }
 .gb-form-section h4 { font-size: 15px; font-weight: 700; color: #5b21b6; border-bottom: 2px solid #c4b5fd; padding-bottom: 10px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 .gb-room-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 70px; }
 .gb-room-field label { font-size: 11px; color: var(--text-light); font-weight: 600; text-align: left; margin-bottom: 2px; }
-.gb-room-field input, .gb-room-field select { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; outline: none; transition: all 0.2s; box-sizing: border-box; }
+.gb-room-field input, .gb-room-field select { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; outline: none; transition: all 0.2s; }
 .gb-room-field input:focus, .gb-room-field select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
-
-/* Net Bill Display - Slimmer 3D */
-#gbNetBillDisplay { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:6px 12px; display:none; text-align:right; margin-top:12px; box-shadow: 2px 2px 4px rgba(0,0,0,0.05), -1px -1px 2px rgba(255,255,255,0.8); }
-#gbNetBillDisplay span { font-size: 14px; font-weight: 600; color: #065f46; }
-#gbNetBillAmount { font-size: 16px; font-weight: 800; color: #047857; }
-
-/* Mobile view adjustments for bill creation fields */
 @media(max-width:767px) {
-    .gb-input { font-size: 14px; padding: 8px 10px; border-radius: 6px; }
-    .gb-label { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: #1e293b; }
+    .gb-input { padding: 8px 10px; font-size: 13px; border-radius: 6px; }
+    .gb-label { font-size: 13px; font-weight: 700; margin-bottom: 3px; color: #1e293b; }
     .gb-form-section { padding: 12px; margin-bottom: 12px; border-radius: 10px; }
     .gb-btn { padding: 8px 12px; font-size: 13px; border-radius: 8px; }
     .gb-grid-2 { grid-template-columns: 1fr 1fr; gap: 10px; }
     .gb-grid-3 { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .gb-temp-item { padding: 8px 12px; font-size: 12px; }
-    #gbNetBillDisplay { display:block !important; margin-top:10px; margin-bottom:10px; padding: 8px 12px; }
-    
-    /* Extra charge buttons smaller */
-    .gb-charge-row .gb-btn-sm { padding: 4px 6px; font-size: 11px; }
-    .gb-charge-row input { padding: 6px 8px; font-size: 12px; }
+    .gb-temp-item { padding: 8px 12px; font-size: 12px; cursor: pointer; }
+    #gbNetBillDisplay { display:block !important; margin-top:10px; margin-bottom:10px; padding: 6px 12px; border-radius: 6px; }
+    .gb-bill-card { padding: 8px 12px; box-shadow: 4px 4px 8px rgba(0,0,0,0.1), -4px -4px 8px rgba(255,255,255,0.8); border-radius: 8px; }
+    .gb-bulk-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .gb-bulk-grid button { width: 100%; font-size: 12px; padding: 6px 8px; }
+    .gb-charge-row { gap: 4px; }
+    .gb-charge-row .gb-input { padding: 6px 8px; font-size: 12px; }
+    .gb-charge-row button { padding: 4px 6px; font-size: 10px; }
 }
 </style>
 </head>
@@ -374,7 +366,7 @@ function toggleOtherDeptField(v){document.getElementById('otherDeptField').style
 function loadRptFloors(){const bId=document.getElementById('rptBuilding').value;if(!bId||bId==='all'){document.getElementById('rptFloor').disabled=true;document.getElementById('rptRoom').disabled=true;document.getElementById('rptFloor').value='all';document.getElementById('rptRoom').value='all';return;}const b=state.buildings.find(x=>x.id===bId),fS=document.getElementById('rptFloor');fS.innerHTML='<option value="">সিলেক্ট করুন</option><option value="all">সকল তলা</option>';for(let i=1;i<=(b.floorCount||1);i++)fS.innerHTML+=`<option value="${i}">তলা ${i}</option>`;fS.disabled=false;document.getElementById('rptRoom').disabled=true;document.getElementById('rptRoom').value='all';}
 function loadRptRooms(){const bId=document.getElementById('rptBuilding').value,fId=document.getElementById('rptFloor').value;if(fId==='all'||!fId){document.getElementById('rptRoom').disabled=true;document.getElementById('rptRoom').value='all';return;}const rs=state.rooms.filter(r=>r.buildingId===bId&&r.floor===fId),rS=document.getElementById('rptRoom');rS.innerHTML='<option value="">সিলেক্ট করুন</option><option value="all">সকল রুম</option>';rs.forEach(r=>rS.innerHTML+=`<option value="${r.number}">${escapeHtml(r.number)}</option>`);rS.disabled=false;}
 async function saveReport(){const bS=document.getElementById('rptBuilding'),b=bS.value==='all'?'সকল বিল্ডিং':(bS.value&&bS.value!==""?bS.selectedOptions[0].text:''),f=document.getElementById('rptFloor').value==='all'?'সকল তলা':(document.getElementById('rptFloor').value||''),r=document.getElementById('rptRoom').value==='all'?'সকল রুম':(document.getElementById('rptRoom').value||''),d=document.getElementById('rptDesc').value.trim(),n=document.getElementById('rptName').value.trim(),desig=document.getElementById('rptDesignation').value.trim(),rd=document.getElementById('rptDate').value;let dept=document.getElementById('rptDept').value,mistry='';if(dept==='Civil')mistry=document.getElementById('rptMistry').value;if(dept==='Others'){const od=document.getElementById('rptOtherDept').value.trim();if(!od){showToast('অন্য ডিপার্টমেন্টের নাম লিখুন','error');return;}dept=od;}if(!d||!n||!rd){showToast('বিবরণ, নাম ও তারিখ দিন','error');return;}const nr={id:genId('rep'),building:b,floor:f,room:r,description:d,reporter:n,reporterDesignation:desig,department:dept,mistry:mistry,status:'pending',reportDate:rd,createdAt:{seconds:Date.now()/1000}};state.reports.unshift(nr);forceCloseModal();renderPage();try{await Store.saveReport(nr);showToast('রিপোর্ট জমা হয়েছে');}catch(e){showToast('সেভ করতে সমস্যা','error');}}
-3">${escapeHtml(r.description)}</textarea></div><div class="grid grid-2"><div class="form-group"><label>রিপোর্টকারীর নাম</label><input type="text" id="erName" value="${escapeHtml(r.reporter)}"></div><div class="form-group"><label>পদবী</label><input type="text" id="erDesignation" value="${escapeHtml(r.reporterDesignation||'')}"></div></div>${r.status==='resolved'?`<div class="form-group"><label>সমাধানের তারিখ</label><input type="date" id="erResolvedAt" value="${r.resolvedAt||''}"></div>`:''}<div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveEditReport('${id}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`);}
+async function editReport(id){const r=state.reports.find(x=>x.id===id);openModal('রিপোর্ট এডিট',`<div class="form-group"><label>রিপোর্টের তারিখ</label><input type="date" id="erDate" value="${r.reportDate||''}"></div><div class="form-group"><label>সমস্যার বিবরণ</label><textarea id="erDesc" rows="3">${escapeHtml(r.description)}</textarea></div><div class="grid grid-2"><div class="form-group"><label>রিপোর্টকারীর নাম</label><input type="text" id="erName" value="${escapeHtml(r.reporter)}"></div><div class="form-group"><label>পদবী</label><input type="text" id="erDesignation" value="${escapeHtml(r.reporterDesignation||'')}"></div></div>${r.status==='resolved'?`<div class="form-group"><label>সমাধানের তারিখ</label><input type="date" id="erResolvedAt" value="${r.resolvedAt||''}"></div>`:''}<div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveEditReport('${id}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`);}
 async function saveEditReport(id){const r=state.reports.find(x=>x.id===id);r.reportDate=document.getElementById('erDate').value;r.description=document.getElementById('erDesc').value.trim();r.reporter=document.getElementById('erName').value.trim();r.reporterDesignation=document.getElementById('erDesignation').value.trim();if(r.status==='resolved')r.resolvedAt=document.getElementById('erResolvedAt')?.value||'';forceCloseModal();renderPage();try{await Store.saveReport(r);showToast('আপডেট হয়েছে');}catch(e){renderPage();showToast('আপডেট করতে সমস্যা','error');}}
 async function resolveReport(id){const r=state.reports.find(x=>x.id===id);r.status='resolved';r.resolvedAt=new Date().toISOString().split('T')[0];renderPage();try{await Store.saveReport(r);showToast('সমাধান হিসেবে চিহ্নিত করা হয়েছে');}catch(e){r.status='pending';delete r.resolvedAt;renderPage();showToast('আপডেট করতে সমস্যা','error');}}
 async function deleteReport(id){checkPassword(async()=>{state.reports=state.reports.filter(r=>r.id!==id);renderPage();try{await Store.deleteReport(id);showToast('ডিলিট হয়েছে');}catch(e){renderPage();showToast('ডিলিট করতে সমস্যা','error');}});}
@@ -469,32 +461,21 @@ function gbCalculateBill(cI,cO,exD,ci,ri){
     if(ci!=='Others'&&guestBillState.settings.categories[ci]&&guestBillState.settings.categories[ci].roomTypes[ri]){
         const r=guestBillState.settings.categories[ci].roomTypes[ri];
         fc=r.currency||'BDT';
-
-        // Normalize excluded dates to YYYY-MM-DD for robust comparison
         const normalizedExD = exD.map(d => gbParseDateStr(d));
-
         let cur=new Date(cI);
         let end=new Date(cO);
-
-        // Use local date constructors to avoid timezone issues
         let curDate = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate());
         let endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-
-        let cd=0; // Paid days counter
+        let cd=0;
         while(curDate <= endDate){
             const y = curDate.getFullYear();
             const m = (curDate.getMonth() + 1).toString().padStart(2, '0');
             const d = curDate.getDate().toString().padStart(2, '0');
             const ds = `${y}-${m}-${d}`;
-
             if(!normalizedExD.includes(ds)){
-                cd++; // Count only paid days
+                cd++;
                 let dr=0;
-                if(cd>r.limitDays){
-                    dr=r.extraRate;
-                } else {
-                    dr=r.regularRate;
-                }
+                if(cd>r.limitDays){ dr=r.extraRate; } else { dr=r.regularRate; }
                 t+=dr;
             }
             curDate.setDate(curDate.getDate()+1);
@@ -506,33 +487,26 @@ function gbUpdateNetBillDisplay() {
     const disp = document.getElementById('gbNetBillDisplay');
     const amt = document.getElementById('gbNetBillAmount');
     if(!disp || !amt) return;
-    
     const ci=document.getElementById('gbCheckIn')?.value;
     const co=document.getElementById('gbCheckOut')?.value;
     const exR=document.getElementById('gbExcluded')?.value;
     const exD=exR?exR.split(',').map(x=>x.trim()):[];
     const cid=document.getElementById('gbGuestType')?.value;
     const rid=document.getElementById('gbRoomType')?.value;
-    
     const {roomRentTotal, finalCurrency} = gbCalculateBill(ci, co, exD, cid, rid);
-    
     let extraTotal = 0;
     document.querySelectorAll('.gb-charge-amount').forEach(i => { extraTotal += parseFloat(i.value) || 0; });
-    
     let totalBill = roomRentTotal + extraTotal;
     let discount = parseFloat(document.getElementById('gbDiscount')?.value) || 0;
     let vat = parseFloat(document.getElementById('gbVat')?.value) || 0;
     let tax = parseFloat(document.getElementById('gbTax')?.value) || 0;
-    
     let discountAmount = totalBill * (discount / 100);
     let afterDiscount = totalBill - discountAmount;
     let vatAmount = afterDiscount * (vat / 100);
     let taxAmount = afterDiscount * (tax / 100);
     let netBill = afterDiscount + vatAmount + taxAmount;
-    
     let sym = getCurrencySymbol(finalCurrency);
     amt.innerText = `${sym}${netBill.toFixed(2)}`;
-    
     if(window.innerWidth < 768) {
         disp.style.display = 'block';
     } else {
@@ -607,7 +581,7 @@ function gbDownloadPDF(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b
 function formatExcelSheet(ws,headers,data){ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:headers.length-1}},{s:{r:1,c:0},e:{r:1,c:headers.length-1}}];const r=XLSX.utils.decode_range(ws['!ref']);for(let R=r.s.r;R<=r.e.r;R++){for(let C=r.s.c;C<=r.e.c;C++){const ca=XLSX.utils.encode_cell({r:R,c:C});if(!ws[ca])ws[ca]={v:'',t:'s'};let s={alignment:{horizontal:'center',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:"AAAAAA"}},bottom:{style:'thin',color:{rgb:"AAAAAA"}},left:{style:'thin',color:{rgb:"AAAAAA"}},right:{style:'thin',color:{rgb:"AAAAAA"}}}};if(R===0)s.font={bold:true,sz:16,color:{rgb:"1E40AF"}};else if(R===1)s.font={bold:true,sz:14,color:{rgb:"000000"}};else if(R===3){s.font={bold:true,sz:12,color:{rgb:"FFFFFF"}};s.fill={fgColor:{rgb:"2563EB"}};}else if(R>3)s.font={sz:11};ws[ca].s=s;}}ws['!cols']=[{wch:5},{wch:20},{wch:15},{wch:15},{wch:15},{wch:15},{wch:8},{wch:25},{wch:15}];}
 function gbDownloadExcel(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b||!b.guests)return;const h=['ক্রম','নাম','মোবাইল','রুম নং','চেক-ইন','চেক-আউট','দিন','সার্ভিস নাম','সার্ভিস চার্জ'];const d=b.guests.map((g,i)=>{const cs=getCurrencySymbol(g.currency);let serviceNames='রুম ভাড়া';let serviceCharges=`${cs}${g.roomRent||0}`;if(g.extraCharges&&g.extraCharges.length>0){g.extraCharges.forEach(c=>{serviceNames+=`, ${c.name}`;serviceCharges+=`, ${cs}${c.amount}`;});}return[i+1,g.guestName,g.mobile||'-',g.roomNumber,gbFormatDate(g.checkIn),gbFormatDate(g.checkOut),g.totalDays,serviceNames,serviceCharges];});let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);let discountAmount=totalBill*((b.discount||0)/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*((b.vat||0)/100);let taxAmount=afterDiscount*((b.tax||0)/100);let netBill=afterDiscount+vatAmount+taxAmount;let curr=getCurrencySymbol(b.guests[0].currency);d.push([]);d.push(['','','','','','','','মোট বিল:',`${curr}${totalBill.toFixed(2)}`]);d.push(['','','','','','','',`ডিসকাউন্ট (${b.discount||0}%):`,`- ${curr}${discountAmount.toFixed(2)}`]);d.push(['','','','','','','',`ভ্যাট (${b.vat||0}%):`,`+ ${curr}${vatAmount.toFixed(2)}`]);d.push(['','','','','','','',`ট্যাক্স (${b.tax||0}%):`,`+ ${curr}${taxAmount.toFixed(2)}`]);d.push(['','','','','','','','নিট বিল:',`${curr}${netBill.toFixed(2)}`]);const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);formatExcelSheet(ws,h,d);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Bill");XLSX.writeFile(wb,`Bill_${b.id}.xlsx`);showToast('Excel ডাউনলোড হচ্ছে...');}
 function gbDownloadBulkPDF(){const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}const bs=gbGetFilteredBills();if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}const w=window.open('','_blank');let c=bs.map(b=>generateBillTableHtml(b)+'<div style="page-break-after: always;"></div>').join('');w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${c}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);w.document.close();showToast('PDF প্রিভিউ খোলা হচ্ছে...');}
-function gbDownloadBulkExcel(){const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}const bs=gbGetFilteredBills();if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}const wb=XLSX.utils.book_new();bs.forEach(b=>{const h=['ক্রম','নাম','মোবাইল','রুম নং','চেক-ইন','চেক-আউট','দিন','সার্ভিস নাম','সার্ভিস চার্জ'];const d=b.guests.map((g,i)=>{const cs=getCurrencySymbol(g.currency);let serviceNames='রুম ভাড়া';let serviceCharges=`${cs}${g.roomRent||0}`;if(g.extraCharges&&g.extraCharges.length>0){g.extraCharges.forEach(c=>{serviceNames+=`, ${c.name}`;serviceCharges+=`, ${cs}${c.amount}`;});}return[i+1,g.guestName,g.mobile||'-',g.roomNumber,gbFormatDate(g.checkIn),gbFormatDate(g.checkOut),g.totalDays,serviceNames,serviceCharges];});let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);let discountAmount=totalBill*((b.discount||0)/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*((b.vat||0)/100);let taxAmount=afterDiscount*((b.tax||0)/100);let netBill=afterDiscount+vatAmount+taxAmount;let curr=getCurrencySymbol(b.guests[0].currency);d.push([]);d.push(['','','','','','','','মোট বিল:',`${curr}${totalBill.toFixed(2)}`]);d.push(['','','','','','','',`ডিসকাউন্ট (${b.discount||0}%):`,`- ${curr}${discountAmount.toFixed(2)}`]);d.push(['','','','','','','',`ভ্যাট (${b.vat||0}%):`,`+ ${curr}${vatAmount.toFixed(2)}`]);d.push(['','','','','','','',`ট্যাক্স (${b.tax||0}%):`,`+ ${curr}${taxAmount.toFixed(2)}`]);d.push(['','','','','','','','নিট বিল:',`${curr}${netBill.toFixed(2)}`]);const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);formatExcelSheet(ws,h,d);let sn=b.heading?b.heading.substring(0,28):`Bill_${b.id.substring(0,5)}`;XLSX.utils.book_append_sheet(wb,ws,sn);});XLSX.writeFile(wb,`Bills_${new Date().toLocaleDateString()}.xlsx`);showToast('Excel ডাউনলোড হচ্ছে...');}
+দিন','সার্ভিস নাম','সার্ভিস চার্জ'];const d=b.guests.map((g,i)=>{const cs=getCurrencySymbol(g.currency);let serviceNames='রুম ভাড়া';let serviceCharges=`${cs}${g.roomRent||0}`;if(g.extraCharges&&g.extraCharges.length>0){g.extraCharges.forEach(c=>{serviceNames+=`, ${c.name}`;serviceCharges+=`, ${cs}${c.amount}`;});}return[i+1,g.guestName,g.mobile||'-',g.roomNumber,gbFormatDate(g.checkIn),gbFormatDate(g.checkOut),g.totalDays,serviceNames,serviceCharges];});let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);let discountAmount=totalBill*((b.discount||0)/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*((b.vat||0)/100);let taxAmount=afterDiscount*((b.tax||0)/100);let netBill=afterDiscount+vatAmount+taxAmount;let curr=getCurrencySymbol(b.guests[0].currency);d.push([]);d.push(['','','','','','','','মোট বিল:',`${curr}${totalBill.toFixed(2)}`]);d.push(['','','','','','','',`ডিসকাউন্ট (${b.discount||0}%):`,`- ${curr}${discountAmount.toFixed(2)}`]);d.push(['','','','','','','',`ভ্যাট (${b.vat||0}%):`,`+ ${curr}${vatAmount.toFixed(2)}`]);d.push(['','','','','','','',`ট্যাক্স (${b.tax||0}%):`,`+ ${curr}${taxAmount.toFixed(2)}`]);d.push(['','','','','','','','নিট বিল:',`${curr}${netBill.toFixed(2)}`]);const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);formatExcelSheet(ws,h,d);let sn=b.heading?b.heading.substring(0,28):`Bill_${b.id.substring(0,5)}`;XLSX.utils.book_append_sheet(wb,ws,sn);});XLSX.writeFile(wb,`Bills_${new Date().toLocaleDateString()}.xlsx`);showToast('Excel ডাউনলোড হচ্ছে...');}
 function hideLoader(){const l=document.getElementById('loader');if(l){l.style.opacity='0';setTimeout(()=>l.style.display='none',300);}}
 function initApp(){document.onmousemove=resetIdleTimer;document.onkeypress=resetIdleTimer;document.onclick=resetIdleTimer;if(typeof firebase==='undefined'||!firebase.auth){showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।","error");hideLoader();document.getElementById('authContainer').style.display='flex';showLoginView();return;}firebase.auth().onAuthStateChanged(u=>{const il=sessionStorage.getItem('rms_is_logged_in')==='true';if(u&&il){isExplicitLogout=false;if(!currentUser||currentUser.uid!==u.uid)loadAppData(u);}else if(u&&!il){currentUser=null;document.getElementById('appContainer').style.display='none';document.getElementById('authContainer').style.display='flex';showLoginView();hideLoader();}else if(!u&&!il){currentUser=null;document.getElementById('appContainer').style.display='none';document.getElementById('authContainer').style.display='flex';showLoginView();hideLoader();}else if(!u&&il&&!isExplicitLogout){console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");}else if(!u&&il&&isExplicitLogout){currentUser=null;document.getElementById('appContainer').style.display='none';document.getElementById('authContainer').style.display='flex';showLoginView();hideLoader();}});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);else initApp();
