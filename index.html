@@ -110,66 +110,258 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
     .material-table th { background: #1e293b; color: #fff; }
     .material-table tr:nth-child(even) { background: #f8fafc; }
 }
-.gb-wrapper { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.gb-form-card { background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; border-top: 5px solid #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 24px; }
-.gb-list-card { background: var(--card); padding: 20px; border-radius: var(--radius); box-shadow: 0 2px 4px rgba(0,0,0,.03); border: 1px solid #f1f5f9; }
-.gb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.gb-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ===== ENHANCED PROFESSIONAL GUEST BILL CSS ===== */
+.gb-wrapper { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.gb-form-card { 
+    background: #ffffff; 
+    border-radius: 16px; 
+    border: 1px solid #e2e8f0; 
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); 
+    padding: 28px; 
+    position: relative;
+    overflow: hidden;
+}
+.gb-form-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #2563eb, #4f46e5, #2563eb);
+}
+.gb-list-card { 
+    background: #ffffff; 
+    padding: 24px; 
+    border-radius: 16px; 
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01); 
+    border: 1px solid #f1f5f9; 
+}
+.gb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.gb-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 @media(max-width:600px) { .gb-grid-2, .gb-grid-3 { grid-template-columns: 1fr; } }
-.gb-bulk-panel { background: #eff6ff; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #bfdbfe; }
-.gb-bulk-grid { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; align-items: end; }
+.gb-bulk-panel { 
+    background: #f8fafc; 
+    padding: 18px; 
+    border-radius: 12px; 
+    margin-bottom: 20px; 
+    border: 1px solid #e2e8f0; 
+    position: relative;
+}
+.gb-bulk-grid { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end; }
 @media(max-width:600px) { .gb-bulk-grid { grid-template-columns: 1fr; } }
-.gb-bill-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 16px; transition: all .2s; cursor: pointer; }
-.gb-bill-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-.gb-bill-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.gb-bill-card { 
+    border: 1px solid #e2e8f0; 
+    border-radius: 12px; 
+    background: #ffffff; 
+    padding: 18px; 
+    transition: all .25s; 
+    cursor: pointer; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.gb-bill-card:hover { 
+    box-shadow: 0 8px 16px rgba(0,0,0,.06); 
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+.gb-bill-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
 @media(min-width:768px) { .gb-bill-grid { grid-template-columns: 1fr 1fr; } }
 @media(min-width:1280px) { .gb-bill-grid { grid-template-columns: 1fr 1fr 1fr; } }
-.gb-temp-item { display: flex; justify-content: space-between; align-items: center; background: #eff6ff; padding: 8px 12px; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; margin-bottom: 6px; }
-.gb-guest-info-box { border: 1px solid #e2e8e0; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: #f8fafc; }
-.gb-cat-item { border: 1px solid var(--border); padding: 12px; margin-bottom: 12px; border-radius: 8px; background: #f8fafc; position: relative; }
-.gb-room-row { display: flex; gap: 8px; align-items: center; background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 8px; flex-wrap: wrap; }
-.gb-room-row input, .gb-room-row select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; flex: 1; min-width: 60px; }
+.gb-temp-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: #eff6ff; 
+    padding: 10px 14px; 
+    border-radius: 8px; 
+    border: 1px solid #bfdbfe; 
+    font-size: 13px; 
+    margin-bottom: 8px; 
+}
+.gb-guest-info-box { 
+    border: 1px solid #e2e8e0; 
+    border-radius: 10px; 
+    padding: 14px; 
+    margin-bottom: 10px; 
+    background: #f8fafc; 
+}
+.gb-cat-item { 
+    border: 1px solid #e2e8f0; 
+    padding: 16px; 
+    margin-bottom: 16px; 
+    border-radius: 10px; 
+    background: #ffffff; 
+    position: relative; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.gb-room-row { 
+    display: flex; 
+    gap: 10px; 
+    align-items: center; 
+    background: #f8fafc; 
+    padding: 12px; 
+    border-radius: 8px; 
+    border: 1px solid #e2e8f0; 
+    margin-bottom: 8px; 
+    flex-wrap: wrap; 
+}
+.gb-room-row input, .gb-room-row select { 
+    padding: 8px 10px; 
+    border: 1px solid #cbd5e1; 
+    border-radius: 6px; 
+    font-size: 13px; 
+    flex: 1; 
+    min-width: 60px; 
+    background: #fff;
+}
 .gb-room-row label { font-size: 11px; color: var(--text-light); margin-right: 4px; }
 @media(max-width:600px) { .gb-room-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; } .gb-room-row > button { grid-column: 1 / -1; justify-self: end; position: static !important; margin-bottom: 4px; } .gb-room-field { min-width: 100%; } }
-.gb-del-btn { position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: #e11d48 !important; font-size: 14px; padding: 4px; display: flex; align-items: center; }
+.gb-del-btn { position: absolute; top: 10px; right: 10px; background: transparent; border: none; cursor: pointer; color: #e11d48 !important; font-size: 14px; padding: 4px; display: flex; align-items: center; }
 .gb-del-btn svg { stroke: #e11d48 !important; width: 16px; height: 16px; }
-.gb-section-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-.gb-pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 16px; }
-.gb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border: none; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap; }
-.gb-btn-primary { background: var(--primary); color: #fff; }
-.gb-btn-primary:hover { background: var(--primary-dark); }
-.gb-btn-yellow { background: #d97706; color: #fff; }
-.gb-btn-yellow:hover { background: #b45309; }
-.gb-btn-danger { background: var(--danger); color: #fff; }
-.gb-btn-danger:hover { background: #be123c; }
-.gb-btn-success { background: var(--success); color: #fff; }
-.gb-btn-success:hover { background: #15803d; }
-.gb-btn-outline { background: #e2e8f0; color: #475569; }
-.gb-btn-outline:hover { background: #cbd5e1; }
-.gb-btn-sm { padding: 6px 10px; font-size: 12px; }
-.gb-btn:disabled { opacity: .5; cursor: not-allowed; }
-.gb-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; outline: none; background: #f8fafc; }
-.gb-input:focus { border-color: var(--primary); background: #fff; }
-.gb-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; }
-.gb-total-display { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px 12px; text-align: right; margin-top: 8px; }
-.gb-total-display span { font-size: 18px; font-weight: 700; color: var(--success); }
-.gb-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
-.gb-actions button { padding: 4px 8px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: #64748b; }
-.gb-actions button:hover { color: var(--primary); }
+.gb-section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #1e293b; }
+.gb-pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+.gb-btn { 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 6px; 
+    padding: 10px 16px; 
+    border: none; 
+    border-radius: 8px; 
+    font-family: inherit; 
+    font-size: 14px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: all .2s; 
+    white-space: nowrap; 
+}
+.gb-btn-primary { 
+    background: linear-gradient(135deg, #2563eb, #1e40af); 
+    color: #fff; 
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+.gb-btn-primary:hover { 
+    background: linear-gradient(135deg, #1e40af, #1e3a8a); 
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px -1px rgba(37, 99, 235, 0.3);
+}
+.gb-btn-yellow { 
+    background: linear-gradient(135deg, #f59e0b, #d97706); 
+    color: #fff; 
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.2);
+}
+.gb-btn-yellow:hover { 
+    background: linear-gradient(135deg, #d97706, #b45309); 
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px -1px rgba(245, 158, 11, 0.3);
+}
+.gb-btn-danger { 
+    background: linear-gradient(135deg, #ef4444, #dc2626); 
+    color: #fff; 
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
+}
+.gb-btn-danger:hover { 
+    background: linear-gradient(135deg, #dc2626, #b91c1c); 
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px -1px rgba(239, 68, 68, 0.3);
+}
+.gb-btn-success { 
+    background: linear-gradient(135deg, #10b981, #059669); 
+    color: #fff; 
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+.gb-btn-success:hover { 
+    background: linear-gradient(135deg, #059669, #047857); 
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px -1px rgba(16, 185, 129, 0.3);
+}
+.gb-btn-outline { 
+    background: #ffffff; 
+    border: 1px solid #cbd5e1; 
+    color: #475569; 
+}
+.gb-btn-outline:hover { 
+    background: #f8fafc; 
+    border-color: #2563eb; 
+    color: #2563eb; 
+}
+.gb-btn-sm { padding: 6px 12px; font-size: 12px; }
+.gb-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.gb-input { 
+    width: 100%; 
+    padding: 11px 14px; 
+    border: 1px solid #cbd5e1; 
+    border-radius: 8px; 
+    font-family: inherit; 
+    font-size: 14px; 
+    outline: none; 
+    background: #ffffff; 
+    transition: all 0.2s;
+    color: #0f172a;
+}
+.gb-input:focus { 
+    border-color: #2563eb; 
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); 
+    background: #ffffff;
+}
+.gb-input::placeholder {
+    color: #94a3b8;
+}
+.gb-label { 
+    display: block; 
+    font-size: 13px; 
+    font-weight: 600; 
+    margin-bottom: 6px; 
+    color: #475569; 
+}
+.gb-total-display { 
+    background: #ecfdf5; 
+    border: 1px solid #a7f3d0; 
+    border-radius: 8px; 
+    padding: 10px 14px; 
+    text-align: right; 
+    margin-top: 12px; 
+}
+.gb-total-display span { 
+    font-size: 18px; 
+    font-weight: 800; 
+    color: #047857; 
+}
+.gb-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+.gb-actions button { padding: 6px 10px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; background: #fff; color: #64748b; font-weight: 500; transition: all 0.2s; }
+.gb-actions button:hover { color: var(--primary); border-color: var(--primary); }
 .gb-actions button.danger { color: var(--danger); }
-.gb-actions button.danger:hover { color: #be123c; }
-.gb-empty { text-align: center; padding: 40px 10px; color: var(--text-light); }
+.gb-actions button.danger:hover { color: #be123c; border-color: var(--danger); }
+.gb-empty { text-align: center; padding: 60px 10px; color: var(--text-light); }
 
 /* Professional Form CSS */
-.gb-form-section { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-.gb-form-section h4 { font-size: 14px; font-weight: 700; color: #1e3a8a; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-.gb-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+.gb-form-section { 
+    background: #f8fafc; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 12px; 
+    padding: 18px; 
+    margin-bottom: 18px; 
+    transition: box-shadow 0.2s;
+}
+.gb-form-section:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.gb-form-section h4 { 
+    font-size: 15px; 
+    font-weight: 700; 
+    color: #1e3a8a; 
+    border-bottom: 2px solid #e2e8f0; 
+    padding-bottom: 10px; 
+    margin-bottom: 16px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
 
 /* Settings Labels CSS */
 .gb-room-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 70px; }
 .gb-room-field label { font-size: 11px; color: var(--text-light); font-weight: 600; text-align: left; margin-bottom: 2px; }
-.gb-room-field input, .gb-room-field select { width: 100%; padding: 6px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; background: #fff; outline: none; }
-.gb-room-field input:focus, .gb-room-field select:focus { border-color: var(--primary); }
+.gb-room-field input, .gb-room-field select { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; outline: none; transition: all 0.2s; }
+.gb-room-field input:focus, .gb-room-field select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 </style>
 </head>
 <body>
@@ -821,7 +1013,7 @@ async function renderTemplates(c) {
 function showAddTemplateModal() { openModal('নতুন টেম্পলেট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="tName"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="tQty" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplate()">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveTemplate() { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('tName').value.trim(); const q = parseInt(document.getElementById('tQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; if (!tpls.find(t => t.name === n)) tpls.push({ id: genId('t'), name: n, quantity: q }); await Store.saveTemplates(bId, tpls); showToast('যোগ হয়েছে'); forceCloseModal(); renderPage(); }
 async function editTemplateModal(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); openModal('টেম্পলেট এডিট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="etName" value="${escapeHtml(t.name)}"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="etQty" value="${t.quantity || 1}" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateEdit('${tId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
-async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'; forceCloseModal(); renderPage(); }
+async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'); forceCloseModal(); renderPage(); }
 async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding || state.buildings[0].id; let tpls = state.templates?.[bId] || []; await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
 
 function renderPayment(c) {
@@ -1020,7 +1212,7 @@ function getGbFormHtml() {
                 <h4>📝 অন্যান্য তথ্য</h4>
                 <div class="mb-16">
                     <label class="gb-label">আগমনের উদ্দেশ্য</label>
-                    <input type="text" id="gbPurpose" class="gb-input" placeholder="যেমন: অফিসিয়াল কাজ">
+                    <input type="text"id="gbPurpose" class="gb-input" placeholder="যেমন: অফিসিয়াল কাজ">
                 </div>
                 <div class="gb-grid-2">
                     <div><label class="gb-label">মোট দিন (অটো)</label><input type="text" id="gbTotalDays" readonly class="gb-input" style="background:#e2e8f0;font-weight:700;color:#1e40af;cursor:not-allowed;"></div>
@@ -1041,7 +1233,7 @@ function getGbFormHtml() {
 function getGbListHtml() {
     return `<div class="gb-list-card">
         <div class="gb-bulk-panel">
-            <div class="gb-section-title" style="color:#1e40af;">📥 বিল ডাউনলোড করুন</div>
+            <div class="gb-section-title" style="color:#1e40af;">📥 বিল ডাউনলোড করুন (তারিখ সিলেক্ট করুন)</div>
             <div class="gb-bulk-grid">
                 <div><label class="gb-label" style="font-size:11px;">শুরু তারিখ (চেক-ইন)</label><input type="date" id="gbFromDate" onchange="gbRenderBillList()" class="gb-input" style="font-size:13px;padding:6px;"></div>
                 <div><label class="gb-label" style="font-size:11px;">শেষ তারিখ (চেক-ইন)</label><input type="date" id="gbToDate" onchange="gbRenderBillList()" class="gb-input" style="font-size:13px;padding:6px;"></div>
@@ -1431,8 +1623,10 @@ function gbNextPage() { const t = Math.ceil(guestBillState.filteredBills.length 
 function gbGetFilteredBills() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
-    // তারিখ না থাকলে সব বিল রিটার্ন করবে
-    if (!fromStr || !toStr) return guestBillState.bills; 
+    
+    // If no dates are selected, return all bills for the list display
+    if (!fromStr && !toStr) return guestBillState.bills;
+    
     return guestBillState.bills.filter(bill => {
         if (!bill.guests || bill.guests.length === 0) return false;
         return bill.guests.some(g => {
@@ -1544,8 +1738,7 @@ function gbDownloadExcel(billId) {
 function gbDownloadBulkPDF() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
-    // Bulk Download এ তারিখ বাধ্যতামূলক
-    if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
+    if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!', 'error'); return; }
     const bills = gbGetFilteredBills();
     if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
     const win = window.open('', '_blank');
@@ -1557,8 +1750,7 @@ function gbDownloadBulkPDF() {
 function gbDownloadBulkExcel() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
-    // Bulk Download এ তারিখ বাধ্যতামূলক
-    if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
+    if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!', 'error'); return; }
     const bills = gbGetFilteredBills();
     if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
     const wb = XLSX.utils.book_new();
@@ -1589,8 +1781,11 @@ function initApp() {
         else if (user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
         else if (!user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
         else if (!user && isLogged && !isExplicitLogout) { console.warn("Firebase user became null temporarily. Ignoring to prevent data loss."); }
-        else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; শওলগিনভিএও
-    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
+        else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
+    });
+}
+
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
 </script>
 </body>
 </html>
