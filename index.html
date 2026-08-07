@@ -821,7 +821,7 @@ async function renderTemplates(c) {
 function showAddTemplateModal() { openModal('নতুন টেম্পলেট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="tName"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="tQty" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplate()">সেভ</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
 async function saveTemplate() { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('tName').value.trim(); const q = parseInt(document.getElementById('tQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; if (!tpls.find(t => t.name === n)) tpls.push({ id: genId('t'), name: n, quantity: q }); await Store.saveTemplates(bId, tpls); showToast('যোগ হয়েছে'); forceCloseModal(); renderPage(); }
 async function editTemplateModal(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); openModal('টেম্পলেট এডিট', `<div class="grid grid-2"><div class="form-group"><label>নাম</label><input type="text" id="etName" value="${escapeHtml(t.name)}"></div><div class="form-group"><label>পরিমাণ</label><input type="number" id="etQty" value="${t.quantity || 1}" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveTemplateEdit('${tId}')">আপডেট</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`); }
-async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'); forceCloseModal(); renderPage(); }
+async function saveTemplateEdit(tId) { const bId = state.selectedBuilding || state.buildings[0].id; const n = document.getElementById('etName').value.trim(); const q = parseInt(document.getElementById('etQty').value) || 1; if (!n) { showToast('নাম লিখুন', 'error'); return; } let tpls = state.templates?.[bId] || []; const t = tpls.find(x => x.id === tId); if (t) { t.name = n; t.quantity = q; } await Store.saveTemplates(bId, tpls); showToast('আপডেট হয়েছে'; forceCloseModal(); renderPage(); }
 async function deleteTemplate(tId) { checkPassword(async () => { const bId = state.selectedBuilding || state.buildings[0].id; let tpls = state.templates?.[bId] || []; await Store.saveTemplates(bId, tpls.filter(t => t.id !== tId)); showToast('ডিলিট হয়েছে'); renderPage(); }); }
 
 function renderPayment(c) {
@@ -1431,7 +1431,8 @@ function gbNextPage() { const t = Math.ceil(guestBillState.filteredBills.length 
 function gbGetFilteredBills() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
-    if (!fromStr || !toStr) return [];
+    // তারিখ না থাকলে সব বিল রিটার্ন করবে
+    if (!fromStr || !toStr) return guestBillState.bills; 
     return guestBillState.bills.filter(bill => {
         if (!bill.guests || bill.guests.length === 0) return false;
         return bill.guests.some(g => {
@@ -1543,6 +1544,7 @@ function gbDownloadExcel(billId) {
 function gbDownloadBulkPDF() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
+    // Bulk Download এ তারিখ বাধ্যতামূলক
     if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
     const bills = gbGetFilteredBills();
     if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
@@ -1555,6 +1557,7 @@ function gbDownloadBulkPDF() {
 function gbDownloadBulkExcel() {
     const fromStr = document.getElementById('gbFromDate')?.value;
     const toStr = document.getElementById('gbToDate')?.value;
+    // Bulk Download এ তারিখ বাধ্যতামূলক
     if (!fromStr || !toStr) { showToast('বিল ডাউনলোড করার জন্য তারিখ নির্বাচন করুন!', 'error'); return; }
     const bills = gbGetFilteredBills();
     if (bills.length === 0) { showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।', 'error'); return; }
@@ -1586,11 +1589,8 @@ function initApp() {
         else if (user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
         else if (!user && !isLogged) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
         else if (!user && isLogged && !isExplicitLogout) { console.warn("Firebase user became null temporarily. Ignoring to prevent data loss."); }
-        else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; showLoginView(); hideLoader(); }
-    });
-}
-
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
+        else if (!user && isLogged && isExplicitLogout) { currentUser = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('authContainer').style.display = 'flex'; শওলগিনভিএও
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
 </script>
 </body>
 </html>
