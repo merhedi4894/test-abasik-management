@@ -8,7 +8,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore-compat.js"></script>
-<!-- Excel Style সাপোর্ট করার জন্য লাইব্রেরি -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
@@ -117,195 +116,45 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 
 /* ===== ENHANCED PROFESSIONAL GUEST BILL CSS (VIBRANT INDIGO & AMBER) ===== */
 .gb-wrapper { display: grid; grid-template-columns: 1fr; gap: 24px; }
-.gb-form-card { 
-    background: #ffffff; 
-    border-radius: 16px; 
-    border: 1px solid #e9d5ff; 
-    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.1), 0 8px 10px -6px rgba(139, 92, 246, 0.01); 
-    padding: 28px; 
-    position: relative;
-    overflow: hidden;
-}
-.gb-form-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 6px;
-    background: linear-gradient(90deg, #8b5cf6, #6366f1, #8b5cf6);
-}
-.gb-list-card { 
-    background: #ffffff; 
-    padding: 24px; 
-    border-radius: 16px; 
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01); 
-    border: 1px solid #f1f5f9; 
-}
+.gb-form-card { background: #ffffff; border-radius: 16px; border: 1px solid #e9d5ff; box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.1), 0 8px 10px -6px rgba(139, 92, 246, 0.01); padding: 28px; position: relative; overflow: hidden; }
+.gb-form-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #8b5cf6, #6366f1, #8b5cf6); }
+.gb-list-card { background: #ffffff; padding: 24px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01); border: 1px solid #f1f5f9; }
 .gb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .gb-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 @media(max-width:600px) { .gb-grid-2, .gb-grid-3 { grid-template-columns: 1fr; } }
-.gb-bulk-panel { 
-    background: #f5f3ff; 
-    padding: 18px; 
-    border-radius: 12px; 
-    margin-bottom: 20px; 
-    border: 1px solid #ddd6fe; 
-    position: relative;
-}
+.gb-bulk-panel { background: #f5f3ff; padding: 18px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ddd6fe; position: relative; }
 .gb-bulk-grid { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end; }
-.gb-bill-card { 
-    border: 1px solid #e2e8f0; 
-    border-radius: 12px; 
-    background: #ffffff; 
-    padding: 18px; 
-    transition: all .25s; 
-    cursor: pointer; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-.gb-bill-card:hover { 
-    box-shadow: 0 8px 16px rgba(0,0,0,.06); 
-    border-color: #c4b5fd;
-    transform: translateY(-2px);
-}
+.gb-bill-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; padding: 18px; transition: all .25s; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.gb-bill-card:hover { box-shadow: 0 8px 16px rgba(0,0,0,.06); border-color: #c4b5fd; transform: translateY(-2px); }
 .gb-bill-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
 @media(min-width:768px) { .gb-bill-grid { grid-template-columns: 1fr 1fr; } }
 @media(min-width:1280px) { .gb-bill-grid { grid-template-columns: 1fr 1fr 1fr; } }
-.gb-temp-item { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    background: #ede9fe; 
-    padding: 10px 14px; 
-    border-radius: 8px; 
-    border: 1px solid #c4b5fd; 
-    font-size: 13px; 
-    margin-bottom: 8px; 
-}
-.gb-guest-info-box { 
-    border: 1px solid #e2e8e0; 
-    border-radius: 10px; 
-    padding: 14px; 
-    margin-bottom: 10px; 
-    background: #f8fafc; 
-}
-.gb-cat-item { 
-    border: 1px solid #e2e8f0; 
-    padding: 16px; 
-    margin-bottom: 16px; 
-    border-radius: 10px; 
-    background: #ffffff; 
-    position: relative; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-}
-.gb-room-row { 
-    display: flex; 
-    gap: 10px; 
-    align-items: center; 
-    background: #f8fafc; 
-    padding: 12px; 
-    border-radius: 8px; 
-    border: 1px solid #e2e8f0; 
-    margin-bottom: 8px; 
-    flex-wrap: wrap; 
-}
-.gb-room-row input, .gb-room-row select { 
-    padding: 8px 10px; 
-    border: 1px solid #cbd5e1; 
-    border-radius: 6px; 
-    font-size: 13px; 
-    flex: 1; 
-    min-width: 60px; 
-    background: #fff;
-}
+.gb-temp-item { display: flex; justify-content: space-between; align-items: center; background: #ede9fe; padding: 10px 14px; border-radius: 8px; border: 1px solid #c4b5fd; font-size: 13px; margin-bottom: 8px; }
+.gb-guest-info-box { border: 1px solid #e2e8e0; border-radius: 10px; padding: 14px; margin-bottom: 10px; background: #f8fafc; }
+.gb-cat-item { border: 1px solid #e2e8f0; padding: 16px; margin-bottom: 16px; border-radius: 10px; background: #ffffff; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+.gb-room-row { display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px; flex-wrap: wrap; }
+.gb-room-row input, .gb-room-row select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; flex: 1; min-width: 60px; background: #fff; }
 .gb-room-row label { font-size: 11px; color: var(--text-light); margin-right: 4px; }
 @media(max-width:600px) { .gb-room-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; } .gb-room-row > button { grid-column: 1 / -1; justify-self: end; position: static !important; margin-bottom: 4px; } .gb-room-field { min-width: 100%; } }
 .gb-del-btn { position: absolute; top: 10px; right: 10px; background: transparent; border: none; cursor: pointer; color: #e11d48 !important; font-size: 14px; padding: 4px; display: flex; align-items: center; }
 .gb-del-btn svg { stroke: #e11d48 !important; width: 16px; height: 16px; }
 .gb-section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #1e293b; }
 .gb-pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
-.gb-btn { 
-    display: inline-flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 6px; 
-    padding: 10px 16px; 
-    border: none; 
-    border-radius: 8px; 
-    font-family: inherit; 
-    font-size: 14px; 
-    font-weight: 600; 
-    cursor: pointer; 
-    transition: all .2s; 
-    white-space: nowrap; 
-}
-.gb-btn-primary { 
-    background: linear-gradient(135deg, #6366f1, #4f46e5); 
-    color: #fff; 
-    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
-}
-.gb-btn-primary:hover { 
-    background: linear-gradient(135deg, #4f46e5, #4338ca); 
-    transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(99, 102, 241, 0.3);
-}
-.gb-btn-yellow { 
-    background: linear-gradient(135deg, #f59e0b, #f97316); 
-    color: #fff; 
-    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.2);
-}
-.gb-btn-yellow:hover { 
-    background: linear-gradient(135deg, #f97316, #ea580c); 
-    transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(249, 115, 22, 0.3);
-}
-.gb-btn-danger { 
-    background: linear-gradient(135deg, #f43f5e, #e11d48); 
-    color: #fff; 
-    box-shadow: 0 4px 6px -1px rgba(244, 63, 94, 0.2);
-}
-.gb-btn-danger:hover { 
-    background: linear-gradient(135deg, #e11d48, #be123c); 
-    transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(244, 63, 94, 0.3);
-}
-.gb-btn-success { 
-    background: linear-gradient(135deg, #10b981, #059669); 
-    color: #fff; 
-    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
-}
-.gb-btn-success:hover { 
-    background: linear-gradient(135deg, #059669, #047857); 
-    transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(16, 185, 129, 0.3);
-}
-.gb-btn-outline { 
-    background: #ffffff; 
-    border: 1px solid #cbd5e1; 
-    color: #475569; 
-}
-.gb-btn-outline:hover { 
-    background: #f8fafc; 
-    border-color: #6366f1; 
-    color: #6366f1; 
-}
+.gb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border: none; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap; }
+.gb-btn-primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2); }
+.gb-btn-primary:hover { background: linear-gradient(135deg, #4f46e5, #4338ca); transform: translateY(-1px); box-shadow: 0 6px 10px -1px rgba(99, 102, 241, 0.3); }
+.gb-btn-yellow { background: linear-gradient(135deg, #f59e0b, #f97316); color: #fff; box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.2); }
+.gb-btn-yellow:hover { background: linear-gradient(135deg, #f97316, #ea580c); transform: translateY(-1px); box-shadow: 0 6px 10px -1px rgba(249, 115, 22, 0.3); }
+.gb-btn-danger { background: linear-gradient(135deg, #f43f5e, #e11d48); color: #fff; box-shadow: 0 4px 6px -1px rgba(244, 63, 94, 0.2); }
+.gb-btn-danger:hover { background: linear-gradient(135deg, #e11d48, #be123c); transform: translateY(-1px); box-shadow: 0 6px 10px -1px rgba(244, 63, 94, 0.3); }
+.gb-btn-success { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
+.gb-btn-success:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-1px); box-shadow: 0 6px 10px -1px rgba(16, 185, 129, 0.3); }
+.gb-btn-outline { background: #ffffff; border: 1px solid #cbd5e1; color: #475569; }
+.gb-btn-outline:hover { background: #f8fafc; border-color: #6366f1; color: #6366f1; }
 .gb-btn-sm { padding: 6px 12px; font-size: 12px; }
 .gb-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-.gb-input { 
-    width: 100%; 
-    padding: 11px 14px; 
-    border: 1px solid #cbd5e1; 
-    border-radius: 8px; 
-    font-family: inherit; 
-    font-size: 14px; 
-    outline: none; 
-    background: #ffffff; 
-    transition: all 0.2s;
-    color: #0f172a;
-}
-.gb-input:focus { 
-    border-color: #6366f1; 
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); 
-    background: #ffffff;
-}
+.gb-input { width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 14px; outline: none; background: #ffffff; transition: all 0.2s; color: #0f172a; }
+.gb-input:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); background: #ffffff; }
 .gb-input::placeholder { color: #94a3b8; }
 .gb-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #475569; }
 .gb-total-display { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 10px 14px; text-align: right; margin-top: 12px; }
@@ -317,20 +166,9 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-actions button.danger:hover { color: #be123c; border-color: var(--danger); }
 .gb-empty { text-align: center; padding: 60px 10px; color: var(--text-light); }
 .gb-charge-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-
-/* Professional Form CSS (Vibrant Indigo) */
-.gb-form-section { 
-    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); 
-    border: 1px solid #ddd6fe; 
-    border-radius: 12px; 
-    padding: 18px; 
-    margin-bottom: 18px; 
-    transition: box-shadow 0.2s;
-}
+.gb-form-section { background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1px solid #ddd6fe; border-radius: 12px; padding: 18px; margin-bottom: 18px; transition: box-shadow 0.2s; }
 .gb-form-section:hover { box-shadow: 0 4px 10px rgba(139, 92, 246, 0.05); }
 .gb-form-section h4 { font-size: 15px; font-weight: 700; color: #5b21b6; border-bottom: 2px solid #c4b5fd; padding-bottom: 10px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-
-/* Settings Labels CSS */
 .gb-room-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 70px; }
 .gb-room-field label { font-size: 11px; color: var(--text-light); font-weight: 600; text-align: left; margin-bottom: 2px; }
 .gb-room-field input, .gb-room-field select { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; outline: none; transition: all 0.2s; }
@@ -1480,357 +1318,357 @@ function gbAddTemp() {
     const name = document.getElementById('gbGuestName').value.trim(); 
     const ci = document.getElementById('gbCheckIn').value; 
     const co = document.getElementById('gbCheckOut').value;
-    if (!name) { showToast('অন্তত নামটি লিখুন!', 'error');
-                        if (!name) { showToast('অন্তত নামটি লিখুন!', 'error'); return; }
-        if (!ci || !co) { showToast('চেক-ইন এবং চেক-আউট তারিখ দিন!', 'error'); return; }
-        
-        const formData = gbGetFormData();
-        
-        if (guestBillState.editGuestId) {
-            let updated = false;
-            guestBillState.tempGuests = guestBillState.tempGuests.map(g => {
-                if (g.id === guestBillState.editGuestId) {
-                    updated = true;
-                    return { ...g, ...formData, id: g.id }; 
-                }
-                return g;
-            });
-            if (!updated) {
-                const idx = parseInt(guestBillState.editGuestId.replace('index_', ''));
-                if (!isNaN(idx) && guestBillState.tempGuests[idx]) {
-                    guestBillState.tempGuests[idx] = { ...guestBillState.tempGuests[idx], ...formData, id: guestBillState.tempGuests[idx].id };
-                }
+    if (!name) { showToast('অন্তত নামটি লিখুন!', 'error'); return; }
+    if (!ci || !co) { showToast('চেক-ইন এবং চেক-আউট তারিখ দিন!', 'error'); return; }
+    
+    const formData = gbGetFormData();
+    
+    if (guestBillState.editGuestId) {
+        let updated = false;
+        guestBillState.tempGuests = guestBillState.tempGuests.map(g => {
+            if (g.id === guestBillState.editGuestId) {
+                updated = true;
+                return { ...g, ...formData, id: g.id }; 
             }
-            showToast('গেস্টের তথ্য আপডেট হয়েছে!');
-        } else {
-            formData.id = genId('gbg');
-            guestBillState.tempGuests.push(formData);
-            showToast('নতুন গেস্ট যোগ হয়েছে!');
+            return g;
+        });
+        if (!updated) {
+            const idx = parseInt(guestBillState.editGuestId.replace('index_', ''));
+            if (!isNaN(idx) && guestBillState.tempGuests[idx]) {
+                guestBillState.tempGuests[idx] = { ...guestBillState.tempGuests[idx], ...formData, id: guestBillState.tempGuests[idx].id };
+            }
         }
-        
-        gbResetGuestForm();
-        gbRenderTempGuests();
-        document.getElementById('gbGuestName').focus();
+        showToast('গেস্টের তথ্য আপডেট হয়েছে!');
+    } else {
+        formData.id = genId('gbg');
+        guestBillState.tempGuests.push(formData);
+        showToast('নতুন গেস্ট যোগ হয়েছে!');
     }
+    
+    gbResetGuestForm();
+    gbRenderTempGuests();
+    document.getElementById('gbGuestName').focus();
+}
 
-    function gbRenderTempGuests() {
-        const el = document.getElementById('gbTempList'); if (!el) return;
-        if (guestBillState.tempGuests.length === 0) { el.innerHTML = '<p style="color:var(--text-light);font-size:12px;text-align:center;padding:8px;">কোনো গেস্ট এন্ট্রি দেওয়া হয়নি।</p>'; return; }
-        el.innerHTML = guestBillState.tempGuests.map((g, i) => `
-            <div class="gb-temp-item">
-                <span style="cursor:pointer; flex:1; color:#4c1d95;" onclick="gbEditTempGuest(${i})">
-                    <strong>${i + 1}.</strong> ${escapeHtml(g.guestName)} 
-                    <span style="color:var(--text-light);font-size:11px;">(${escapeHtml(g.roomTypeName)})</span>
-                </span>
-                <div class="flex gap-8">
-                    <button onclick="gbEditTempGuest(${i})" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:14px;padding:0 4px;">✏️</button>
-                    <button onclick="gbRemoveTemp(${i})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;">✖</button>
-                </div>
+function gbRenderTempGuests() {
+    const el = document.getElementById('gbTempList'); if (!el) return;
+    if (guestBillState.tempGuests.length === 0) { el.innerHTML = '<p style="color:var(--text-light);font-size:12px;text-align:center;padding:8px;">কোনো গেস্ট এন্ট্রি দেওয়া হয়নি।</p>'; return; }
+    el.innerHTML = guestBillState.tempGuests.map((g, i) => `
+        <div class="gb-temp-item">
+            <span style="cursor:pointer; flex:1; color:#4c1d95;" onclick="gbEditTempGuest(${i})">
+                <strong>${i + 1}.</strong> ${escapeHtml(g.guestName)} 
+                <span style="color:var(--text-light);font-size:11px;">(${escapeHtml(g.roomTypeName)})</span>
+            </span>
+            <div class="flex gap-8">
+                <button onclick="gbEditTempGuest(${i})" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:14px;padding:0 4px;">✏️</button>
+                <button onclick="gbRemoveTemp(${i})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;">✖</button>
             </div>
-        `).join('');
-    }
+        </div>
+    `).join('');
+}
 
-    function gbEditTempGuest(index) {
-        const g = guestBillState.tempGuests[index];
-        if (!g) return;
-        
-        guestBillState.editGuestId = g.id || `index_${index}`;
-        
-        document.getElementById('gbGuestName').value = g.guestName || '';
-        document.getElementById('gbMobile').value = g.mobile || '';
-        document.getElementById('gbAddress').value = g.address || '';
-        document.getElementById('gbRoomNumber').value = g.roomNumber || '';
-        document.getElementById('gbCheckIn').value = g.checkIn || '';
-        document.getElementById('gbCheckOut').value = g.checkOut || '';
-        document.getElementById('gbExcluded').value = (g.excludedDates || []).join(', ');
-        document.getElementById('gbPurpose').value = g.purpose || '';
-        document.getElementById('gbComments').value = g.comments || '';
-        
-        const guestTypeSelect = document.getElementById('gbGuestType');
-        let typeFound = false;
-        for(let i = 0; i < guestTypeSelect.options.length; i++) {
-            if (guestTypeSelect.options[i].value === g.catId) {
-                guestTypeSelect.value = g.catId;
-                typeFound = true;
+function gbEditTempGuest(index) {
+    const g = guestBillState.tempGuests[index];
+    if (!g) return;
+    
+    guestBillState.editGuestId = g.id || `index_${index}`;
+    
+    document.getElementById('gbGuestName').value = g.guestName || '';
+    document.getElementById('gbMobile').value = g.mobile || '';
+    document.getElementById('gbAddress').value = g.address || '';
+    document.getElementById('gbRoomNumber').value = g.roomNumber || '';
+    document.getElementById('gbCheckIn').value = g.checkIn || '';
+    document.getElementById('gbCheckOut').value = g.checkOut || '';
+    document.getElementById('gbExcluded').value = (g.excludedDates || []).join(', ');
+    document.getElementById('gbPurpose').value = g.purpose || '';
+    document.getElementById('gbComments').value = g.comments || '';
+    
+    const guestTypeSelect = document.getElementById('gbGuestType');
+    let typeFound = false;
+    for(let i = 0; i < guestTypeSelect.options.length; i++) {
+        if (guestTypeSelect.options[i].value === g.catId) {
+            guestTypeSelect.value = g.catId;
+            typeFound = true;
+            break;
+        }
+    }
+    if (!typeFound) {
+        guestTypeSelect.value = "Others";
+        document.getElementById('gbCustomType').value = g.guestType || '';
+    } else {
+        document.getElementById('gbCustomType').value = '';
+    }
+    gbToggleOther(); 
+    
+    if (g.catId && g.catId !== 'Others') {
+        const roomTypeSelect = document.getElementById('gbRoomType');
+        for(let i = 0; i < roomTypeSelect.options.length; i++) {
+            if (roomTypeSelect.options[i].value === g.roomType) {
+                roomTypeSelect.value = g.roomType;
                 break;
             }
         }
-        if (!typeFound) {
-            guestTypeSelect.value = "Others";
-            document.getElementById('gbCustomType').value = g.guestType || '';
-        } else {
-            document.getElementById('gbCustomType').value = '';
-        }
-        gbToggleOther(); 
-        
-        if (g.catId && g.catId !== 'Others') {
-            const roomTypeSelect = document.getElementById('gbRoomType');
-            for(let i = 0; i < roomTypeSelect.options.length; i++) {
-                if (roomTypeSelect.options[i].value === g.roomType) {
-                    roomTypeSelect.value = g.roomType;
-                    break;
-                }
-            }
-        }
-        
-        gbUpdateDays(); 
-        
-        const chargeCheckbox = document.getElementById('gbHasExtraCharges');
-        if (g.extraCharges && g.extraCharges.length > 0) {
-            chargeCheckbox.checked = true;
-            toggleExtraCharges();
-            g.extraCharges.forEach(c => gbAddChargeRow(c.name, c.amount));
-        } else {
-            chargeCheckbox.checked = false;
-            toggleExtraCharges();
-        }
-        updateChargeTotal();
-        
-        const tempBtn = document.getElementById('gbTempBtn');
-        if (tempBtn) {
-            tempBtn.innerHTML = '🔄 গেস্ট আপডেট করুন';
-            tempBtn.classList.remove('gb-btn-yellow');
-            tempBtn.classList.add('gb-btn-success');
-        }
-        
-        document.getElementById('gbGuestName').focus();
-        window.scrollTo({ top: document.getElementById('gbTempBtn').offsetTop - 100, behavior: 'smooth' });
     }
-
-    function gbResetGuestForm() {
-        document.getElementById('gbGuestName').value = ''; 
-        document.getElementById('gbMobile').value = ''; 
-        document.getElementById('gbAddress').value = ''; 
-        document.getElementById('gbRoomNumber').value = ''; 
-        document.getElementById('gbPurpose').value = ''; 
-        document.getElementById('gbComments').value = '';
-        document.getElementById('gbCheckIn').value = ''; 
-        document.getElementById('gbCheckOut').value = ''; 
-        document.getElementById('gbExcluded').value = '';
-        document.getElementById('gbTotalDays').value = '';
-        if (document.getElementById('gbCustomType')) document.getElementById('gbCustomType').value = '';
-        
-        const chargeCheckbox = document.getElementById('gbHasExtraCharges');
-        if (chargeCheckbox) {
-            chargeCheckbox.checked = false;
-            toggleExtraCharges();
-        }
-        
-        guestBillState.editGuestId = null; 
-        
-        const tempBtn = document.getElementById('gbTempBtn');
-        if (tempBtn) {
-            tempBtn.innerHTML = '➕ গেস্ট ডাটা এন্ট্রি';
-            tempBtn.classList.remove('gb-btn-success');
-            tempBtn.classList.add('gb-btn-yellow');
-        }
+    
+    gbUpdateDays(); 
+    
+    const chargeCheckbox = document.getElementById('gbHasExtraCharges');
+    if (g.extraCharges && g.extraCharges.length > 0) {
+        chargeCheckbox.checked = true;
+        toggleExtraCharges();
+        g.extraCharges.forEach(c => gbAddChargeRow(c.name, c.amount));
+    } else {
+        chargeCheckbox.checked = false;
+        toggleExtraCharges();
     }
-
-    function gbRemoveTemp(index) { 
-        guestBillState.tempGuests.splice(index, 1); 
-        if (guestBillState.editGuestId) gbResetGuestForm(); 
-        gbRenderTempGuests(); 
+    updateChargeTotal();
+    
+    const tempBtn = document.getElementById('gbTempBtn');
+    if (tempBtn) {
+        tempBtn.innerHTML = '🔄 গেস্ট আপডেট করুন';
+        tempBtn.classList.remove('gb-btn-yellow');
+        tempBtn.classList.add('gb-btn-success');
     }
+    
+    document.getElementById('gbGuestName').focus();
+    window.scrollTo({ top: document.getElementById('gbTempBtn').offsetTop - 100, behavior: 'smooth' });
+}
 
-    function gbShowHeadingModal() {
-        openModal('বিলের হেডিং', `<div class="form-group"><label>বিলের হেডিং *</label><input type="text" id="gbBillHeading" class="gb-input" placeholder="যেমন: EGB Rest House Bill"></div><div class="flex gap-8 mt-16"><button class="gb-btn gb-btn-primary" style="flex:1" onclick="gbConfirmSubmitBill()">সেভ করুন</button><button class="gb-btn gb-btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, false, true);
+function gbResetGuestForm() {
+    document.getElementById('gbGuestName').value = ''; 
+    document.getElementById('gbMobile').value = ''; 
+    document.getElementById('gbAddress').value = ''; 
+    document.getElementById('gbRoomNumber').value = ''; 
+    document.getElementById('gbPurpose').value = ''; 
+    document.getElementById('gbComments').value = '';
+    document.getElementById('gbCheckIn').value = ''; 
+    document.getElementById('gbCheckOut').value = ''; 
+    document.getElementById('gbExcluded').value = '';
+    document.getElementById('gbTotalDays').value = '';
+    if (document.getElementById('gbCustomType')) document.getElementById('gbCustomType').value = '';
+    
+    const chargeCheckbox = document.getElementById('gbHasExtraCharges');
+    if (chargeCheckbox) {
+        chargeCheckbox.checked = false;
+        toggleExtraCharges();
     }
-
-    function gbConfirmSubmitBill() {
-        const heading = document.getElementById('gbBillHeading').value.trim();
-        if (!heading) { showToast('হেডিং লিখুন!', 'error'); return; }
-        forceCloseModal();
-        const guestsWithIds = guestBillState.tempGuests.map(g => ({ id: g.id || genId('gbg'), ...g }));
-        const batchId = 'batch_' + Date.now();
-        const newBillDoc = { heading, batchId, guests: guestsWithIds, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
-        GbStore.saveBatchBill(newBillDoc).then(() => {
-            guestBillState.tempGuests = []; showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`); gbRenderTempGuests(); gbSwitchTab('billList');
-        }).catch(e => showToast('সেভ করতে সমস্যা', 'error'));
+    
+    guestBillState.editGuestId = null; 
+    
+    const tempBtn = document.getElementById('gbTempBtn');
+    if (tempBtn) {
+        tempBtn.innerHTML = '➕ গেস্ট ডাটা এন্ট্রি';
+        tempBtn.classList.remove('gb-btn-success');
+        tempBtn.classList.add('gb-btn-yellow');
     }
+}
 
-    async function gbSubmitBill() {
-        const editId = document.getElementById('gbEditId').value;
-        if (editId) {
-            const bill = guestBillState.bills.find(b => b.id === editId);
-            if (bill) {
-                if (document.getElementById('gbGuestName').value.trim() !== '') gbAddTemp();
-                
-                const updatedHeading = document.getElementById('gbEditHeadingInput')?.value.trim();
-                if (updatedHeading) {
-                    bill.heading = updatedHeading;
-                } else {
-                    bill.heading = "Rest House Bill";
-                }
-                
-                bill.guests = guestBillState.tempGuests.map(g => ({ id: g.id || genId('gbg'), ...g }));
-                
-                try { 
-                    await GbStore.updateBill(bill); 
-                    showToast('বিল সফলভাবে আপডেট হয়েছে!'); 
-                    guestBillState.tempGuests = [];
-                    gbResetForm(); 
-                    gbSwitchTab('billList'); 
-                } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); }
-            }
-        } else {
+function gbRemoveTemp(index) { 
+    guestBillState.tempGuests.splice(index, 1); 
+    if (guestBillState.editGuestId) gbResetGuestForm(); 
+    gbRenderTempGuests(); 
+}
+
+function gbShowHeadingModal() {
+    openModal('বিলের হেডিং', `<div class="form-group"><label>বিলের হেডিং *</label><input type="text" id="gbBillHeading" class="gb-input" placeholder="যেমন: EGB Rest House Bill"></div><div class="flex gap-8 mt-16"><button class="gb-btn gb-btn-primary" style="flex:1" onclick="gbConfirmSubmitBill()">সেভ করুন</button><button class="gb-btn gb-btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`, false, true);
+}
+
+function gbConfirmSubmitBill() {
+    const heading = document.getElementById('gbBillHeading').value.trim();
+    if (!heading) { showToast('হেডিং লিখুন!', 'error'); return; }
+    forceCloseModal();
+    const guestsWithIds = guestBillState.tempGuests.map(g => ({ id: g.id || genId('gbg'), ...g }));
+    const batchId = 'batch_' + Date.now();
+    const newBillDoc = { heading, batchId, guests: guestsWithIds, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
+    GbStore.saveBatchBill(newBillDoc).then(() => {
+        guestBillState.tempGuests = []; showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`); gbRenderTempGuests(); gbSwitchTab('billList');
+    }).catch(e => showToast('সেভ করতে সমস্যা', 'error'));
+}
+
+async function gbSubmitBill() {
+    const editId = document.getElementById('gbEditId').value;
+    if (editId) {
+        const bill = guestBillState.bills.find(b => b.id === editId);
+        if (bill) {
             if (document.getElementById('gbGuestName').value.trim() !== '') gbAddTemp();
-            if (guestBillState.tempGuests.length === 0) { showToast('অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!', 'error'); return; }
-            gbShowHeadingModal();
-        }
-    }
-
-    function gbEditBill(billId) {
-        const bill = guestBillState.bills.find(b => b.id === billId);
-        if (!bill) return;
-        
-        gbSwitchTab('newBill');
-        
-        guestBillState.tempGuests = bill.guests.map(g => ({ ...g }));
-        gbRenderTempGuests();
-        
-        document.getElementById('gbEditHeadingContainer').style.display = 'block';
-        document.getElementById('gbEditHeadingInput').value = bill.heading || '';
-        
-        document.getElementById('gbEditId').value = bill.id;
-        document.getElementById('gbEditGuestId').value = '';
-        
-        const form = document.getElementById('gbBillForm');
-        if (form) form.reset();
-        document.getElementById('gbTotalDays').value = '';
-        
-        document.getElementById('gbHasExtraCharges').checked = false;
-        toggleExtraCharges();
-        
-        document.getElementById('gbSubmitBtn').innerHTML = '✏️ বিল আপডেট করুন';
-        const tempBtn = document.getElementById('gbTempBtn');
-        if (tempBtn) {
-            tempBtn.style.display = 'block';
-            tempBtn.innerHTML = '➕ গেস্ট যোগ করুন';
-            tempBtn.classList.remove('gb-btn-success');
-            tempBtn.classList.add('gb-btn-yellow');
-        }
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function gbResetForm() {
-        const form = document.getElementById('gbBillForm');
-        if (form) form.reset();
-        document.getElementById('gbEditId').value = '';
-        document.getElementById('gbEditGuestId').value = '';
-        document.getElementById('gbEditHeadingContainer').style.display = 'none';
-        document.getElementById('gbEditHeadingInput').value = '';
-        const submitBtn = document.getElementById('gbSubmitBtn');
-        if (submitBtn) submitBtn.innerHTML = '📄 বিল তৈরি করুন';
-        const tempBtn = document.getElementById('gbTempBtn');
-        if (tempBtn) {
-            tempBtn.style.display = 'block';
-            tempBtn.innerHTML = '➕ গেস্ট ডাটা এন্ট্রি';
-            tempBtn.classList.remove('gb-btn-success');
-            tempBtn.classList.add('gb-btn-yellow');
-        }
-        const td = document.getElementById('gbTotalDays');
-        if (td) td.value = '';
-        
-        document.getElementById('gbHasExtraCharges').checked = false;
-        toggleExtraCharges();
-        
-        gbToggleOther();
-        guestBillState.tempGuests = [];
-        gbRenderTempGuests();
-    }
-
-    function gbDeleteBill(id) {
-        checkPassword(() => { showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?', async () => { try { await GbStore.deleteBill(id); showToast('বিল ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); } }); });
-    }
-
-    function gbRenderBillList() {
-        const searchTerm = (document.getElementById('gbSearch')?.value || '').toLowerCase();
-        const filteredByDate = gbGetFilteredBills();
-        guestBillState.filteredBills = filteredByDate.filter(b => {
-            if (!b.guests) return false;
-            const billDate = b.createdAt ? gbFormatDate(b.createdAt) : '';
-            const headingMatch = (b.heading || '').toLowerCase().includes(searchTerm); const dateMatch = billDate.toLowerCase().includes(searchTerm);
-            const guestMatch = b.guests.some(g => (g.guestName || '').toLowerCase().includes(searchTerm) || (g.mobile || '').toLowerCase().includes(searchTerm) || (g.address || '').toLowerCase().includes(searchTerm) || (g.guestType || '').toLowerCase().includes(searchTerm) || (g.roomTypeName || '').toLowerCase().includes(searchTerm) || (g.roomNumber || '').toLowerCase().includes(searchTerm));
-            return headingMatch || dateMatch || guestMatch;
-        });
-        const totalPages = Math.ceil(guestBillState.filteredBills.length / guestBillState.itemsPerPage);
-        if (guestBillState.currentPage > totalPages && totalPages > 0) guestBillState.currentPage = totalPages;
-        if (totalPages === 0) guestBillState.currentPage = 1;
-        const start = (guestBillState.currentPage - 1) * guestBillState.itemsPerPage; const pageItems = guestBillState.filteredBills.slice(start, start + guestBillState.itemsPerPage);
-        const container = document.getElementById('gbBillList'); if (!container) return;
-        const countEl = document.getElementById('gbBillCount'); if (countEl) countEl.innerText = `বিলের তালিকা (${guestBillState.filteredBills.length})`;
-        if (pageItems.length === 0) { container.innerHTML = '<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size:40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>'; }
-        else {
-            container.innerHTML = pageItems.map(bill => {
-                const guests = bill.guests || [];
-                const title = bill.heading ? escapeHtml(bill.heading.toUpperCase()) : (guests.length === 1 ? escapeHtml(guests[0].guestName) : `${guests.length} জন গেস্টের বিল`);
-                const subtitle = guests.length > 1 ? guests.map(g => escapeHtml(g.guestName)).join(', ') : escapeHtml(guests[0]?.roomTypeName || '');
-                const billDate = bill.createdAt ? gbFormatDate(bill.createdAt) : 'নতুন';
-                let detailsHtml = guests.map((g, i) => `<div class="gb-guest-info-box"><div class="flex-between mb-8"><strong>${escapeHtml(g.guestName)}</strong></div><p>📱 ${escapeHtml(g.mobile || 'নেই')}</p><p>🚪 ${escapeHtml(g.roomTypeName)} (নং: ${escapeHtml(g.roomNumber || 'নেই')})</p><p>👤 ${escapeHtml(g.guestType)}</p><p>📍 ${escapeHtml(g.address || 'নেই')}</p><p>📅 ${gbFormatDate(g.checkIn)} → ${gbFormatDate(g.checkOut)}</p><p>⏱️ মোট দিন: ${escapeHtml(g.totalDays || '-')}</p><p>🎯 উদ্দেশ্য: ${escapeHtml(g.purpose || 'নেই')}</p><p>💬 মন্তব্য: ${escapeHtml(g.comments || 'নেই')}</p><div class="gb-total-display"><span>মোট বিল: ${getCurrencySymbol(g.currency)}${g.totalAmount || 0}</span></div></div>`).join('');
-                return `<div class="gb-bill-card" onclick="gbToggleExpand('${bill.id}')"><div class="flex-between"><div><h3 style="font-size:16px;font-weight:700;color:var(--primary-dark);">${title}</h3><p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}<br>🗓️ তৈরির তারিখ: ${billDate}</p></div><span id="gb_icon_${bill.id}" style="color:var(--text-light);">▼</span></div><div id="gb_details_${bill.id}" style="display:none;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:13px;">${detailsHtml}<div style="display:flex;gap:6px;margin-top:10px;"><button onclick="event.stopPropagation();gbDownloadPDF('${bill.id}')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;">📥 PDF</button><button onclick="event.stopPropagation();gbDownloadExcel('${bill.id}')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;">📥 Excel</button></div><div class="gb-actions"><button onclick="event.stopPropagation();gbEditBill('${bill.id}')">✏️ বিল এডিট করুন</button><button class="danger" onclick="event.stopPropagation();gbDeleteBill('${bill.id}')">🗑️ ডিলিট</button></div></div></div>`;
-            }).join('');
-        }
-        const pag = document.getElementById('gbPagination');
-        if (pag) pag.innerHTML = `<button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbPrevPage()" ${guestBillState.currentPage === 1 ? 'disabled' : ''}>◀ Prev</button><span style="font-weight:600;color:var(--text-light);">পেজ ${guestBillState.currentPage} / ${totalPages || 1}</span><button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbNextPage()" ${guestBillState.currentPage === totalPages ? 'disabled' : ''}>Next ▶</button>`;
-    }
-
-    function gbToggleExpand(id) {
-        const allDetails = document.querySelectorAll('div[id^="gb_details_"]');
-        allDetails.forEach(div => {
-            const dId = div.id.split('_')[2]; const icon = document.getElementById(`gb_icon_${dId}`);
-            if (dId === id) { const isVisible = div.style.display === 'block'; div.style.display = isVisible ? 'none' : 'block'; if (icon) icon.textContent = isVisible ? '▼' : '▲'; }
-            else { div.style.display = 'none'; if (icon) icon.textContent = '▼'; }
-        });
-    }
-    function gbPrevPage() { if (guestBillState.currentPage > 1) { guestBillState.currentPage--; gbRenderBillList(); } }
-    function gbNextPage() { const t = Math.ceil(guestBillState.filteredBills.length / guestBillState.itemsPerPage); if (guestBillState.currentPage < t) { guestBillState.currentPage++; gbRenderBillList(); } }
-
-    function gbGetFilteredBills() {
-        const fromStr = document.getElementById('gbFromDate')?.value;
-        const toStr = document.getElementById('gbToDate')?.value;
-        if (!fromStr && !toStr) return guestBillState.bills;
-        return guestBillState.bills.filter(bill => {
-            if (!bill.guests || bill.guests.length === 0) return false;
-            return bill.guests.some(g => {
-                if (!g.checkIn) return false;
-                const ciDateStr = typeof g.checkIn === 'string' ? g.checkIn.split('T')[0] : '';
-                let fromOk = true, toOk = true;
-                if (fromStr) fromOk = ciDateStr >= fromStr;
-                if (toStr) toOk = ciDateStr <= toStr;
-                return fromOk && toOk;
-            });
-        });
-    }
-
-    function getGbNbNote(catId, rtId, totalDaysStr) {
-        if (!catId || catId === 'Others' || !guestBillState.settings.categories[catId] || !guestBillState.settings.categories[catId].roomTypes[rtId]) return '';
-        const r = guestBillState.settings.categories[catId].roomTypes[rtId]; if (!r) return '';
-        if (r.limitDays > 0 && r.extraRate > 0) {
-            let currText = r.currency === 'USD' ? 'ডলার' : 'টাকা';
-            return `N.B: ${r.limitDays} দিন অতিক্রমের পর দৈনিক ভাড়া ${r.extraRate} ${currText}`;
-        }
-        return '';
-    }
-
-    function generateBillTableHtml(bill) {
-        let html = `<div style="border: 2px solid #2563eb; padding: 20px; border-radius: 10px; margin: 20px 0;">`;
-        html += `<h1 style="text-align:center;margin-bottom:5px;color:#1e40af;font-size:32px;letter-spacing:2px;font-weight:800;">INVOICE</h1>`;
-        html += `<h2 style="text-align:center;margin-bottom:5px;color:#1e293b;">${escapeHtml(bill.heading || 'Rest House Bill')}</h2>`;
-        html += `<p style="text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;">তারিখ: ${new Date().toLocaleDateString()}</p>`;
-        html += `<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="background:#2563eb;color:#fff;"><th style="padding:8px;border:1px solid #cbd5e1;">ক্রম</th><th style="padding:8px;border:1px solid #cbd5e1;">নাম</th><th style="padding:8px;border:1px solid #cbd5e1;">মোবাইল</th><th style="padding:8px;border:1px solid #cbd5e1;">ঠিকানা</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম টাইপ</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম নং</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-ইন</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-আউট</th><th style="padding:8px;border:1px solid #cbd5e1;">দিন</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম ভাড়া</th><th style="padding:8px;border:1px solid #cbd5e1;">সার্ভিস চার্জ</th><th style="padding:8px;border:1px solid #cbd5e1;">মোট বিল</th></tr></thead><tbody>`;
-        
-        let totalRoomRent = 0, totalExtra = 0, grandTotal = 0;
-
-        bill.guests.forEach((g, i) => {
-            let currSym = getCurrencySymbol(g.currency);
-            let extraChargeStr = g.extraCharges && g.extraCharges.length > 0 ? g.extraCharges.map(c => `${escapeHtml(c.name)}: ${currSym}${c.amount}`).join('<br>') : '-';
             
-            totalRoomRent += (g.roomRent || 0);
-            totalExtra += (g.extraTotal || 0);
-            grandTotal += (g.totalAmount || 0);
+            const updatedHeading = document.getElementById('gbEditHeadingInput')?.value.trim();
+            if (updatedHeading) {
+                bill.heading = updatedHeading;
+            } else {
+                bill.heading = "Rest House Bill";
+            }
+            
+            bill.guests = guestBillState.tempGuests.map(g => ({ id: g.id || genId('gbg'), ...g }));
+            
+            try { 
+                await GbStore.updateBill(bill); 
+                showToast('বিল সফলভাবে আপডেট হয়েছে!'); 
+                guestBillState.tempGuests = [];
+                gbResetForm(); 
+                gbSwitchTab('billList'); 
+            } catch(e) { showToast('আপডেট করতে সমস্যা', 'error'); }
+        }
+    } else {
+        if (document.getElementById('gbGuestName').value.trim() !== '') gbAddTemp();
+        if (guestBillState.tempGuests.length === 0) { showToast('অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!', 'error'); return; }
+        gbShowHeadingModal();
+    }
+}
 
-            html += `<tr><td style="padding:8px;border:1px solid #cbd5e1;">${i+1}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.guestName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.mobile || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.address || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomTypeName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomNumber)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkIn)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkOut)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.totalDays)}</td><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;color:#16a34a;">${currSym}${g.roomRent || 0}</td><td style="padding:8px;border:1px solid #cbd5e1;color:#d97706;font-weight:bold;">${extraChargeStr}</td><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;color:#16a34a;">${currSym}${g.totalAmount || 0}</td></tr>`;
+function gbEditBill(billId) {
+    const bill = guestBillState.bills.find(b => b.id === billId);
+    if (!bill) return;
+    
+    gbSwitchTab('newBill');
+    
+    guestBillState.tempGuests = bill.guests.map(g => ({ ...g }));
+    gbRenderTempGuests();
+    
+    document.getElementById('gbEditHeadingContainer').style.display = 'block';
+    document.getElementById('gbEditHeadingInput').value = bill.heading || '';
+    
+    document.getElementById('gbEditId').value = bill.id;
+    document.getElementById('gbEditGuestId').value = '';
+    
+    const form = document.getElementById('gbBillForm');
+    if (form) form.reset();
+    document.getElementById('gbTotalDays').value = '';
+    
+    document.getElementById('gbHasExtraCharges').checked = false;
+    toggleExtraCharges();
+    
+    document.getElementById('gbSubmitBtn').innerHTML = '✏️ বিল আপডেট করুন';
+    const tempBtn = document.getElementById('gbTempBtn');
+    if (tempBtn) {
+        tempBtn.style.display = 'block';
+        tempBtn.innerHTML = '➕ গেস্ট যোগ করুন';
+        tempBtn.classList.remove('gb-btn-success');
+        tempBtn.classList.add('gb-btn-yellow');
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function gbResetForm() {
+    const form = document.getElementById('gbBillForm');
+    if (form) form.reset();
+    document.getElementById('gbEditId').value = '';
+    document.getElementById('gbEditGuestId').value = '';
+    document.getElementById('gbEditHeadingContainer').style.display = 'none';
+    document.getElementById('gbEditHeadingInput').value = '';
+    const submitBtn = document.getElementById('gbSubmitBtn');
+    if (submitBtn) submitBtn.innerHTML = '📄 বিল তৈরি করুন';
+    const tempBtn = document.getElementById('gbTempBtn');
+    if (tempBtn) {
+        tempBtn.style.display = 'block';
+        tempBtn.innerHTML = '➕ গেস্ট ডাটা এন্ট্রি';
+        tempBtn.classList.remove('gb-btn-success');
+        tempBtn.classList.add('gb-btn-yellow');
+    }
+    const td = document.getElementById('gbTotalDays');
+    if (td) td.value = '';
+    
+    document.getElঁঁ
+        দ    ntById('gbHasExtraCharges').checked = false;
+    toggleExtraCharges();
+    
+    gbToggleOther();
+    guestBillState.tempGuests = [];
+    gbRenderTempGuests();
+}
+
+function gbDeleteBill(id) {
+    checkPassword(() => { showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?', async () => { try { await GbStore.deleteBill(id); showToast('বিল ডিলিট হয়েছে'); } catch(e) { showToast('ডিলিট করতে সমস্যা', 'error'); } }); });
+}
+
+function gbRenderBillList() {
+    const searchTerm = (document.getElementById('gbSearch')?.value || '').toLowerCase();
+    const filteredByDate = gbGetFilteredBills();
+    guestBillState.filteredBills = filteredByDate.filter(b => {
+        if (!b.guests) return false;
+        const billDate = b.createdAt ? gbFormatDate(b.createdAt) : '';
+        const headingMatch = (b.heading || '').toLowerCase().includes(searchTerm); const dateMatch = billDate.toLowerCase().includes(searchTerm);
+        const guestMatch = b.guests.some(g => (g.guestName || '').toLowerCase().includes(searchTerm) || (g.mobile || '').toLowerCase().includes(searchTerm) || (g.address || '').toLowerCase().includes(searchTerm) || (g.guestType || '').toLowerCase().includes(searchTerm) || (g.roomTypeName || '').toLowerCase().includes(searchTerm) || (g.roomNumber || '').toLowerCase().includes(searchTerm));
+        return headingMatch || dateMatch || guestMatch;
+    });
+    const totalPages = Math.ceil(guestBillState.filteredBills.length / guestBillState.itemsPerPage);
+    if (guestBillState.currentPage > totalPages && totalPages > 0) guestBillState.currentPage = totalPages;
+    if (totalPages === 0) guestBillState.currentPage = 1;
+    const start = (guestBillState.currentPage - 1) * guestBillState.itemsPerPage; const pageItems = guestBillState.filteredBills.slice(start, start + guestBillState.itemsPerPage);
+    const container = document.getElementById('gbBillList'); if (!container) return;
+    const countEl = document.getElementById('gbBillCount'); if (countEl) countEl.innerText = `বিলের তালিকা (${guestBillState.filteredBills.length})`;
+    if (pageItems.length === 0) { container.innerHTML = '<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size:40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>'; }
+    else {
+        container.innerHTML = pageItems.map(bill => {
+            const guests = bill.guests || [];
+            const title = bill.heading ? escapeHtml(bill.heading.toUpperCase()) : (guests.length === 1 ? escapeHtml(guests[0].guestName) : `${guests.length} জন গেস্টের বিল`);
+            const subtitle = guests.length > 1 ? guests.map(g => escapeHtml(g.guestName)).join(', ') : escapeHtml(guests[0]?.roomTypeName || '');
+            const billDate = bill.createdAt ? gbFormatDate(bill.createdAt) : 'নতুন';
+            let detailsHtml = guests.map((g, i) => `<div class="gb-guest-info-box"><div class="flex-between mb-8"><strong>${escapeHtml(g.guestName)}</strong></div><p>📱 ${escapeHtml(g.mobile || 'নেই')}</p><p>🚪 ${escapeHtml(g.roomTypeName)} (নং: ${escapeHtml(g.roomNumber || 'নেই')})</p><p>👤 ${escapeHtml(g.guestType)}</p><p>📍 ${escapeHtml(g.address || 'নেই')}</p><p>📅 ${gbFormatDate(g.checkIn)} → ${gbFormatDate(g.checkOut)}</p><p>⏱️ মোট দিন: ${escapeHtml(g.totalDays || '-')}</p><p>🎯 উদ্দেশ্য: ${escapeHtml(g.purpose || 'নেই')}</p><p>💬 মন্তব্য: ${escapeHtml(g.comments || 'নেই')}</p><div class="gb-total-display"><span>মোট বিল: ${getCurrencySymbol(g.currency)}${g.totalAmount || 0}</span></div></div>`).join('');
+            return `<div class="gb-bill-card" onclick="gbToggleExpand('${bill.id}')"><div class="flex-between"><div><h3 style="font-size:16px;font-weight:700;color:var(--primary-dark);">${title}</h3><p style="font-size:11px;color:var(--text-light);margin-top:4px;">${subtitle}<br>🗓️ তৈরির তারিখ: ${billDate}</p></div><span id="gb_icon_${bill.id}" style="color:var(--text-light);">▼</span></div><div id="gb_details_${bill.id}" style="display:none;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:13px;">${detailsHtml}<div style="display:flex;gap:6px;margin-top:10px;"><button onclick="event.stopPropagation();gbDownloadPDF('${bill.id}')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;">📥 PDF</button><button onclick="event.stopPropagation();gbDownloadExcel('${bill.id}')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;">📥 Excel</button></div><div class="gb-actions"><button onclick="event.stopPropagation();gbEditBill('${bill.id}')">✏️ বিল এডিট করুন</button><button class="danger" onclick="event.stopPropagation();gbDeleteBill('${bill.id}')">🗑️ ডিলিট</button></div></div></div>`;
+        }).join('');
+    }
+    const pag = document.getElementById('gbPagination');
+    if (pag) pag.innerHTML = `<button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbPrevPage()" ${guestBillState.currentPage === 1 ? 'disabled' : ''}>◀ Prev</button><span style="font-weight:600;color:var(--text-light);">পেজ ${guestBillState.currentPage} / ${totalPages || 1}</span><button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbNextPage()" ${guestBillState.currentPage === totalPages ? 'disabled' : ''}>Next ▶</button>`;
+}
+
+function gbToggleExpand(id) {
+    const allDetails = document.querySelectorAll('div[id^="gb_details_"]');
+    allDetails.forEach(div => {
+        const dId = div.id.split('_')[2]; const icon = document.getElementById(`gb_icon_${dId}`);
+        if (dId === id) { const isVisible = div.style.display === 'block'; div.style.display = isVisible ? 'none' : 'block'; if (icon) icon.textContent = isVisible ? '▼' : '▲'; }
+        else { div.style.display = 'none'; if (icon) icon.textContent = '▼'; }
+    });
+}
+function gbPrevPage() { if (guestBillState.currentPage > 1) { guestBillState.currentPage--; gbRenderBillList(); } }
+function gbNextPage() { const t = Math.ceil(guestBillState.filteredBills.length / guestBillState.itemsPerPage); if (guestBillState.currentPage < t) { guestBillState.currentPage++; gbRenderBillList(); } }
+
+function gbGetFilteredBills() {
+    const fromStr = document.getElementById('gbFromDate')?.value;
+    const toStr = document.getElementById('gbToDate')?.value;
+    if (!fromStr && !toStr) return guestBillState.bills;
+    return guestBillState.bills.filter(bill => {
+        if (!bill.guests || bill.guests.length === 0) return false;
+        return bill.guests.some(g => {
+            if (!g.checkIn) return false;
+            const ciDateStr = typeof g.checkIn === 'string' ? g.checkIn.split('T')[0] : '';
+            let fromOk = true, toOk = true;
+            if (fromStr) fromOk = ciDateStr >= fromStr;
+            if (toStr) toOk = ciDateStr <= toStr;
+            return fromOk && toOk;
+        });
+    });
+}
+
+function getGbNbNote(catId, rtId, totalDaysStr) {
+    if (!catId || catId === 'Others' || !guestBillState.settings.categories[catId] || !guestBillState.settings.categories[catId].roomTypes[rtId]) return '';
+    const r = guestBillState.settings.categories[catId].roomTypes[rtId]; if (!r) return '';
+    if (r.limitDays > 0 && r.extraRate > 0) {
+        let currText = r.currency === 'USD' ? 'ডলার' : 'টাকা';
+        return `N.B: ${r.limitDays} দিন অতিক্রমের পর দৈনিক ভাড়া ${r.extraRate} ${currText}`;
+    }
+    return '';
+}
+
+function generateBillTableHtml(bill) {
+    let html = `<div style="border: 2px solid #2563eb; padding: 20px; border-radius: 10px; margin: 20px 0;">`;
+    html += `<h1 style="text-align:center;margin-bottom:5px;color:#1e40af;font-size:32px;letter-spacing:2px;font-weight:800;">INVOICE</h1>`;
+    html += `<h2 style="text-align:center;margin-bottom:5px;color:#1e293b;">${escapeHtml(bill.heading || 'Rest House Bill')}</h2>`;
+    html += `<p style="text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;">তারিখ: ${new Date().toLocaleDateString()}</p>`;
+    html += `<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="background:#2563eb;color:#fff;"><th style="padding:8px;border:1px solid #cbd5e1;">ক্রম</th><th style="padding:8px;border:1px solid #cbd5e1;">নাম</th><th style="padding:8px;border:1px solid #cbd5e1;">মোবাইল</th><th style="padding:8px;border:1px solid #cbd5e1;">ঠিকানা</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম টাইপ</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম নং</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-ইন</th><th style="padding:8px;border:1px solid #cbd5e1;">চেক-আউট</th><th style="padding:8px;border:1px solid #cbd5e1;">দিন</th><th style="padding:8px;border:1px solid #cbd5e1;">রুম ভাড়া</th><th style="padding:8px;border:1px solid #cbd5e1;">সার্ভিস চার্জ</th><th style="padding:8px;border:1px solid #cbd5e1;">মোট বিল</th></tr></thead><tbody>`;
+    
+    let totalRoomRent = 0, totalExtra = 0, grandTotal = 0;
+
+    bill.guests.forEach((g, i) => {
+        let currSym = getCurrencySymbol(g.currency);
+        let extraChargeStr = g.extraCharges && g.extraCharges.length > 0 ? g.extraCharges.map(c => `${escapeHtml(c.name)}: ${currSym}${c.amount}`).join('<br>') : '-';
+        
+        totalRoomRent += (g.roomRent || 0);
+        totalExtra += (g.extraTotal || 0);
+        grandTotal += (g.totalAmount || 0);
+
+        html += `<tr><td style="padding:8px;border:1px solid #cbd5e1;">${i+1}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.guestName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.mobile || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.address || '-')}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomTypeName)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.roomNumber)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkIn)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${gbFormatDate(g.checkOut)}</td><td style="padding:8px;border:1px solid #cbd5e1;">${escapeHtml(g.totalDays)}</td><td style="padding:8px;border:1px solid #cbd 5e1;">${escapeHtml(g.totalDays)}</td><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;color:#16a34a;">${currSym}${g.roomRent || 0}</td><td style="padding:8px;border:1px solid #cbd5e1;color:#d97706;font-weight:bold;">${extraChargeStr}</td><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;color:#16a34a;">${currSym}${g.totalAmount || 0}</td></tr>`;
         });
         
         html += `<tr style="background:#f1f5f9;font-weight:bold;"><td colspan="9" style="padding:8px;border:1px solid #cbd5e1;text-align:right;">সর্বমোট</td><td style="padding:8px;border:1px solid #cbd5e1;color:#16a34a;">${getCurrencySymbol(bill.guests[0].currency)}${totalRoomRent}</td><td style="padding:8px;border:1px solid #cbd5e1;color:#d97706;">${getCurrencySymbol(bill.guests[0].currency)}${totalExtra}</td><td style="padding:8px;border:1px solid #cbd5e1;color:#16a34a;font-size:16px;">${getCurrencySymbol(bill.guests[0].currency)}${grandTotal}</td></tr>`;
@@ -1964,3 +1802,4 @@ function gbAddTemp() {
 </script>
 </body>
 </html>
+    
