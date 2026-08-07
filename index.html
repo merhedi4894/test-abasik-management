@@ -379,8 +379,7 @@ function handleGlobalSearch(v){const d=document.getElementById('searchDropdown')
 document.addEventListener('click',e=>{if(!e.target.closest('.search-box'))document.getElementById('searchDropdown').style.display='none';});
 document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target.id==='modalOverlay')forceCloseModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-
-// GUEST BILL FUNCTIONS
+    // GUEST BILL FUNCTIONS
 function gbSwitchTab(t){guestBillState.activeGbTab=t;renderPage();}
 function getGbFormHtml(){
     return `<div class="gb-form-card">
@@ -442,131 +441,20 @@ function toggleExtraCharges(){const cb=document.getElementById('gbHasExtraCharge
 function gbAddChargeRow(n='',a=''){const l=document.getElementById('gbChargeList'),d=document.createElement('div');d.className='gb-charge-row';d.style.cssText='display:flex; gap:8px; margin-bottom:8px;';d.innerHTML=`<input type="text" class="gb-input gb-charge-name" placeholder="চার্জের নাম (যেমন: লন্ড্রি)" value="${n}" style="flex:2;"><input type="number" class="gb-input gb-charge-amount" placeholder="টাকা" value="${a}" style="flex:1;" oninput="updateChargeTotal()"><button type="button" class="gb-btn gb-btn-danger gb-btn-sm" onclick="this.parentElement.remove(); updateChargeTotal();">✖</button>`;l.appendChild(d);}
 function updateChargeTotal(){let t=0;document.querySelectorAll('.gb-charge-amount').forEach(i=>{t+=parseFloat(i.value)||0;});document.getElementById('gbChargeTotalDisplay').innerText=t;gbUpdateNetBillDisplay();}
 function gbFormatDate(d){if(!d)return'-';try{let o=new Date(d);if(typeof d==='object'&&d!==null&&d.seconds!==undefined)o=new Date(d.seconds*1000);let dy=o.getDate().toString().padStart(2,'0'),m=(o.getMonth()+1).toString().padStart(2,'0'),y=o.getFullYear(),h=o.getHours().toString().padStart(2,'0'),mi=o.getMinutes().toString().padStart(2,'0');return `${dy}-${m}-${y} ${h}:${mi}`;}catch(e){return String(d);}}
-function gbParseDateStr(str) {
-    if (!str) return null;
-    const parts = str.trim().replace(/\//g, '-').split('-');
-    if (parts.length === 3) {
-        const d = parts[0].padStart(2, '0');
-        const m = parts[1].padStart(2, '0');
-        const y = parts[2];
-        return `${y}-${m}-${d}`; // YYYY-MM-DD
-    }
-    return str.trim();
-}
+function gbParseDateStr(str){if(!str)return null;const parts=str.trim().replace(/\//g,'-').split('-');if(parts.length===3){const d=parts[0].padStart(2,'0');const m=parts[1].padStart(2,'0');const y=parts[2];return `${y}-${m}-${d}`;}return str.trim();}
 function gbUpdateDays(){const ci=document.getElementById('gbCheckIn')?.value,co=document.getElementById('gbCheckOut')?.value,ex=document.getElementById('gbExcluded')?.value;if(!ci||!co)return;const s=new Date(ci),e=new Date(co);if(e<s){document.getElementById('gbTotalDays').value="ভুল তারিখ";return;}let d=Math.ceil((e-s)/(1000*60*60*24)),ec=0;if(ex&&ex.trim())ec=ex.split(',').map(x=>x.trim()).filter(x=>x!=="").length;document.getElementById('gbTotalDays').value=(d-ec)+" দিন";gbUpdateNetBillDisplay();}
 function getCurrencySymbol(c){return c==='USD'?'$':'৳';}
 function gbGetFormData(){const gn=document.getElementById('gbGuestName').value.trim(),nid=document.getElementById('gbNidNumber').value.trim(),mb=document.getElementById('gbMobile').value.trim(),ad=document.getElementById('gbAddress').value.trim(),ci=document.getElementById('gbGuestType').value;let cn=ci==="Others"?(document.getElementById('gbCustomType').value||"Others"):(guestBillState.settings.categories[ci]?.name||"");const ri=document.getElementById('gbRoomType').value;let rn='',cu='BDT';if(ci!=='Others'&&guestBillState.settings.categories[ci]&&guestBillState.settings.categories[ci].roomTypes[ri]){rn=guestBillState.settings.categories[ci].roomTypes[ri].name;cu=guestBillState.settings.categories[ci].roomTypes[ri].currency;}const rNum=document.getElementById('gbRoomNumber').value.trim(),cI=document.getElementById('gbCheckIn').value,cO=document.getElementById('gbCheckOut').value,exR=document.getElementById('gbExcluded').value,exD=exR?exR.split(',').map(x=>x.trim()):[],pp=document.getElementById('gbPurpose').value,tD=document.getElementById('gbTotalDays').value,cm=document.getElementById('gbComments').value;const {roomRentTotal,finalCurrency}=gbCalculateBill(cI,cO,exD,ci,ri);const ec=[];if(document.getElementById('gbHasExtraCharges')?.checked){document.querySelectorAll('.gb-charge-row').forEach(r=>{const n=r.querySelector('.gb-charge-name').value.trim(),a=parseFloat(r.querySelector('.gb-charge-amount').value)||0;if(n||a>0)ec.push({name:n,amount:a});});}const et=ec.reduce((s,c)=>s+c.amount,0);const discount=parseFloat(document.getElementById('gbDiscount')?.value)||0;const vat=parseFloat(document.getElementById('gbVat')?.value)||0;const tax=parseFloat(document.getElementById('gbTax')?.value)||0;return{guestName:gn,nidNumber:nid,mobile:mb,address:ad,catId:ci,guestType:cn,roomType:ri,roomTypeName:rn,currency:finalCurrency,roomNumber:rNum,checkIn:cI,checkOut:cO,excludedDates:exD,purpose:pp,totalDays:tD,comments:cm,roomRent:roomRentTotal,extraCharges:ec,extraTotal:et,totalAmount:roomRentTotal+et,discount:discount,vat:vat,tax:tax};}
-function gbCalculateBill(cI,cO,exD,ci,ri){
-    let t=0,fc='BDT';
-    if(ci!=='Others'&&guestBillState.settings.categories[ci]&&guestBillState.settings.categories[ci].roomTypes[ri]){
-        const r=guestBillState.settings.categories[ci].roomTypes[ri];
-        fc=r.currency||'BDT';
-        const normalizedExD = exD.map(d => gbParseDateStr(d));
-        let cur=new Date(cI);
-        let end=new Date(cO);
-        let curDate = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate());
-        let endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-        let cd=0;
-        while(curDate <= endDate){
-            const y = curDate.getFullYear();
-            const m = (curDate.getMonth() + 1).toString().padStart(2, '0');
-            const d = curDate.getDate().toString().padStart(2, '0');
-            const ds = `${y}-${m}-${d}`;
-            if(!normalizedExD.includes(ds)){
-                cd++;
-                let dr=0;
-                if(cd>r.limitDays){ dr=r.extraRate; } else { dr=r.regularRate; }
-                t+=dr;
-            }
-            curDate.setDate(curDate.getDate()+1);
-        }
-    }
-    return{roomRentTotal:Math.round(t),finalCurrency:fc};
-}
-function gbUpdateNetBillDisplay() {
-    const disp = document.getElementById('gbNetBillDisplay');
-    const amt = document.getElementById('gbNetBillAmount');
-    if(!disp || !amt) return;
-    const ci=document.getElementById('gbCheckIn')?.value;
-    const co=document.getElementById('gbCheckOut')?.value;
-    const exR=document.getElementById('gbExcluded')?.value;
-    const exD=exR?exR.split(',').map(x=>x.trim()):[];
-    const cid=document.getElementById('gbGuestType')?.value;
-    const rid=document.getElementById('gbRoomType')?.value;
-    const {roomRentTotal, finalCurrency} = gbCalculateBill(ci, co, exD, cid, rid);
-    let extraTotal = 0;
-    document.querySelectorAll('.gb-charge-amount').forEach(i => { extraTotal += parseFloat(i.value) || 0; });
-    let totalBill = roomRentTotal + extraTotal;
-    let discount = parseFloat(document.getElementById('gbDiscount')?.value) || 0;
-    let vat = parseFloat(document.getElementById('gbVat')?.value) || 0;
-    let tax = parseFloat(document.getElementById('gbTax')?.value) || 0;
-    let discountAmount = totalBill * (discount / 100);
-    let afterDiscount = totalBill - discountAmount;
-    let vatAmount = afterDiscount * (vat / 100);
-    let taxAmount = afterDiscount * (tax / 100);
-    let netBill = afterDiscount + vatAmount + taxAmount;
-    let sym = getCurrencySymbol(finalCurrency);
-    amt.innerText = `${sym}${netBill.toFixed(2)}`;
-    if(window.innerWidth < 768) {
-        disp.style.display = 'block';
-    } else {
-        disp.style.display = 'none';
-    }
-}
+function gbCalculateBill(cI,cO,exD,ci,ri){let t=0,fc='BDT';if(ci!=='Others'&&guestBillState.settings.categories[ci]&&guestBillState.settings.categories[ci].roomTypes[ri]){const r=guestBillState.settings.categories[ci].roomTypes[ri];fc=r.currency||'BDT';const normalizedExD=exD.map(d=>gbParseDateStr(d));let cur=new Date(cI);let end=new Date(cO);let curDate=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate());let endDate=new Date(end.getFullYear(),end.getMonth(),end.getDate());let cd=0;while(curDate<=endDate){const y=curDate.getFullYear();const m=(curDate.getMonth()+1).toString().padStart(2,'0');const d=curDate.getDate().toString().padStart(2,'0');const ds=`${y}-${m}-${d}`;if(!normalizedExD.includes(ds)){cd++;let dr=0;if(cd>r.limitDays){dr=r.extraRate;}else{dr=r.regularRate;}t+=dr;}curDate.setDate(curDate.getDate()+1);}}return{roomRentTotal:Math.round(t),finalCurrency:fc};}
+function gbUpdateNetBillDisplay(){const disp=document.getElementById('gbNetBillDisplay');const amt=document.getElementById('gbNetBillAmount');if(!disp||!amt)return;const ci=document.getElementById('gbCheckIn')?.value;const co=document.getElementById('gbCheckOut')?.value;const exR=document.getElementById('gbExcluded')?.value;const exD=exR?exR.split(',').map(x=>x.trim()):[];const cid=document.getElementById('gbGuestType')?.value;const rid=document.getElementById('gbRoomType')?.value;const {roomRentTotal,finalCurrency}=gbCalculateBill(ci,co,exD,cid,rid);let extraTotal=0;document.querySelectorAll('.gb-charge-amount').forEach(i=>{extraTotal+=parseFloat(i.value)||0;});let totalBill=roomRentTotal+extraTotal;let discount=parseFloat(document.getElementById('gbDiscount')?.value)||0;let vat=parseFloat(document.getElementById('gbVat')?.value)||0;let tax=parseFloat(document.getElementById('gbTax')?.value)||0;let discountAmount=totalBill*(discount/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*(vat/100);let taxAmount=afterDiscount*(tax/100);let netBill=afterDiscount+vatAmount+taxAmount;let sym=getCurrencySymbol(finalCurrency);amt.innerText=`${sym}${netBill.toFixed(2)}`;if(window.innerWidth<768){disp.style.display='block';}else{disp.style.display='none';}}
 function gbAddTemp(){const n=document.getElementById('gbGuestName').value.trim(),ci=document.getElementById('gbCheckIn').value,co=document.getElementById('gbCheckOut').value;if(!n){showToast('অন্তত নামটি লিখুন!','error');return;}if(!ci||!co){showToast('চেক-ইন এবং চেক-আউট তারিখ দিন!','error');return;}const fd=gbGetFormData();if(guestBillState.editGuestId){let u=false;guestBillState.tempGuests=guestBillState.tempGuests.map(g=>{if(g.id===guestBillState.editGuestId){u=true;return{...g,...fd,id:g.id};}return g;});if(!u){const i=parseInt(guestBillState.editGuestId.replace('index_',''));if(!isNaN(i)&&guestBillState.tempGuests[i])guestBillState.tempGuests[i]={...guestBillState.tempGuests[i],...fd,id:guestBillState.tempGuests[i].id};}}else{fd.id=genId('gbg');guestBillState.tempGuests.push(fd);}gbResetGuestForm();gbRenderTempGuests();document.getElementById('gbGuestName').focus();}
 function gbRenderTempGuests(){const el=document.getElementById('gbTempList');if(!el)return;if(guestBillState.tempGuests.length===0){el.innerHTML='<p style="color:var(--text-light);font-size:12px;text-align:center;padding:8px;">কোনো গেস্ট এন্ট্রি দেওয়া হয়নি।</p>';return;}el.innerHTML=guestBillState.tempGuests.map((g,i)=>`<div class="gb-temp-item" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="gbEditTempGuest(${i})"><span style="flex:1; color:#4c1d95; cursor:pointer;"><strong>${i+1}.</strong> ${escapeHtml(g.guestName)} <span style="color:var(--text-light);font-size:11px;">(${escapeHtml(g.roomTypeName)})</span></span><div class="flex gap-8" style="margin-left:8px;"><button onclick="event.stopPropagation(); gbEditTempGuest(${i})" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:14px;padding:0 4px;">✏️</button><button onclick="event.stopPropagation(); gbRemoveTemp(${i})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;">✖</button></div></div>`).join('');}
 function gbEditTempGuest(i){const g=guestBillState.tempGuests[i];if(!g)return;guestBillState.editGuestId=g.id||`index_${i}`;document.getElementById('gbGuestName').value=g.guestName||'';document.getElementById('gbNidNumber').value=g.nidNumber||'';document.getElementById('gbMobile').value=g.mobile||'';document.getElementById('gbAddress').value=g.address||'';document.getElementById('gbRoomNumber').value=g.roomNumber||'';document.getElementById('gbCheckIn').value=g.checkIn||'';document.getElementById('gbCheckOut').value=g.checkOut||'';document.getElementById('gbExcluded').value=(g.excludedDates||[]).join(', ');document.getElementById('gbPurpose').value=g.purpose||'';document.getElementById('gbComments').value=g.comments||'';const gs=document.getElementById('gbGuestType');let tf=false;for(let j=0;j<gs.options.length;j++){if(gs.options[j].value===g.catId){gs.value=g.catId;tf=true;break;}}if(!tf){gs.value="Others";document.getElementById('gbCustomType').value=g.guestType||'';}else{document.getElementById('gbCustomType').value='';}gbToggleOther();if(g.catId&&g.catId!=='Others'){const rs=document.getElementById('gbRoomType');for(let j=0;j<rs.options.length;j++){if(rs.options[j].value===g.roomType){rs.value=g.roomType;break;}}}gbUpdateDays();const cb=document.getElementById('gbHasExtraCharges');if(g.extraCharges&&g.extraCharges.length>0){cb.checked=true;toggleExtraCharges();g.extraCharges.forEach(c=>gbAddChargeRow(c.name,c.amount));}else{cb.checked=false;toggleExtraCharges();}updateChargeTotal();document.getElementById('gbDiscount').value=g.discount||'';document.getElementById('gbVat').value=g.vat||'';document.getElementById('gbTax').value=g.tax||'';gbUpdateNetBillDisplay();const tb=document.getElementById('gbTempBtn');if(tb){tb.innerHTML='🔄 গেস্ট আপডেট করুন';tb.classList.remove('gb-btn-yellow');tb.classList.add('gb-btn-success');}document.getElementById('gbGuestName').focus();window.scrollTo({top:document.getElementById('gbTempBtn').offsetTop-100,behavior:'smooth'});}
 function gbResetGuestForm(){document.getElementById('gbGuestName').value='';document.getElementById('gbNidNumber').value='';document.getElementById('gbMobile').value='';document.getElementById('gbAddress').value='';document.getElementById('gbRoomNumber').value='';document.getElementById('gbPurpose').value='';document.getElementById('gbComments').value='';document.getElementById('gbCheckIn').value='';document.getElementById('gbCheckOut').value='';document.getElementById('gbExcluded').value='';document.getElementById('gbTotalDays').value='';if(document.getElementById('gbCustomType'))document.getElementById('gbCustomType').value='';const cb=document.getElementById('gbHasExtraCharges');if(cb){cb.checked=false;toggleExtraCharges();}document.getElementById('gbDiscount').value='';document.getElementById('gbVat').value='';document.getElementById('gbTax').value='';guestBillState.editGuestId=null;const tb=document.getElementById('gbTempBtn');if(tb){tb.innerHTML='➕ গেস্ট ডাটা এন্ট্রি';tb.classList.remove('gb-btn-success');tb.classList.add('gb-btn-yellow');}gbUpdateNetBillDisplay();}
 function gbRemoveTemp(i){guestBillState.tempGuests.splice(i,1);if(guestBillState.editGuestId)gbResetGuestForm();gbRenderTempGuests();}
 function gbShowHeadingModal(){openModal('বিলের হেডিং',`<div class="form-group"><label>বিলের হেডিং *</label><input type="text" id="gbBillHeading" class="gb-input" placeholder="যেমন: EGB Rest House Bill"></div><div class="flex gap-8 mt-16"><button class="gb-btn gb-btn-primary" style="flex:1" onclick="gbConfirmSubmitBill()">সেভ করুন</button><button class="gb-btn gb-btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`,false,true);}
-function gbConfirmSubmitBill(){
-    const h=document.getElementById('gbBillHeading').value.trim();
-    if(!h){showToast('হেডিং লিখুন!','error');return;}
-    forceCloseModal();
-    const gw=guestBillState.tempGuests.map(g=>({id:g.id||genId('gbg'),...g})),
-    b='batch_'+Date.now(),
-    billDiscount = gw.length > 0 ? (gw[0].discount || 0) : 0,
-    billVat = gw.length > 0 ? (gw[0].vat || 0) : 0,
-    billTax = gw.length > 0 ? (gw[0].tax || 0) : 0,
-    nd={heading:h,batchId:b,guests:gw,discount:billDiscount,vat:billVat,tax:billTax,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-    GbStore.saveBatchBill(nd).then(()=>{
-        guestBillState.tempGuests=[];
-        showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`);
-        gbRenderTempGuests();
-        gbSwitchTab('billList');
-    }).catch(e=>showToast('সেভ করতে সমস্যা','error'));
-}
-async function gbSubmitBill(){
-    const eid=document.getElementById('gbEditId').value;
-    if(eid){
-        const b=guestBillState.bills.find(x=>x.id===eid);
-        if(b){
-            if(document.getElementById('gbGuestName').value.trim()!=='')gbAddTemp();
-            const uh=document.getElementById('gbEditHeadingInput')?.value.trim();
-            if(uh)b.heading=uh;
-            else b.heading="Rest House Bill";
-            b.guests=guestBillState.tempGuests.map(g=>({id:g.id||genId('gbg'),...g}));
-            if(b.guests.length > 0){
-                b.discount = b.guests[0].discount || 0;
-                b.vat = b.guests[0].vat || 0;
-                b.tax = b.guests[0].tax || 0;
-            } else {
-                b.discount = 0; b.vat = 0; b.tax = 0;
-            }
-            try{
-                await GbStore.updateBill(b);
-                showToast('বিল সফলভাবে আপডেট হয়েছে!');
-                guestBillState.tempGuests=[];
-                gbResetForm();
-                gbSwitchTab('billList');
-            }catch(e){showToast('আপডেট করতে সমস্যা','error');}
-        }
-    }else{
-        if(document.getElementById('gbGuestName').value.trim()!=='')gbAddTemp();
-        if(guestBillState.tempGuests.length===0){showToast('অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!','error');return;}
-        gbShowHeadingModal();
-    }
-}
+function gbConfirmSubmitBill(){const h=document.getElementById('gbBillHeading').value.trim();if(!h){showToast('হেডিং লিখুন!','error');return;}forceCloseModal();const gw=guestBillState.tempGuests.map(g=>({id:g.id||genId('gbg'),...g})),b='batch_'+Date.now(),billDiscount=gw.length>0?(gw[0].discount||0):0,billVat=gw.length>0?(gw[0].vat||0):0,billTax=gw.length>0?(gw[0].tax||0):0,nd={heading:h,batchId:b,guests:gw,discount:billDiscount,vat:billVat,tax:billTax,createdAt:firebase.firestore.FieldValue.serverTimestamp()};GbStore.saveBatchBill(nd).then(()=>{guestBillState.tempGuests=[];showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`);gbRenderTempGuests();gbSwitchTab('billList');}).catch(e=>showToast('সেভ করতে সমস্যা','error'));}
+async function gbSubmitBill(){const eid=document.getElementById('gbEditId').value;if(eid){const b=guestBillState.bills.find(x=>x.id===eid);if(b){if(document.getElementById('gbGuestName').value.trim()!=='')gbAddTemp();const uh=document.getElementById('gbEditHeadingInput')?.value.trim();if(uh)b.heading=uh;else b.heading="Rest House Bill";b.guests=guestBillState.tempGuests.map(g=>({id:g.id||genId('gbg'),...g}));if(b.guests.length>0){b.discount=b.guests[0].discount||0;b.vat=b.guests[0].vat||0;b.tax=b.guests[0].tax||0;}else{b.discount=0;b.vat=0;b.tax=0;}try{await GbStore.updateBill(b);showToast('বিল সফলভাবে আপডেট হয়েছে!');guestBillState.tempGuests=[];gbResetForm();gbSwitchTab('billList');}catch(e){showToast('আপডেট করতে সমস্যা','error');}}}else{if(document.getElementById('gbGuestName').value.trim()!=='')gbAddTemp();if(guestBillState.tempGuests.length===0){showToast('অন্তত একজন গেস্টের ডাটা এন্ট্রি দিন!','error');return;}gbShowHeadingModal();}}
 function gbEditBill(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b)return;gbSwitchTab('newBill');guestBillState.tempGuests=b.guests.map(g=>({...g}));gbRenderTempGuests();document.getElementById('gbEditHeadingContainer').style.display='block';document.getElementById('gbEditHeadingInput').value=b.heading||'';document.getElementById('gbEditId').value=b.id;document.getElementById('gbEditGuestId').value='';const f=document.getElementById('gbBillForm');if(f)f.reset();document.getElementById('gbTotalDays').value='';document.getElementById('gbHasExtraCharges').checked=false;toggleExtraCharges();document.getElementById('gbSubmitBtn').innerHTML='✏️ বিল আপডেট করুন';const tb=document.getElementById('gbTempBtn');if(tb){tb.style.display='block';tb.innerHTML='➕ গেস্ট যোগ করুন';tb.classList.remove('gb-btn-success');tb.classList.add('gb-btn-yellow');}window.scrollTo({top:0,behavior:'smooth'});}
 function gbResetForm(){const f=document.getElementById('gbBillForm');if(f)f.reset();document.getElementById('gbEditId').value='';document.getElementById('gbEditGuestId').value='';document.getElementById('gbEditHeadingContainer').style.display='none';document.getElementById('gbEditHeadingInput').value='';const sb=document.getElementById('gbSubmitBtn');if(sb)sb.innerHTML='📄 বিল তৈরি করুন';const tb=document.getElementById('gbTempBtn');if(tb){tb.style.display='block';tb.innerHTML='➕ গেস্ট ডাটা এন্ট্রি';tb.classList.remove('gb-btn-success');tb.classList.add('gb-btn-yellow');}const td=document.getElementById('gbTotalDays');if(td)td.value='';document.getElementById('gbHasExtraCharges').checked=false;toggleExtraCharges();gbToggleOther();guestBillState.tempGuests=[];gbRenderTempGuests();}
 function gbDeleteBill(id){checkPassword(()=>{showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?',async()=>{try{await GbStore.deleteBill(id);showToast('বিল ডিলিট হয়েছে');}catch(e){showToast('ডিলিট করতে সমস্যা','error');}});});}
@@ -581,10 +469,6 @@ function gbDownloadPDF(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b
 function formatExcelSheet(ws,headers,data){ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:headers.length-1}},{s:{r:1,c:0},e:{r:1,c:headers.length-1}}];const r=XLSX.utils.decode_range(ws['!ref']);for(let R=r.s.r;R<=r.e.r;R++){for(let C=r.s.c;C<=r.e.c;C++){const ca=XLSX.utils.encode_cell({r:R,c:C});if(!ws[ca])ws[ca]={v:'',t:'s'};let s={alignment:{horizontal:'center',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:"AAAAAA"}},bottom:{style:'thin',color:{rgb:"AAAAAA"}},left:{style:'thin',color:{rgb:"AAAAAA"}},right:{style:'thin',color:{rgb:"AAAAAA"}}}};if(R===0)s.font={bold:true,sz:16,color:{rgb:"1E40AF"}};else if(R===1)s.font={bold:true,sz:14,color:{rgb:"000000"}};else if(R===3){s.font={bold:true,sz:12,color:{rgb:"FFFFFF"}};s.fill={fgColor:{rgb:"2563EB"}};}else if(R>3)s.font={sz:11};ws[ca].s=s;}}ws['!cols']=[{wch:5},{wch:20},{wch:15},{wch:15},{wch:15},{wch:15},{wch:8},{wch:25},{wch:15}];}
 function gbDownloadExcel(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b||!b.guests)return;const h=['ক্রম','নাম','মোবাইল','রুম নং','চেক-ইন','চেক-আউট','দিন','সার্ভিস নাম','সার্ভিস চার্জ'];const d=b.guests.map((g,i)=>{const cs=getCurrencySymbol(g.currency);let serviceNames='রুম ভাড়া';let serviceCharges=`${cs}${g.roomRent||0}`;if(g.extraCharges&&g.extraCharges.length>0){g.extraCharges.forEach(c=>{serviceNames+=`, ${c.name}`;serviceCharges+=`, ${cs}${c.amount}`;});}return[i+1,g.guestName,g.mobile||'-',g.roomNumber,gbFormatDate(g.checkIn),gbFormatDate(g.checkOut),g.totalDays,serviceNames,serviceCharges];});let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);let discountAmount=totalBill*((b.discount||0)/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*((b.vat||0)/100);let taxAmount=afterDiscount*((b.tax||0)/100);let netBill=afterDiscount+vatAmount+taxAmount;let curr=getCurrencySymbol(b.guests[0].currency);d.push([]);d.push(['','','','','','','','মোট বিল:',`${curr}${totalBill.toFixed(2)}`]);d.push(['','','','','','','',`ডিসকাউন্ট (${b.discount||0}%):`,`- ${curr}${discountAmount.toFixed(2)}`]);d.push(['','','','','','','',`ভ্যাট (${b.vat||0}%):`,`+ ${curr}${vatAmount.toFixed(2)}`]);d.push(['','','','','','','',`ট্যাক্স (${b.tax||0}%):`,`+ ${curr}${taxAmount.toFixed(2)}`]);d.push(['','','','','','','','নিট বিল:',`${curr}${netBill.toFixed(2)}`]);const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);formatExcelSheet(ws,h,d);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Bill");XLSX.writeFile(wb,`Bill_${b.id}.xlsx`);showToast('Excel ডাউনলোড হচ্ছে...');}
 function gbDownloadBulkPDF(){const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}const bs=gbGetFilteredBills();if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}const w=window.open('','_blank');let c=bs.map(b=>generateBillTableHtml(b)+'<div style="page-break-after: always;"></div>').join('');w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${c}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);w.document.close();showToast('PDF প্রিভিউ খোলা হচ্ছে...');}
-gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}const bs=gbGetFilteredBills();if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}const wb=XLSX.utils.book_new();bs.forEach(b=>{const h=['ক্রম','নাম','মোবাইল','রুম নং','চেক-ইন','চেক-আউট','দিন','সার্ভিস নাম','সার্ভিস চার্জ'];const d=b.guests.map((g,i)=>{const cs=getCurrencySymbol(g.currency);let serviceNames='রুম ভাড়া';let serviceCharges=`${cs}${g.roomRent||0}`;if(g.extraCharges&&g.extraCharges.length>0){g.extraCharges.forEach(c=>{serviceNames+=`, ${c.name}`;serviceCharges+=`, ${cs}${c.amount}`;});}return[i+1,g.guestName,g.mobile||'-',g.roomNumber,gbFormatDate(g.checkIn),gbFormatDate(g.checkOut),g.totalDays,serviceNames,serviceCharges];});let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);let discountAmount=totalBill*((b.discount||0)/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*((b.vat||0)/100);let taxAmount=afterDiscount*((b.tax||0)/100);let netBill=afterDiscount+vatAmount+taxAmount;let curr=getCurrencySymbol(b.guests[0].currency);d.push([]);d.push(['','','','','','','','মোট বিল:',`${curr}${totalBill.toFixed(2)}`]);d.push(['','','','','','','',`ডিসকাউন্ট (${b.discount||0}%):`,`- ${curr}${discountAmount.toFixed(2)}`]);d.push(['','','','','','','',`ভ্যাট (${b.vat||0}%):`,`+ ${curr}${vatAmount.toFixed(2)}`]);d.push(['','','','','','','',`ট্যাক্স (${b.tax||0}%):`,`+ ${curr}${taxAmount.toFixed(2)}`]);d.push(['','','','','','','','নিট বিল:',`${curr}${netBill.toFixed(2)}`]);const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);formatExcelSheet(ws,h,d);let sn=b.heading?b.heading.substring(0,28):`Bill_${b.id.substring(0,5)}`;XLSX.utils.book_append_sheet(wb,ws,sn);});XLSX.writeFile(wb,`Bills_${new Date().toLocaleDateString()}.xlsx`);showToast('Excel ডাউনলোড হচ্ছে...');}
+function gbDownloadBulkExcel(){const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}const bs=gbGetFilteredBills();if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}const wb=XLSX.utils.book_new();bs.forEach(b=>{const h=['ক্রম','নাম','মোবাইল','রুম নং','চেক-ইন','চেক-আউট','দিন','সার্ভিস নাম','সার্ভিস চার্জ'];const d=b.guests.map((g,i)=>{const cs=getCurrencySymbol(g.currency);let serviceNames='রুম ভাড়া';let serviceCharges=`${cs}${g.roomRent||0}`;if(g.extraCharges&&g.extraCharges.length>0){g.extraCharges.forEach(c=>{serviceNames+=`, ${c.name}`;serviceCharges+=`, ${cs}${c.amount}`;});}return[i+1,g.guestName,g.mobile||'-',g.roomNumber,gbFormatDate(g.checkIn),gbFormatDate(g.checkOut),g.totalDays,serviceNames,serviceCharges];});let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);let discountAmount=totalBill*((b.discount||0)/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*((b.vat||0)/100);let taxAmount=afterDiscount*((b.tax||0)/100);let netBill=afterDiscount+vatAmount+taxAmount;let curr=getCurrencySymbol(b.guests[0].currency);d.push([]);d.push(['','','','','','','','মোট বিল:',`${curr}${totalBill.toFixed(2)}`]);d.push(['','','','','','','',`ডিসকাউন্ট (${b.discount||0}%):`,`- ${curr}${discountAmount.toFixed(2)}`]);d.push(['','','','','','','',`ভ্যাট (${b.vat||0}%):`,`+ ${curr}${vatAmount.toFixed(2)}`]);d.push(['','','','','','','',`ট্যাক্স (${b.tax||0}%):`,`+ ${curr}${taxAmount.toFixed(2)}`]);d.push(['','','','','','','','নিট বিল:',`${curr}${netBill.toFixed(2)}`]);const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);formatExcelSheet(ws,h,d);let sn=b.heading?b.heading.substring(0,28):`Bill_${b.id.substring(0,5)}`;XLSX.utils.book_append_sheet(wb,ws,sn);});XLSX.writeFile(wb,`Bills_${new Date().toLocaleDateString()}.xlsx`);showToast('Excel ডাউনলোড হচ্ছে...');}
 function hideLoader(){const l=document.getElementById('loader');if(l){l.style.opacity='0';setTimeout(()=>l.style.display='none',300);}}
-function initApp(){document.onmousemove=resetIdleTimer;document.onkeypress=resetIdleTimer;document.onclick=resetIdleTimer;if(typeof firebase==='undefined'||!firebase.auth){showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।","error");hideLoader();document.getElementById('authContainer').style.display='flex';showLoginView();return;}firebase.auth().onAuthStateChanged(u=>{const il=sessionStorage.getItem('rms_is_logged_in')==='true';if(u&&il){isExplicitLogout=false;if(!currentUser||currentUser.uid!==u.uid)loadAppData(u);}else if(u&&!il){currentUser=null;document.getElementById('appContainer').style.display='none';document.getElementById('authContainer').style.display='flex';showLoginView();hideLoader();}else if(!u&&!il){currentUser=null;document.getElementById('appContainer').style.display='none';document.getElementById('authContainer').style.display='flex';showLoginView();hideLoader();}else if(!u&&il&&!isExplicitLogout){console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");}else if(!u&&il&&isExplicitLogout){currentUser=null;document.getElementById('appContainer').style.display='none';document.getElementById('authContainer').style.display='flex';showLoginView();hideLoader();}});}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);else initApp();
-</script>
-</body>
-</html>
+function initApp(){document.onmousemove=resetIdleTimer;document.onkeypress=resetIdleTimer;document.onclick=resetIdleTimer;if(typeof firebase==='undefined'||!firebase.auth){showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।","error");hideLoader();document.getElementById('authContainer').style.display='flex';showLoginView();return;}firebase.auth().onAuthStateChanged(u=>{const il=sessionStorage.getItem('rms_is_logged_in')==='true';if(u&&il){isExplicitLogout=false;if(!currentUser||currentUser.uid!==u.uid)loadAppData(u);}else if(u&&!il){currentUser=null;document.getElementById('appContainer').
