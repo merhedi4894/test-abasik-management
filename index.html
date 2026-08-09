@@ -127,7 +127,7 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 .gb-del-btn svg { stroke: #e11d48 !important; width: 16px; height: 16px; }
 .gb-section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #1e293b; }
 .gb-pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
-.gb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border: none; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap; box-shadow: 0 4px 6px rgba(0,0,0,0.08); }
+.gb-btn { display: inline-flex; align-items: center; justify-content:center; gap: 6px; padding: 10px 16px; border: none; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap; box-shadow: 0 4px 6px rgba(0,0,0,0.08); }
 .gb-btn-primary { background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; }
 .gb-btn-primary:hover { background: linear-gradient(135deg, #1e40af, #4338ca); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3); }
 .gb-btn-yellow { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #fff; }
@@ -595,128 +595,278 @@ function gbNextPage(){const t=Math.ceil(guestBillState.filteredBills.length/gues
 function gbGetFilteredBills(){const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;if(!f&&!t)return guestBillState.bills;return guestBillState.bills.filter(b=>{if(!b.guests||b.guests.length===0)return false;return b.guests.some(g=>{if(!g.checkIn)return false;const ci=typeof g.checkIn==='string'?g.checkIn.split('T')[0]:'';let fo=true,to=true;if(f)fo=ci>=f;if(t)to=ci<=t;return fo&&to;});});}
 function getGbNbNote(ci,ri){if(!ci||ci==='Others'||!guestBillState.settings.categories[ci]||!guestBillState.settings.categories[ci].roomTypes[ri])return[];const r=guestBillState.settings.categories[ci].roomTypes[ri];if(!r)return[];let notes=[];let c=r.currency==='USD'?'ডলার':'টাকা';if(r.limitDays>0&&r.regularRate>0){notes.push(`N.B: 1-${r.limitDays} দিনের দৈনিক রুম ভাড়ার পরিমাণ ${r.regularRate} ${c}`);}if(r.limitDays>0&&r.extraRate>0){notes.push(`N.B: ${r.limitDays} দিন পর দৈনিক রুম ভাড়ার পরিমাণ ${r.extraRate} ${c}`);}return notes;}
 function getActiveBillColumns(b) {let possibleCols = [{key: 'index', label: 'ক্রম'},{key: 'guestName', label: 'নাম'},{key: 'mobile', label: 'মোবাইল'},{key: 'nidNumber', label: 'NID'},{key: 'roomNumber', label: 'রুম নং'},{key: 'checkIn', label: 'চেক-ইন'},{key: 'checkOut', label: 'চেক-আউট'},{key: 'totalDays', label: 'দিন'},{key: 'purpose', label: 'উদ্দেশ্য'},{key: 'address', label: 'ঠিকানা'},{key: 'comments', label: 'মন্তব্য'},{key: 'service', label: 'সার্ভিস নাম'},{key: 'charge', label: 'সার্ভিস চার্জ'}];return possibleCols.filter(col => {if (['index', 'guestName', 'roomNumber', 'checkIn', 'checkOut', 'totalDays', 'service', 'charge'].includes(col.key)) return true;return b.guests.some(g => g[col.key] && String(g[col.key]).trim() !== '');});}
-function generateBillTableHtml(b){let h=`<div style="border: 2px solid #2563eb; padding: 20px; border-radius: 10px; margin: 20px 0;">`;h+=`<h1 style="text-align:center;margin-bottom:5px;color:#1e40af;font-size:32px;letter-spacing:2px;font-weight:800;">INVOICE</h1>`;h+=`<h2 style="text-align:center;margin-bottom:5px;color:#1e293b;">${escapeHtml(b.heading||'Rest House Bill')}</h2>`;h+=`<p style="text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;">তারিখ: ${new Date().toLocaleDateString()}</p>`;const cols = getActiveBillColumns(b);h+=`<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="background:#2563eb;color:#fff;">`;h+=cols.map(c=>`<th style="padding:8px;border:1px solid #cbd5e1;">${c.label}</th>`).join('');h+=`</tr></thead><tbody>`;let totalBill=0;b.guests.forEach((g,i)=>{let cs=getCurrencySymbol(g.currency);let serviceNames=`রুম ভাড়া`;let serviceCharges=`${cs}${g.roomRent||0}`;totalBill+=(g.roomRent||0);if(g.extraCharges&&g.extraCharges.length>0){g.extraCharges.forEach(c=>{serviceNames+=`<br>${escapeHtml(c.name)}`;serviceCharges+=`<br>${cs}${c.amount}`;totalBill+=c.amount;});}let tdHtml=cols.map(c=>{let val='';let style='padding:8px;border:1px solid #cbd5e1;';switch(c.key){case 'index': val=i+1; style+='text-align:center;'; break;case 'guestName': val=escapeHtml(g.guestName); break;case 'mobile': val=escapeHtml(g.mobile||'-'); break;case 'nidNumber': val=escapeHtml(g.nidNumber||'-'); break;case 'roomNumber': val=escapeHtml(g.roomNumber); break;case 'checkIn': val=gbFormatDate(g.checkIn); break;case 'checkOut': val=gbFormatDate(g.checkOut); break;case 'totalDays': val=escapeHtml(g.totalDays); style+='text-align:center;'; break;case 'purpose': val=escapeHtml(g.purpose||'-'); break;case 'address': val=escapeHtml(g.address||'-'); break;case 'comments': val=escapeHtml(g.comments||'-'); break;case 'service': val=serviceNames; break;case 'charge': val=serviceCharges; style+='text-align:right;'; break;}return `<td style="${style}">${val}</td>`;}).join('');h+=`<tr>${tdHtml}</tr>`;});h+=`</tbody></table>`;let discountVal=b.discount||0;let vatVal=b.vat||0;let taxVal=b.tax||0;let discountAmount=totalBill*(discountVal/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*(vatVal/100);let taxAmount=afterDiscount*(taxVal/100);let netBill=afterDiscount+vatAmount+taxAmount;let curr=getCurrencySymbol(b.guests[0].currency);h+=`<div style="width:100%;max-width:300px;margin-left:auto;margin-bottom:20px;">`;h+=`<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;font-weight:bold;"><span>মোট বিল:</span><span>${curr}${totalBill.toFixed(2)}</span></div>`;h+=`<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;color:#e11d48;"><span>ডিসকাউন্ট (${discountVal}%):</span><span>- ${curr}${discountAmount.toFixed(2)}</span></div>`;h+=`<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;"><span>ভ্যাট (${vatVal}%):</span><span>+ ${curr}${vatAmount.toFixed(2)}</span></div>`;h+=`<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;"><span>ট্যাক্স (${taxVal}%):</span><span>+ ${curr}${taxAmount.toFixed(2)}</span></div>`;h+=`<div style="display:flex;justify-content:space-between;padding:10px 8px;background:#f1f5f9;font-weight:bold;font-size:18px;color:#16a34a;border-radius:4px;"><span>নিট বিল:</span><span>${curr}${netBill.toFixed(2)}</span></div>`;h+=`</div>`;let nns=new Set(),eds=new Set();b.guests.forEach(g=>{let notes=getGbNbNote(g.catId,g.roomType);if(Array.isArray(notes)){notes.forEach(n=>nns.add(n));}if(g.excludedDates&&g.excludedDates.length>0)g.excludedDates.forEach(d=>eds.add(d));});let nh='';if(eds.size>0)nh+=`<div>N.B: বাদ দেওয়া তারিখসমূহ: ${Array.from(eds).join(', ')}</div>`;if(nns.size>0)Array.from(nns).forEach(n=>nh+=`<div>${n}</div>`);if(nh)h+=`<div style="font-size:12px;color:#555;margin-top:15px;padding:8px;background:#f8fafc;border-left:3px solid #2563eb;">${nh}</div>`;h+=`</div>`;return h;}
+function generateBillTableHtml(b){
+    let h=`<div style="border: 2px solid #2563eb; padding: 20px; border-radius: 10px; margin: 20px 0;">`;
+    h+=`<h1 style="text-align:center;margin-bottom:5px;color:#1e40af;font-size:32px;letter-spacing:2px;font-weight:800;">INVOICE</h1>`;
+    h+=`<h2 style="text-align:center;margin-bottom:5px;color:#1e293b;">${escapeHtml(b.heading||'Rest House Bill')}</h2>`;
+    h+=`<p style="text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;">তারিখ: ${new Date().toLocaleDateString()}</p>`;
+    const cols = getActiveBillColumns(b);
+    h+=`<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="background:#2563eb;color:#fff;">`;
+    h+=cols.map(c=>`<th style="padding:8px;border:1px solid #cbd5e1;">${c.label}</th>`).join('');
+    h+=`</tr></thead><tbody>`;
+    let totalBill=0;
+    b.guests.forEach((g,i)=>{
+        let cs=getCurrencySymbol(g.currency);
+        let serviceNames=`রুম ভাড়া`;
+        let serviceCharges=`${cs}${g.roomRent||0}`;
+        totalBill+=(g.roomRent||0);
+        if(g.extraCharges&&g.extraCharges.length>0){
+            g.extraCharges.forEach(c=>{
+                serviceNames+=`<br>${escapeHtml(c.name)}`;
+                serviceCharges+=`<br>${cs}${c.amount}`;
+                totalBill+=c.amount;
+            });
+        }
+        let tdHtml=cols.map(c=>{
+            let val='';
+            let style='padding:8px;border:1px solid #cbd5e1;';
+            switch(c.key){
+                case 'index': val=i+1; style+='text-align:center;'; break;
+                case 'guestName': val=escapeHtml(g.guestName); break;
+                case 'mobile': val=escapeHtml(g.mobile||'-'); break;
+                case 'nidNumber': val=escapeHtml(g.nidNumber||'-'); break;
+                case 'roomNumber': val=escapeHtml(g.roomNumber); break;
+                case 'checkIn': val=gbFormatDate(g.checkIn); break;
+                case 'checkOut': val=gbFormatDate(g.checkOut); break;
+                case 'totalDays': val=escapeHtml(g.totalDays); style+='text-align:center;'; break;
+                case 'purpose': val=escapeHtml(g.purpose||'-'); break;
+                case 'address': val=escapeHtml(g.address||'-'); break;
+                case 'comments': val=escapeHtml(g.comments||'-'); break;
+                case 'service': val=serviceNames; break;
+                case 'charge': val=serviceCharges; style+='text-align:right;'; break;
+            }
+            return `<td style="${style}">${val}</td>`;
+        }).join('');
+        h+=`<tr>${tdHtml}</tr>`;
+    });
+    h+=`</tbody></table>`;
+    let discountVal=b.discount||0;
+    let vatVal=b.vat||0;
+    let taxVal=b.tax||0;
+    let discountAmount=totalBill*(discountVal/100);
+    let afterDiscount=totalBill-discountAmount;
+    let vatAmount=afterDiscount*(vatVal/100);
+    let taxAmount=afterDiscount*(taxVal/100);
+    let netBill=afterDiscount+vatAmount+taxAmount;
+    let curr=getCurrencySymbol(b.guests[0].currency);
+    h+=`<div style="width:100%;max-width:300px;margin-left:auto;margin-bottom:20px;">`;
+    h+=`<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;font-weight:bold;"><span>মোট বিল:</span><span>${curr}${totalBill.toFixed(2)}</span></div>`;
+    h+=`<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;color:#e11d48;"><span>ডিসকাউন্ট (${discountVal}%):</span><span>- ${curr}${discountAmount.toFixed(2)}</span></div>`;
+    h+=`<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;"><span>ভ্যাট (${vatVal}%):</span><span>+ ${curr}${vatAmount.toFixed(2)}</span></div>`;
+    h+=`<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;"><span>ট্যাক্স (${taxVal}%):</span><span>+ ${curr}${taxAmount.toFixed(2)}</span></div>`;
+    h+=`<div style="display:flex;justify-content:space-between;padding:10px 8px;background:#f1f5f9;font-weight:bold;font-size:18px;color:#16a34a;border-radius:4px;"><span>নিট বিল:</span><span>${curr}${netBill.toFixed(2)}</span></div>`;
+    h+=`</div>`;
+    
+    let nns=new Set(),excludedNotes=[];
+    b.guests.forEach(g=>{
+        let notes=getGbNbNote(g.catId,g.roomType);
+        if(Array.isArray(notes)){notes.forEach(n=>nns.add(n));}
+        if(g.excludedDates&&g.excludedDates.length>0){
+            excludedNotes.push(`N.B: ${g.guestName} এর বাদ দেওয়া তারিখ সমূহ ${g.excludedDates.join(', ')}`);
+        }
+    });
+    
+    let nh='';
+    if(excludedNotes.length>0)excludedNotes.forEach(note=>nh+=`<div>${note}</div>`);
+    if(nns.size>0)Array.from(nns).forEach(n=>nh+=`<div>${n}</div>`);
+    if(nh)h+=`<div style="font-size:12px;color:#555;margin-top:15px;padding:8px;background:#f8fafc;border-left:3px solid #2563eb;">${nh}</div>`;
+    h+=`</div>`;
+    return h;
+}
 function gbDownloadPDF(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b||!b.guests)return;const w=window.open('','_blank');w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Bill</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{body{padding:10px;}@page{margin:1cm;}}</style></head><body>${generateBillTableHtml(b)}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);w.document.close();showToast('PDF প্রিভিউ খোলা হচ্ছে...');}
 function formatExcelSheet(ws,headers,data){ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:headers.length-1}},{s:{r:1,c:0},e:{r:1,c:headers.length-1}}];const r=XLSX.utils.decode_range(ws['!ref']);for(let R=r.s.r;R<=r.e.r;R++){for(let C=r.s.c;C<=r.e.c;C++){const ca=XLSX.utils.encode_cell({r:R,c:C});if(!ws[ca])ws[ca]={v:'',t:'s'};let s={alignment:{horizontal:'center',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:"AAAAAA"}},bottom:{style:'thin',color:{rgb:"AAAAAA"}},left:{style:'thin',color:{rgb:"AAAAAA"}},right:{style:'thin',color:{rgb:"AAAAAA"}}}};if(R===0)s.font={bold:true,sz:16,color:{rgb:"1E40AF"}};else if(R===1)s.font={bold:true,sz:14,color:{rgb:"000000"}};else if(R===3){s.font={bold:true,sz:12,color:{rgb:"FFFFFF"}};s.fill={fgColor:{rgb:"2563EB"}};}else if(R>3)s.font={sz:11};ws[ca].s=s;}}ws['!cols'] = headers.map(h => {if(h==='ক্রম') return {wch:5};if(h==='নাম') return {wch:20};if(h==='সার্ভিস নাম') return {wch:25};return {wch:15};});}
-function gbDownloadExcel(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b||!b.guests)return;const cols = getActiveBillColumns(b);const h = cols.map(c => c.label);const d = b.guests.map((g,i) => {const cs=getCurrencySymbol(g.currency);let serviceNames='রুম ভাড়া';let serviceCharges=`${cs}${g.roomRent||0}`;if(g.extraCharges&&g.extraCharges.length>0){g.extraCharges.forEach(c=>{serviceNames+=`, ${c.name}`;serviceCharges+=`, ${cs}${c.amount}`;});}return cols.map(c => {switch(c.key){case 'index': return i+1;case 'guestName': return g.guestName;case 'mobile': return g.mobile||'-';case 'nidNumber': return g.nidNumber||'-';case 'roomNumber': return g.roomNumber;case 'checkIn': return gbFormatDate(g.checkIn);case 'checkOut': return gbFormatDate(g.checkOut);case 'totalDays': return g.totalDays;case 'purpose': return g.purpose||'-';case 'address': return g.address||'-';case 'comments': return g.comments||'-';case 'service': return serviceNames;case 'charge': return serviceCharges;}});});let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);let discountAmount=totalBill*((b.discount||0)/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*((b.vat||0)/100);let taxAmount=afterDiscount*((b.tax||0)/100);let netBill=afterDiscount+vatAmount+taxAmount;let curr=getCurrencySymbol(b.guests[0].currency);let emptyArr = new Array(cols.length - 2).fill('');d.push([]);d.push([...emptyArr, 'মোট বিল:', `${curr}${totalBill.toFixed(2)}`]);d.push([...emptyArr, `ডিসকাউন্ট (${b.discount||0}%):`, `- ${curr}${discountAmount.toFixed(2)}`]);d.push([...emptyArr, `ভ্যাট (${b.vat||0}%):`, `+ ${curr}${vatAmount.toFixed(2)}`]);d.push([...emptyArr, `ট্যাক্স (${b.tax||0}%):`, `+ ${curr}${taxAmount.toFixed(2)}`]);d.push([...emptyArr, 'নিট বিল:', `${curr}${netBill.toFixed(2)}`]);let nns=new Set(),eds=new Set();b.guests.forEach(g=>{let notes=getGbNbNote(g.catId,g.roomType);if(Array.isArray(notes)){notes.forEach(n=>nns.add(n));}if(g.excludedDates&&g.excludedDates.length>0)g.excludedDates.forEach(d=>eds.add(d));});if(eds.size>0 || nns.size>0) {d.push([]);if(eds.size>0)d.push(['N.B:', `বাদ দেওয়া তারিখসমূহ: ${Array.from(eds).join(', ')}`]);Array.from(nns).forEach(n => d.push(['', n]));}const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);formatExcelSheet(ws,h,d);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Bill");XLSX.writeFile(wb,`Bill_${b.id}.xlsx`);showToast('Excel ডাউনলোড হচ্ছে...');}
-function gbDownloadBulkExcel(){
-    const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
-    if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}
-    const bs=gbGetFilteredBills();
-    if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}
-    const wb=XLSX.utils.book_new();
-    bs.forEach(b=>{
-        const cols = getActiveBillColumns(b);
-        const h = cols.map(c => c.label);
-        const d = b.guests.map((g,i) => {
-            const cs=getCurrencySymbol(g.currency);
-            let serviceNames='রুম ভাড়া';
-            let serviceCharges=`${cs}${g.roomRent||0}`;
-            if(g.extraCharges&&g.extraCharges.length>0){
-                g.extraCharges.forEach(c=>{
-                    serviceNames+=`, ${c.name}`;
-                    serviceCharges+=`, ${cs}${c.amount}`;
-                });
-            }
-            return cols.map(c => {
-                switch(c.key){
-                    case 'index': return i+1;
-                    case 'guestName': return g.guestName;
-                    case 'mobile': return g.mobile||'-';
-                    case 'nidNumber': return g.nidNumber||'-';
-                    case 'roomNumber': return g.roomNumber;
-                    case 'checkIn': return gbFormatDate(g.checkIn);
-                    case 'checkOut': return gbFormatDate(g.checkOut);
-                    case 'totalDays': return g.totalDays;
-                    case 'purpose': return g.purpose||'-';
-                    case 'address': return g.address||'-';
-                    case 'comments': return g.comments||'-';
-                    case 'service': return serviceNames;
-                    case 'charge': return serviceCharges;
-                }
+function gbDownloadExcel(id){
+    const b=guestBillState.bills.find(x=>x.id===id);
+    if(!b||!b.guests)return;
+    const cols = getActiveBillColumns(b);
+    const h = cols.map(c => c.label);
+    const d = b.guests.map((g,i) => {
+        const cs=getCurrencySymbol(g.currency);
+        let serviceNames='রুম ভাড়া';
+        let serviceCharges=`${cs}${g.roomRent||0}`;
+        if(g.extraCharges&&g.extraCharges.length>0){
+            g.extraCharges.forEach(c=>{
+                serviceNames+=`, ${c.name}`;
+                serviceCharges+=`, ${cs}${c.amount}`;
             });
+        }
+        return cols.map(c => {
+            switch(c.key){
+                case 'index': return i+1;
+                case 'guestName': return g.guestName;
+                case 'mobile': return g.mobile||'-';
+                case 'nidNumber': return g.nidNumber||'-';
+                case 'roomNumber': return g.roomNumber;
+                case 'checkIn': return gbFormatDate(g.checkIn);
+                case 'checkOut': return gbFormatDate(g.checkOut);
+                case 'totalDays': return g.totalDays;
+                case 'purpose': return g.purpose||'-';
+                case 'address': return g.address||'-';
+                case 'comments': return g.comments||'-';
+                case 'service': return serviceNames;
+                case 'charge': return serviceCharges;
+            }
         });
-        let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);
-        let discountAmount=totalBill*((b.discount||0)/100);
-        let afterDiscount=totalBill-discountAmount;
-        let vatAmount=afterDiscount*((b.vat||0)/100);
-        let taxAmount=afterDiscount*((b.tax||0)/100);
-        let netBill=afterDiscount+vatAmount+taxAmount;
-        let curr=getCurrencySymbol(b.guests[0].currency);
-        let emptyArr = new Array(cols.length - 2).fill('');
+    });
+    let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);
+    let discountAmount=totalBill*((b.discount||0)/100);
+    let afterDiscount=totalBill-discountAmount;
+    let vatAmount=afterDiscount*((b.vat||0)/100);
+    let taxAmount=afterDiscount*((b.tax||0)/100);
+    let netBill=afterDiscount+vatAmount+taxAmount;
+    let curr=getCurrencySymbol(b.guests[0].currency);
+    let emptyArr = new Array(cols.length - 2).fill('');
+    d.push([]);
+    d.push([...emptyArr, 'মোট বিল:', `${curr}${totalBill.toFixed(2)}`]);
+    d.push([...emptyArr, `ডিসকাউন্ট (${b.discount||0}%):`, `- ${curr}${discountAmount.toFixed(2)}`]);
+    d.push([...emptyArr, `ভ্যাট (${b.vat||0}%):`, `+ ${curr}${vatAmount.toFixed(2)}`]);
+    d.push([...emptyArr, `ট্যাক্স (${b.tax||0}%):`, `+ ${curr}${taxAmount.toFixed(2)}`]);
+    d.push([...emptyArr, 'নিট বিল:', `${curr}${netBill.toFixed(2)}`]);
+    
+    let nns=new Set(),excludedNotes=[];
+    b.guests.forEach(g=>{
+        let notes=getGbNbNote(g.catId,g.roomType);
+        if(Array.isArray(notes)){notes.forEach(n=>nns.add(n));}
+        if(g.excludedDates&&g.excludedDates.length>0){
+            excludedNotes.push(`${g.guestName} এর বাদ দেওয়া তারিখ সমূহ ${g.excludedDates.join(', ')}`);
+        }
+    });
+    
+    if(excludedNotes.length>0 || nns.size>0) {
         d.push([]);
-        d.push([...emptyArr, 'মোট বিল:', `${curr}${totalBill.toFixed(2)}`]);
-        d.push([...emptyArr, `ডিসকাউন্ট (${b.discount||0}%):`, `- ${curr}${discountAmount.toFixed(2)}`]);
-        d.push([...emptyArr, `ভ্যাট (${b.vat||0}%):`, `+ ${curr}${vatAmount.toFixed(2)}`]);
-        d.push([...emptyArr, `ট্যাক্স (${b.tax||0}%):`, `+ ${curr}${taxAmount.toFixed(2)}`]);
-        d.push([...emptyArr, 'নিট বিল:', `${curr}${netBill.toFixed(2)}`]);
-        let nns=new Set(),eds=new Set();
-        b.guests.forEach(g=>{
-            let notes=getGbNbNote(g.catId,g.roomType);
-            if(Array.isArray(notes)){notes.forEach(n=>nns.add(n));}
-            if(g.excludedDates&&g.excludedDates.length>0)g.excludedDates.forEach(d=>eds.add(d));
-        });
-        if(eds.size>0 || nns.size>0) {
-            d.push([]);
-            if(eds.size>0)d.push(['N.B:', `বাদ দেওয়া তারিখসমূহ: ${Array.from(eds).join(', ')}`]);
-            Array.from(nns).forEach(n => d.push(['', n]));
+        excludedNotes.forEach(note => d.push(['N.B:', note]));
+                    Array.from(nns).forEach(n => d.push(['', n]));
         }
         const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);
         formatExcelSheet(ws,h,d);
-        let sn=b.heading?b.heading.substring(0,28):`Bill_${b.id.substring(0,5)}`;
-        XLSX.utils.book_append_sheet(wb,ws,sn);
-    });
-    XLSX.writeFile(wb,`Bills_${new Date().toLocaleDateString()}.xlsx`);
-    showToast('Excel ডাউনলোড হচ্ছে...');
-}
-function gbDownloadBulkPDF(){
-    const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
-    if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}
-    const bs=gbGetFilteredBills();
-    if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}
-    const w=window.open('','_blank');
-    let c=bs.map(b=>generateBillTableHtml(b)+'<div style="page-break-after: always;"></div>').join('');
-    w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${c}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
-    w.document.close();
-    showToast('PDF প্রিভিউ খোলা হচ্ছে...');
-}
-
-function hideLoader(){const l=document.getElementById('loader');if(l){l.style.opacity='0';setTimeout(()=>l.style.display='none',300);}}
-function initApp(){
-    document.onmousemove=resetIdleTimer;document.onkeypress=resetIdleTimer;document.onclick=resetIdleTimer;
-    if(typeof firebase==='undefined'||!firebase.auth){
-        showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।","error");
-        hideLoader();
-        document.getElementById('authContainer').style.display='flex';
-        showLoginView();
-        return;
+        const wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,ws,"Bill");
+        XLSX.writeFile(wb,`Bill_${b.id}.xlsx`);
+        showToast('Excel ডাউনলোড হচ্ছে...');
     }
-    firebase.auth().onAuthStateChanged(u=>{
-        const il=sessionStorage.getItem('rms_is_logged_in')==='true';
-        if(u&&il){
-            isExplicitLogout=false;
-            if(!currentUser||currentUser.uid!==u.uid)loadAppData(u);
-        }else if(u&&!il){
-            currentUser=null;
-            document.getElementById('appContainer').style.display='none';
+    function gbDownloadBulkPDF(){
+        const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
+        if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}
+        const bs=gbGetFilteredBills();
+        if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}
+        const w=window.open('','_blank');
+        let c=bs.map(b=>generateBillTableHtml(b)+'<div style="page-break-after: always;"></div>').join('');
+        w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${c}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+        w.document.close();
+        showToast('PDF প্রিভিউ খোলা হচ্ছে...');
+    }
+    function gbDownloadBulkExcel(){
+        const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
+        if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}
+        const bs=gbGetFilteredBills();
+        if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}
+        const wb=XLSX.utils.book_new();
+        bs.forEach(b=>{
+            const cols = getActiveBillColumns(b);
+            const h = cols.map(c => c.label);
+            const d = b.guests.map((g,i) => {
+                const cs=getCurrencySymbol(g.currency);
+                let serviceNames='রুম ভাড়া';
+                let serviceCharges=`${cs}${g.roomRent||0}`;
+                if(g.extraCharges&&g.extraCharges.length>0){
+                    g.extraCharges.forEach(c=>{
+                        serviceNames+=`, ${c.name}`;
+                        serviceCharges+=`, ${cs}${c.amount}`;
+                    });
+                }
+                return cols.map(c => {
+                    switch(c.key){
+                        case 'index': return i+1;
+                        case 'guestName': return g.guestName;
+                        case 'mobile': return g.mobile||'-';
+                        case 'nidNumber': return g.nidNumber||'-';
+                        case 'roomNumber': return g.roomNumber;
+                        case 'checkIn': return gbFormatDate(g.checkIn);
+                        case 'checkOut': return gbFormatDate(g.checkOut);
+                        case 'totalDays': return g.totalDays;
+                        case 'purpose': return g.purpose||'-';
+                        case 'address': return g.address||'-';
+                        case 'comments': return g.comments||'-';
+                        case 'service': return serviceNames;
+                        case 'charge': return serviceCharges;
+                    }
+                });
+            });
+            let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);
+            let discountAmount=totalBill*((b.discount||0)/100);
+            let afterDiscount=totalBill-discountAmount;
+            let vatAmount=afterDiscount*((b.vat||0)/100);
+            let taxAmount=afterDiscount*((b.tax||0)/100);
+            let netBill=afterDiscount+vatAmount+taxAmount;
+            let curr=getCurrencySymbol(b.guests[0].currency);
+            let emptyArr = new Array(cols.length - 2).fill('');
+            d.push([]);
+            d.push([...emptyArr, 'মোট বিল:', `${curr}${totalBill.toFixed(2)}`]);
+            d.push([...emptyArr, `ডিসকাউন্ট (${b.discount||0}%):`, `- ${curr}${discountAmount.toFixed(2)}`]);
+            d.push([...emptyArr, `ভ্যাট (${b.vat||0}%):`, `+ ${curr}${vatAmount.toFixed(2)}`]);
+            d.push([...emptyArr, `ট্যাক্স (${b.tax||0}%):`, `+ ${curr}${taxAmount.toFixed(2)}`]);
+            d.push([...emptyArr, 'নিট বিল:', `${curr}${netBill.toFixed(2)}`]);
+            
+            let nns=new Set(),excludedNotes=[];
+            b.guests.forEach(g=>{
+                let notes=getGbNbNote(g.catId,g.roomType);
+                if(Array.isArray(notes)){notes.forEach(n=>nns.add(n));}
+                if(g.excludedDates&&g.excludedDates.length>0){
+                    excludedNotes.push(`${g.guestName} এর বাদ দেওয়া তারিখ সমূহ ${g.excludedDates.join(', ')}`);
+                }
+            });
+            
+            if(excludedNotes.length>0 || nns.size>0) {
+                d.push([]);
+                excludedNotes.forEach(note => d.push(['N.B:', note]));
+                Array.from(nns).forEach(n => d.push(['', n]));
+            }
+            
+            const aoa=[['INVOICE'],[b.heading||'Rest House Bill'],[],h,...d],ws=XLSX.utils.aoa_to_sheet(aoa);
+            formatExcelSheet(ws,h,d);
+            let sn=b.heading?b.heading.substring(0,28):`Bill_${b.id.substring(0,5)}`;
+            XLSX.utils.book_append_sheet(wb,ws,sn);
+        });
+        XLSX.writeFile(wb,`Bills_${new Date().toLocaleDateString()}.xlsx`);
+        showToast('Excel ডাউনলোড হচ্ছে...');
+    }
+
+    function hideLoader(){const l=document.getElementById('loader');if(l){l.style.opacity='0';setTimeout(()=>l.style.display='none',300);}}
+    function initApp(){
+        document.onmousemove=resetIdleTimer;document.onkeypress=resetIdleTimer;document.onclick=resetIdleTimer;
+        if(typeof firebase==='undefined'||!firebase.auth){
+            showToast("ইন্টারনেট বা ফায়ারবেজ লোডে সমস্যা হয়েছে।","error");
+            hideLoader();
             document.getElementById('authContainer').style.display='flex';
-            showLoginView();hideLoader();
-        }else if(!u&&!il){
-            currentUser=null;
-            document.getElementById('appContainer').style.display='none';
-            document.getElementById('authContainer').style.display='flex';
-            showLoginView();hideLoader();
-        }else if(!u&&il&&!isExplicitLogout){
-            console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
-        }else if(!u&&il&&isExplicitLogout){
-            currentUser=null;
-            document.getElementById('appContainer').style.display='none';
-            document.getElementById('authContainer').style.display='flex';
-            showLoginView();hideLoader();
+            showLoginView();
+            return;
         }
-    });
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);else initApp();
+        firebase.auth().onAuthStateChanged(u=>{
+            const il=sessionStorage.getItem('rms_is_logged_in')==='true';
+            if(u&&il){
+                isExplicitLogout=false;
+                if(!currentUser||currentUser.uid!==u.uid)loadAppData(u);
+            }else if(u&&!il){
+                currentUser=null;
+                document.getElementById('appContainer').style.display='none';
+                document.getElementById('authContainer').style.display='flex';
+                showLoginView();hideLoader();
+            }else if(!u&&!il){
+                currentUser=null;
+                document.getElementById('appContainer').style.display='none';
+                document.getElementById('authContainer').style.display='flex';
+                showLoginView();hideLoader();
+            }else if(!u&&il&&!isExplicitLogout){
+                console.warn("Firebase user became null temporarily. Ignoring to prevent data loss.");
+            }else if(!u&&il&&isExplicitLogout){
+                currentUser=null;
+                document.getElementById('appContainer').style.display='none';
+                document.getElementById('authContainer').style.display='flex';
+                showLoginView();hideLoader();
+            }
+        });
+    }
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);else initApp();
 </script>
 </body>
 </html>
