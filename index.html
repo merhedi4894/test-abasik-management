@@ -271,7 +271,7 @@ async function handleSignup(){const u=document.getElementById('signupUsername').
 async function handleLogin(){const i=document.getElementById('loginIdentifier').value.trim(),p=document.getElementById('loginPassword').value.trim();if(!i||!p){showToast('সব ফিল্ড পূরণ করুন','error');return;}setBtnLoading('loginBtn',true);let e=i;try{if(!i.includes('@')){const id=i.toLowerCase();const s=await db.collection('users').where('username','==',id).limit(1).get();if(s.empty){showToast('সঠিক তথ্য দিন','error');setBtnLoading('loginBtn',false);return;}e=s.docs[0].data().email;}else{if(!validateEmail(i)){showToast('সঠিক তথ্য দিন','error');setBtnLoading('loginBtn',false);return;}}isExplicitLogout=false;sessionStorage.setItem('rms_is_logged_in','true');const c=await firebase.auth().signInWithEmailAndPassword(e,p);let su=[];try{const s=localStorage.getItem('rms_logged_users');if(s)su=JSON.parse(s);}catch(e){}if(!su.includes(i)){su.push(i);localStorage.setItem('rms_logged_users',JSON.stringify(su));}await loadAppData(c.user);setBtnLoading('loginBtn',false);}catch(e){sessionStorage.removeItem('rms_is_logged_in');showToast('সঠিক তথ্য দিন','error');setBtnLoading('loginBtn',false);}}
 function saveStateToCache(){try{if(state.buildings.length>0||state.rooms.length>0||state.reports.length>0||Object.keys(state.templates||{}).length>0){localStorage.setItem('rms_state_cache',JSON.stringify({buildings:state.buildings,rooms:state.rooms,reports:state.reports,templates:state.templates||{}}));}}catch(e){}}
 function loadStateFromCache(){try{const s=localStorage.getItem('rms_state_cache');if(s){const d=JSON.parse(s);state.buildings=d.buildings||[];state.rooms=d.rooms||[];state.reports=d.reports||[];state.templates=d.templates||{};state.reports.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));const gb=localStorage.getItem('rms_gb_bills'),gs=localStorage.getItem('rms_gb_settings');if(gb)guestBillState.bills=JSON.parse(gb);if(gs)guestBillState.settings=JSON.parse(gs);return true;}}catch(e){}return false;}
-let isLoadingAppData=false,ub,ur,urt,ut;async function loadAppData(user){if(isLoadingAppData)return;isLoadingAppData=true;currentUser=user;document.getElementById('authContainer').style.display='none';document.getElementById('appContainer').style.display='block';resetIdleTimer();const hc=loadStateFromCache();state.isLoading=!hc;renderPage();hideLoader();try{if(ub)ub();if(ur)ur();if(urt)urt();if(ut)ut();ub=db.collection('buildings').onSnapshot(s=>{if(s.empty&&state.buildings.length>0)return;state.buildings=s.docs.map(d=>({id:d.id,...d.data()}));saveStateToCache();if(state.isLoading){state.isLoading=false;}renderPage();},err=>{if(err.code==='permission-denied'){showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...","error");if(firebase.auth().currentUser)firebase.auth().currentUser.getIdToken(true).catch(()=>{});}if(state.isLoading){state.isLoading=false;renderPage();}});ur=db.collection('rooms').onSnapshot(s=>{if(s.empty&&state.rooms.length>0)return;state.rooms=s.docs.map(d=>({id:d.id,...d.data()}));saveStateToCache();if(state.isLoading){state.isLoading=false;}renderPage();},err=>{if(err.code==='permission-denied'){showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...","error");if(firebase.auth().currentUser)firebase.auth().currentUser.getIdToken(true).catch(()=>{});}if(state.isLoading){state.isLoading=false;renderPage();}});urt=db.collection('reports').onSnapshot(s=>{if(s.empty&&state.reports.length>0)return;state.reports=s.docs.map(d=>({id:d.id,...d.data()}));state.reports.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));saveStateToCache();if(state.isLoading){state.isLoading=false;}renderPage();},err=>{if(err.code==='permission-denied'){showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...","error");if(firebase.auth().currentUser)firebase.auth().currentUser.getIdToken(true).catch(()=>{});}if(state.isLoading){state.isLoading=false;renderPage();}});ut=db.collection('materialTemplates').onSnapshot(s=>{if(s.empty&&Object.keys(state.templates||{}).length>0)return;state.templates={};s.docs.forEach(d=>{state.templates[d.id]=d.data().items||[];});saveStateToCache();if(state.isLoading){state.isLoading=false;}renderPage();},err=>{if(err.code==='permission-denied'){showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...","error");if(firebase.auth().currentUser)firebase.auth().currentUser.getIdToken(true).catch(()=>{});}if(state.isLoading){state.isLoading=false;renderPage();}console.warn("Templates error:",err);});if(unsubGuestBills)unsubGuestBills();if(unsubGuestSettings)unsubGuestSettings();unsubGuestSettings=db.collection('guestBillSettings').doc('config').onSnapshot(d=>{if(d.exists)guestBillState.settings=d.data();try{localStorage.setItem('rms_gb_settings',JSON.stringify(guestBillState.settings));}catch(e){}if(state.currentPage==='payment'&&guestBillState.activePaymentTab==='guestBill')renderPage();},err=>console.warn("GB Settings error:",err));unsubGuestBills=db.collection('guestBills').orderBy('createdAt','desc').onSnapshot(s=>{guestBillState.bills=s.docs.map(d=>({id:d.id,...d.data()}));try{localStorage.setItem('rms_gb_bills',JSON.stringify(guestBillState.bills));}catch(e){}if(state.currentPage==='payment'&&guestBillState.activePaymentTab==='guestBill')renderPage();},err=>console.warn("GB bills error:",err));}catch(e){console.error("Data Fetch Error:",e);state.isLoading=false;renderPage();}finally{isLoadingAppData=false;}}
+let isLoadingAppData=false,ub,ur,urt,ut;async function loadAppData(user){if(isLoadingAppData)return;isLoadingAppData=true;currentUser=user;document.getElementById('authContainer').style.display='none';document.getElementById('appContainer').style.display='block';resetIdleTimer();const hc=loadStateFromCache();state.isLoading=!hc;renderPage();hideLoader();try{if(ub)ub();if(ur)ur();if(urt)urt();if(ut)ut();ub=db.collection('buildings').onSnapshot(s=>{if(s.empty&&state.buildings.length>0)return;state.buildings=s.docs.map(d=>({id:d.id,...d.data()}));saveStateToCache();if(state.isLoading){state.isLoading=false;}renderPage();},err=>{if(err.code==='permission-denied'){showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...","error");if(firebase.auth().currentUser)firebase.auth().currentUser.getIdToken(true).catch(()=>{});}if(state.isLoading){state.isLoading=false;renderPage();}});ur=db.collection('rooms').onSnapshot(s=>{if(s.empty&&state.rooms.length>0)return;state.rooms=s.docs.map(d=>({id:d.id,...d.data()}));saveStateToCache();if(state.isLoading){state.isLoading=false;renderPage();},err=>{if(err.code==='permission-denied'){showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...","error");if(firebase.auth().currentUser)firebase.auth().currentUser.getIdToken(true).catch(()=>{});}if(state.isLoading){state.isLoading=false;renderPage();}});urt=db.collection('reports').onSnapshot(s=>{if(s.empty&&state.reports.length>0)return;state.reports=s.docs.map(d=>({id:d.id,...d.data()}));state.reports.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));saveStateToCache();if(state.isLoading){state.isLoading=false;renderPage();}},err=>{if(err.code==='permission-denied'){showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...","error");if(firebase.auth().currentUser)firebase.auth().currentUser.getIdToken(true).catch(()=>{});}if(state.isLoading){state.isLoading=false;renderPage();}});ut=db.collection('materialTemplates').onSnapshot(s=>{if(s.empty&&Object.keys(state.templates||{}).length>0)return;state.templates={};s.docs.forEach(d=>{state.templates[d.id]=d.data().items||[];});saveStateToCache();if(state.isLoading){state.isLoading=false;}renderPage();},err=>{if(err.code==='permission-denied'){showToast("সেশন মেয়াদ শেষ বা নেটওয়ার্ক সমস্যা। ডাটা রিলোড হওয়ার অপেক্ষায়...","error");if(firebase.auth().currentUser)firebase.auth().currentUser.getIdToken(true).catch(()=>{});}if(state.isLoading){state.isLoading=false;renderPage();}console.warn("Templates error:",err);});if(unsubGuestBills)unsubGuestBills();if(unsubGuestSettings)unsubGuestSettings();unsubGuestSettings=db.collection('guestBillSettings').doc('config').onSnapshot(d=>{if(d.exists)guestBillState.settings=d.data();try{localStorage.setItem('rms_gb_settings',JSON.stringify(guestBillState.settings));}catch(e){}if(state.currentPage==='payment'&&guestBillState.activePaymentTab==='guestBill')renderPage();},err=>console.warn("GB Settings error:",err));unsubGuestBills=db.collection('guestBills').orderBy('createdAt','desc').onSnapshot(s=>{guestBillState.bills=s.docs.map(d=>({id:d.id,...d.data()}));try{localStorage.setItem('rms_gb_bills',JSON.stringify(guestBillState.bills));}catch(e){}if(state.currentPage==='payment'&&guestBillState.activePaymentTab==='guestBill')renderPage();},err=>console.warn("GB bills error:",err));}catch(e){console.error("Data Fetch Error:",e);state.isLoading=false;renderPage();}finally{isLoadingAppData=false;}}
 async function handleForgotSend(){let i=document.getElementById('forgotEmail').value.trim();if(!i){showToast('ইমেইল বা ইউজারনেম দিন','error');return;}setBtnLoading('forgotBtn',true);try{let e=i;if(!i.includes('@')){const id=i.toLowerCase();const s=await db.collection('users').where('username','==',id).limit(1).get();if(s.empty){showToast('এই ইউজারনেম বা ইমেইল খুঁজে পাওয়া যায়নি।','error');setBtnLoading('forgotBtn',false);return;}e=s.docs[0].data().email;}else{if(!validateEmail(i)){showToast('ভুল ইমেইল লেখা হয়েছে','error');setBtnLoading('forgotBtn',false);return;}}await firebase.auth().sendPasswordResetEmail(e);showToast('পাসওয়ার্ড রিসেট লিঙ্ক আপনার ইমেইল inbox বা Spam ফোল্ডারে পাঠানো হয়েছে।');showLoginView();}catch(e){showToast('ত্রুটি: '+e.message,'error');}finally{setBtnLoading('forgotBtn',false);}}
 let it;function resetIdleTimer(){clearTimeout(it);if(firebase.auth().currentUser&&sessionStorage.getItem('rms_is_logged_in')==='true'){it=setTimeout(()=>{showToast('৫ মিনিট নিষ্ক্রিয় থাকার কারণে আপনি লগআউট হয়েছেন।','error');handleLogout();},300000);}}
 function handleLogout(){if(isExplicitLogout&&currentUser===null)return;isExplicitLogout=true;clearTimeout(it);if(ub)ub();if(ur)ur();if(urt)urt();if(ut)ut();if(unsubGuestBills)unsubGuestBills();if(unsubGuestSettings)unsubGuestSettings();guestBillState.bills=[];guestBillState.tempGuests=[];guestBillState.editId=null;guestBillState.editGuestId=null;guestBillState.activePaymentTab='guestBill';guestBillState.activeGbTab='newBill';try{localStorage.removeItem('rms_gb_bills');localStorage.removeItem('rms_gb_settings');}catch(e){}sessionStorage.removeItem('rms_is_logged_in');currentUser=null;state={currentPage:'dashboard',buildings:[],rooms:[],reports:[],templates:{},selectedBuilding:null,expandedBuilding:null,isLoading:false};document.getElementById('appContainer').style.display='none';document.getElementById('authContainer').style.display='flex';showLoginView();document.getElementById('loginIdentifier').value='';document.getElementById('loginPassword').value='';document.getElementById('forgotEmail').value='';setBtnLoading('loginBtn',false);firebase.auth().signOut();}
@@ -408,7 +408,50 @@ function getCurrencySymbol(c){return c==='USD'?'$':'৳';}
 function gbGetFormData(){const gn=document.getElementById('gbGuestName').value.trim(),nid=document.getElementById('gbNidNumber').value.trim(),mb=document.getElementById('gbMobile').value.trim(),ad=document.getElementById('gbAddress').value.trim(),ci=document.getElementById('gbGuestType').value;let cn=ci==="Others"?(document.getElementById('gbCustomType').value||"Others"):(guestBillState.settings.categories[ci]?.name||"");const ri=document.getElementById('gbRoomType').value;let rn='',cu='BDT';if(ci!=='Others'&&guestBillState.settings.categories[ci]&&guestBillState.settings.categories[ci].roomTypes[ri]){rn=guestBillState.settings.categories[ci].roomTypes[ri].name;cu=guestBillState.settings.categories[ci].roomTypes[ri].currency;}const rNum=document.getElementById('gbRoomNumber').value.trim(),cI=document.getElementById('gbCheckIn').value,cO=document.getElementById('gbCheckOut').value,exR=document.getElementById('gbExcluded').value,exD=exR?exR.split(',').map(x=>x.trim()).filter(x=>x!==""):[];const pp=document.getElementById('gbPurpose').value,tD=document.getElementById('gbTotalDays').value,cm=document.getElementById('gbComments').value;const {roomRentTotal,finalCurrency}=gbCalculateBill(cI,cO,exD,ci,ri);const ec=[];if(document.getElementById('gbHasExtraCharges')?.checked){document.querySelectorAll('.gb-charge-row').forEach(r=>{const n=r.querySelector('.gb-charge-name').value.trim(),a=parseFloat(r.querySelector('.gb-charge-amount').value)||0;if(n||a>0)ec.push({name:n,amount:a});});}const et=ec.reduce((s,c)=>s+c.amount,0);const discount=parseFloat(document.getElementById('gbDiscount')?.value)||0;const vat=parseFloat(document.getElementById('gbVat')?.value)||0;const tax=parseFloat(document.getElementById('gbTax')?.value)||0;return{guestName:gn,nidNumber:nid,mobile:mb,address:ad,catId:ci,guestType:cn,roomType:ri,roomTypeName:rn,currency:finalCurrency,roomNumber:rNum,checkIn:cI,checkOut:cO,excludedDates:exD,purpose:pp,totalDays:tD,comments:cm,roomRent:roomRentTotal,extraCharges:ec,extraTotal:et,totalAmount:roomRentTotal+et,discount:discount,vat:vat,tax:tax};}
 function gbCalculateBill(cI,cO,exD,ci,ri){let t=0,fc='BDT';if(ci&&ci!=='Others'&&guestBillState.settings.categories[ci]&&guestBillState.settings.categories[ci].roomTypes[ri]&&cI&&cO){const r=guestBillState.settings.categories[ci].roomTypes[ri];fc=r.currency||'BDT';const normalizedExD=exD.map(d=>gbParseDateStr(d)).filter(d=>d!==null);let cur=new Date(cI);let end=new Date(cO);let curDate=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate());let endDate=new Date(end.getFullYear(),end.getMonth(),end.getDate());let cd=0;while(curDate<endDate){const y=curDate.getFullYear();const m=(curDate.getMonth()+1).toString().padStart(2,'0');const d=curDate.getDate().toString().padStart(2,'0');const ds=`${y}-${m}-${d}`;if(!normalizedExD.includes(ds)){cd++;let dr=0;if(cd>r.limitDays){dr=r.extraRate;}else{dr=r.regularRate;}t+=dr;}curDate.setDate(curDate.getDate()+1);}}return{roomRentTotal:Math.round(t),finalCurrency:fc};}
 function gbUpdateNetBillDisplay(){const disp=document.getElementById('gbNetBillDisplay');const amt=document.getElementById('gbNetBillAmount');if(!disp||!amt)return;const ci=document.getElementById('gbCheckIn')?.value;const co=document.getElementById('gbCheckOut')?.value;const exR=document.getElementById('gbExcluded')?.value;const exD=exR?exR.split(',').map(x=>x.trim()).filter(x=>x!==""):[];const cid=document.getElementById('gbGuestType')?.value;const rid=document.getElementById('gbRoomType')?.value;let hasInvalidDate = false;if(exD.length > 0) {for(let dateStr of exD) {if(!gbParseDateStr(dateStr)) {hasInvalidDate = true;break;}}}let roomRentTotal = 0, finalCurrency = 'BDT';if(!hasInvalidDate && ci && co) {const result = gbCalculateBill(ci, co, exD, cid, rid);roomRentTotal = result.roomRentTotal;finalCurrency = result.finalCurrency;} else if (cid && cid !== 'Others' && guestBillState.settings.categories[cid] && guestBillState.settings.categories[cid].roomTypes[rid]) {finalCurrency = guestBillState.settings.categories[cid].roomTypes[rid].currency || 'BDT';}let extraTotal=0;document.querySelectorAll('.gb-charge-amount').forEach(i=>{extraTotal+=parseFloat(i.value)||0;});let totalBill=roomRentTotal+extraTotal;let discount=parseFloat(document.getElementById('gbDiscount')?.value)||0;let vat=parseFloat(document.getElementById('gbVat')?.value)||0;let tax=parseFloat(document.getElementById('gbTax')?.value)||0;let discountAmount=totalBill*(discount/100);let afterDiscount=totalBill-discountAmount;let vatAmount=afterDiscount*(vat/100);let taxAmount=afterDiscount*(tax/100);let netBill=afterDiscount+vatAmount+taxAmount;let sym=getCurrencySymbol(finalCurrency);if(hasInvalidDate) {amt.innerText = `ভুল তারিখ`;amt.style.color = 'var(--danger)';disp.style.display = 'block';} else {amt.innerText = `${sym}${netBill.toFixed(2)}`;amt.style.color = '#047857';if(ci&&co){disp.style.display='block';}else{disp.style.display='none';}}}
-function gbAddTemp(){const n=document.getElementById('gbGuestName').value.trim(),ci=document.getElementById('gbCheckIn').value,co=document.getElementById('gbCheckOut').value;if(!n){showToast('অন্তত নামটি লিখুন!','error');return;}if(!ci||!co){showToast('চেক-ইন এবং চেক-আউট তারিখ দিন!','error');return;}const fd=gbGetFormData();if(guestBillState.editGuestId){let u=false;guestBillState.tempGuests=guestBillState.tempGuests.map(g=>{if(g.id===guestBillState.editGuestId){u=true;return{...g,...fd,id:g.id};}return g;});if(!u){const i=parseInt(guestBillState.editGuestId.replace('index_',''));if(!isNaN(i)&&guestBillState.tempGuests[i])guestBillState.tempGuests[i]={...guestBillState.tempGuests[i],...fd,id:guestBillState.tempGuests[i].id};}}else{fd.id=genId('gbg');guestBillState.tempGuests.push(fd);}gbResetGuestForm();gbRenderTempGuests();document.getElementById('gbGuestName').focus();}
+function gbAddTemp(){
+    const n=document.getElementById('gbGuestName').value.trim(),
+          ci=document.getElementById('gbCheckIn').value,
+          co=document.getElementById('gbCheckOut').value;
+    if(!n){showToast('অন্তত নামটি লিখুন!','error');return;}
+    if(!ci||!co){showToast('চেক-ইন এবং চেক-আউট তারিখ দিন!','error');return;}
+    
+    const fd=gbGetFormData();
+    
+    if(guestBillState.editGuestId){
+        let updated = false;
+        guestBillState.tempGuests = guestBillState.tempGuests.map(g => {
+            if (g.id === guestBillState.editGuestId) {
+                updated = true;
+                return { ...g, ...fd, id: g.id };
+            }
+            return g;
+        });
+        
+        // Fallback if ID match fails (using index)
+        if (!updated && guestBillState.editGuestId.startsWith('index_')) {
+            const i = parseInt(guestBillState.editGuestId.replace('index_', ''));
+            if (!isNaN(i) && guestBillState.tempGuests[i]) {
+                guestBillState.tempGuests[i] = { ...guestBillState.tempGuests[i], ...fd, id: guestBillState.tempGuests[i].id };
+                updated = true;
+            }
+        }
+        
+        // If it completely failed to find, push as new
+        if(!updated){
+            fd.id = guestBillState.editGuestId;
+            guestBillState.tempGuests.push(fd);
+        }
+        showToast('গেস্টের তথ্য সফলভাবে আপডেট হয়েছে!', 'success');
+    } else {
+        fd.id = genId('gbg');
+        guestBillState.tempGuests.push(fd);
+        showToast('নতুন গেস্ট যোগ হয়েছে!', 'success');
+    }
+    
+    gbResetGuestForm();
+    gbRenderTempGuests();
+    document.getElementById('gbGuestName').focus();
+}
 function gbRenderTempGuests(){
     const el=document.getElementById('gbTempList');
     if(!el)return;
@@ -418,18 +461,126 @@ function gbRenderTempGuests(){
     }
     el.innerHTML=guestBillState.tempGuests.map((g,i)=>`
     <div class="gb-temp-item" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; background: #fff;">
-        <span style="flex:1; color:#4c1d95; font-size: 14px; font-weight: 600;">
+        <div onclick="gbEditTempGuest(${i})" style="flex:1; cursor:pointer; color:#4c1d95; font-size: 14px; font-weight: 600;">
             <strong>${i+1}.</strong> ${escapeHtml(g.guestName)} 
-            <span style="color:var(--text-light);font-size:11px; display:block; margin-top: 2px;">(${escapeHtml(g.roomTypeName)})</span>
-        </span>
+            <span style="color:var(--text-light);font-size:11px; display:block; margin-top: 2px;">(${escapeHtml(g.roomTypeName || 'N/A')})</span>
+        </div>
         <div class="flex gap-8" style="margin-left:8px;">
-            <button type="button" onclick="gbEditTempGuest(${i})" style="background:#eff6ff; border:1px solid #bfdbfe; cursor:pointer; color:var(--primary); font-size:13px; padding:6px 10px; border-radius:6px; font-weight:600;">✏️ এডিট</button>
-            <button type="button" onclick="gbRemoveTemp(${i})" style="background:#fef2f2; border:1px solid #fecaca; cursor:pointer; color:var(--danger); font-size:13px; padding:6px 10px; border-radius:6px; font-weight:600;">✖</button>
+            <button type="button" class="btn-icon" onclick="gbEditTempGuest(${i})" title="এডিট করুন" style="color:var(--primary);">${editIcon}</button>
+            <button type="button" class="btn-icon danger" onclick="gbRemoveTemp(${i})" title="ডিলিট করুন">${delIcon}</button>
         </div>
     </div>`).join('');
 }
-function gbEditTempGuest(i){const g=guestBillState.tempGuests[i];if(!g)return;guestBillState.editGuestId=g.id||`index_${i}`;document.getElementById('gbGuestName').value=g.guestName||'';document.getElementById('gbNidNumber').value=g.nidNumber||'';document.getElementById('gbMobile').value=g.mobile||'';document.getElementById('gbAddress').value=g.address||'';document.getElementById('gbRoomNumber').value=g.roomNumber||'';document.getElementById('gbCheckIn').value=g.checkIn||'';document.getElementById('gbCheckOut').value=g.checkOut||'';document.getElementById('gbExcluded').value=(g.excludedDates||[]).join(', ');document.getElementById('gbPurpose').value=g.purpose||'';document.getElementById('gbComments').value=g.comments||'';const gs=document.getElementById('gbGuestType');let tf=false;for(let j=0;j<gs.options.length;j++){if(gs.options[j].value===g.catId){gs.value=g.catId;tf=true;break;}}if(!tf){gs.value="Others";document.getElementById('gbCustomType').value=g.guestType||'';}else{document.getElementById('gbCustomType').value='';}gbToggleOther();if(g.catId&&g.catId!=='Others'){const rs=document.getElementById('gbRoomType');for(let j=0;j<rs.options.length;j++){if(rs.options[j].value===g.roomType){rs.value=g.roomType;break;}}}gbUpdateDays();const cb=document.getElementById('gbHasExtraCharges');if(g.extraCharges&&g.extraCharges.length>0){cb.checked=true;toggleExtraCharges();g.extraCharges.forEach(c=>gbAddChargeRow(c.name,c.amount));}else{cb.checked=false;toggleExtraCharges();}updateChargeTotal();document.getElementById('gbDiscount').value=g.discount||'';document.getElementById('gbVat').value=g.vat||'';document.getElementById('gbTax').value=g.tax||'';gbUpdateNetBillDisplay();const tb=document.getElementById('gbTempBtn');if(tb){tb.innerHTML='🔄 গেস্ট আপডেট করুন';tb.classList.remove('gb-btn-yellow');tb.classList.add('gb-btn-success');}document.getElementById('gbGuestName').focus();window.scrollTo({top:document.getElementById('gbTempBtn').offsetTop-100,behavior:'smooth'});}
-function gbResetGuestForm(){document.getElementById('gbGuestName').value='';document.getElementById('gbNidNumber').value='';document.getElementById('gbMobile').value='';document.getElementById('gbAddress').value='';document.getElementById('gbRoomNumber').value='';document.getElementById('gbPurpose').value='';document.getElementById('gbComments').value='';document.getElementById('gbCheckIn').value='';document.getElementById('gbCheckOut').value='';document.getElementById('gbExcluded').value='';document.getElementById('gbTotalDays').value='';if(document.getElementById('gbCustomType'))document.getElementById('gbCustomType').value='';const cb=document.getElementById('gbHasExtraCharges');if(cb){cb.checked=false;toggleExtraCharges();}document.getElementById('gbDiscount').value='';document.getElementById('gbVat').value='';document.getElementById('gbTax').value='';guestBillState.editGuestId=null;const tb=document.getElementById('gbTempBtn');if(tb){tb.innerHTML='➕ গেস্ট ডাটা এন্ট্রি';tb.classList.remove('gb-btn-success');tb.classList.add('gb-btn-yellow');}gbUpdateNetBillDisplay();}
+function gbEditTempGuest(i){
+    const g=guestBillState.tempGuests[i];
+    if(!g)return;
+    
+    // Set edit mode
+    guestBillState.editGuestId = g.id || `index_${i}`;
+    
+    // Populate fields
+    document.getElementById('gbGuestName').value = g.guestName || '';
+    document.getElementById('gbNidNumber').value = g.nidNumber || '';
+    document.getElementById('gbMobile').value = g.mobile || '';
+    document.getElementById('gbAddress').value = g.address || '';
+    document.getElementById('gbRoomNumber').value = g.roomNumber || '';
+    document.getElementById('gbCheckIn').value = g.checkIn || '';
+    document.getElementById('gbCheckOut').value = g.checkOut || '';
+    document.getElementById('gbExcluded').value = (g.excludedDates || []).join(', ');
+    document.getElementById('gbPurpose').value = g.purpose || '';
+    document.getElementById('gbComments').value = g.comments || '';
+    
+    // Guest Type
+    const gs = document.getElementById('gbGuestType');
+    let tf = false;
+    for(let j=0; j<gs.options.length; j++){
+        if(gs.options[j].value === g.catId){
+            gs.value = g.catId;
+            tf = true;
+            break;
+        }
+    }
+    if(!tf){
+        gs.value = "Others";
+        if(document.getElementById('gbCustomType')) document.getElementById('gbCustomType').value = g.guestType || '';
+    } else {
+        if(document.getElementById('gbCustomType')) document.getElementById('gbCustomType').value = '';
+    }
+    gbToggleOther();
+    
+    // Room Type
+    if(g.catId && g.catId !== 'Others'){
+        const rs = document.getElementById('gbRoomType');
+        for(let j=0; j<rs.options.length; j++){
+            if(rs.options[j].value === g.roomType){
+                rs.value = g.roomType;
+                break;
+            }
+        }
+    }
+    gbUpdateDays();
+    
+    // Extra Charges
+    const cb = document.getElementById('gbHasExtraCharges');
+    if(g.extraCharges && g.extraCharges.length > 0){
+        cb.checked = true;
+        toggleExtraCharges();
+        document.getElementById('gbChargeList').innerHTML = ''; // Clear existing rows
+        g.extraCharges.forEach(c => gbAddChargeRow(c.name, c.amount));
+    } else {
+        cb.checked = false;
+        toggleExtraCharges();
+    }
+    updateChargeTotal();
+    
+    document.getElementById('gbDiscount').value = g.discount || '';
+    document.getElementById('gbVat').value = g.vat || '';
+    document.getElementById('gbTax').value = g.tax || '';
+    gbUpdateNetBillDisplay();
+    
+    // Update button text and style
+    const tb = document.getElementById('gbTempBtn');
+    if(tb){
+        tb.innerHTML = '🔄 গেস্ট আপডেট করুন';
+        tb.classList.remove('gb-btn-yellow');
+        tb.classList.add('gb-btn-success');
+    }
+    
+    document.getElementById('gbGuestName').focus();
+    window.scrollTo({ top: document.getElementById('gbTempBtn').offsetTop - 100, behavior: 'smooth' });
+}
+function gbResetGuestForm(){
+    document.getElementById('gbGuestName').value='';
+    document.getElementById('gbNidNumber').value='';
+    document.getElementById('gbMobile').value='';
+    document.getElementById('gbAddress').value='';
+    document.getElementById('gbRoomNumber').value='';
+    document.getElementById('gbPurpose').value='';
+    document.getElementById('gbComments').value='';
+    document.getElementById('gbCheckIn').value='';
+    document.getElementById('gbCheckOut').value='';
+    document.getElementById('gbExcluded').value='';
+    document.getElementById('gbTotalDays').value='';
+    if(document.getElementById('gbCustomType')) document.getElementById('gbCustomType').value='';
+    
+    const cb=document.getElementById('gbHasExtraCharges');
+    if(cb){
+        cb.checked=false;
+        toggleExtraCharges();
+    }
+    document.getElementById('gbDiscount').value='';
+    document.getElementById('gbVat').value='';
+    document.getElementById('gbTax').value='';
+    
+    guestBillState.editGuestId=null;
+    const tb=document.getElementById('gbTempBtn');
+    if(tb){
+        tb.innerHTML='➕ গেস্ট ডাটা এন্ট্রি';
+        tb.classList.remove('gb-btn-success');
+        tb.classList.add('gb-btn-yellow');
+    }
+    gbUpdateNetBillDisplay();
+}
 function gbRemoveTemp(i){guestBillState.tempGuests.splice(i,1);if(guestBillState.editGuestId)gbResetGuestForm();gbRenderTempGuests();}
 function gbShowHeadingModal(){openModal('বিলের হেডিং',`<div class="form-group"><label>বিলের হেডিং *</label><input type="text" id="gbBillHeading" class="gb-input" placeholder="যেমন: EGB Rest House Bill"></div><div class="flex gap-8 mt-16"><button class="gb-btn gb-btn-primary" style="flex:1" onclick="gbConfirmSubmitBill()">সেভ করুন</button><button class="gb-btn gb-btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>`,false,true);}
 function gbConfirmSubmitBill(){const h=document.getElementById('gbBillHeading').value.trim();if(!h){showToast('হেডিং লিখুন!','error');return;}forceCloseModal();const gw=guestBillState.tempGuests.map(g=>({id:g.id||genId('gbg'),...g})),b='batch_'+Date.now(),billDiscount=gw.length>0?(gw[0].discount||0):0,billVat=gw.length>0?(gw[0].vat||0):0,billTax=gw.length>0?(gw[0].tax||0):0,nd={heading:h,batchId:b,guests:gw,discount:billDiscount,vat:billVat,tax:billTax,createdAt:firebase.firestore.FieldValue.serverTimestamp()};GbStore.saveBatchBill(nd).then(()=>{guestBillState.tempGuests=[];showToast(`বিল সফলভাবে তৈরি এবং সেভ হয়েছে!`);gbRenderTempGuests();gbSwitchTab('billList');}).catch(e=>showToast('সেভ করতে সমস্যা','error'));}
@@ -526,7 +677,7 @@ function gbDownloadBulkPDF(){
     if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}
     const w=window.open('','_blank');
     let c=bs.map(b=>generateBillTableHtml(b)+'<div style="page-break-after: always;"></div>').join('');
-    w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${c}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+        w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${c}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
     w.document.close();
     showToast('PDF প্রিভিউ খোলা হচ্ছে...');
 }
