@@ -669,7 +669,6 @@ function gbDownloadBulkExcel(){
     XLSX.writeFile(wb,`Bills_${new Date().toLocaleDateString()}.xlsx`);
     showToast('Excel ডাউনলোড হচ্ছে...');
 }
-
 function gbDownloadBulkPDF(){
     const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
     if(!f||!t){showToast('বিল ডাউনলোড করার জন্য অবশ্যই তারিখ সিলেক্ট করুন!','error');return;}
@@ -677,7 +676,7 @@ function gbDownloadBulkPDF(){
     if(bs.length===0){showToast('এই তারিখে কোনো বিল পাওয়া যায়নি।','error');return;}
     const w=window.open('','_blank');
     let c=bs.map(b=>generateBillTableHtml(b)+'<div style="page-break-after: always;"></div>').join('');
-        w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${c}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
+    w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Guest Bills</title><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Hind Siliguri',sans-serif;padding:30px;color:#1e293b;}@media print{@page{margin:1cm;}}</style></head><body>${c}<script>setTimeout(function(){window.print();},500);<\/script></body></html>`);
     w.document.close();
     showToast('PDF প্রিভিউ খোলা হচ্ছে...');
 }
