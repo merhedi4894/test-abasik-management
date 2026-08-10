@@ -620,7 +620,7 @@ function gbDownloadExcel(id){
     let netBill=afterDiscount+vatAmount+taxAmount;
     let curr=getCurrencySymbol(b.guests[0].currency);
     let emptyArr = new Array(cols.length - 2).fill('');
-        d.push([]);
+    d.push([]);
     d.push([...emptyArr, 'মোট বিল:', `${curr}${totalBill.toFixed(2)}`]);
     d.push([...emptyArr, `ডিসকাউন্ট (${b.discount||0}%):`, `- ${curr}${discountAmount.toFixed(2)}`]);
     d.push([...emptyArr, `ভ্যাট (${b.vat||0}%):`, `+ ${curr}${vatAmount.toFixed(2)}`]);
