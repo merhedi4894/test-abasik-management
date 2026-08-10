@@ -255,7 +255,49 @@ async function gbSubmitBill(){const eid=document.getElementById('gbEditId').valu
 function gbEditBill(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b)return;gbSwitchTab('newBill');guestBillState.tempGuests=b.guests.map(g=>({...g}));gbRenderTempGuests();document.getElementById('gbEditHeadingContainer').style.display='block';document.getElementById('gbEditHeadingInput').value=b.heading||'';document.getElementById('gbEditId').value=b.id;document.getElementById('gbEditGuestId').value='';const f=document.getElementById('gbBillForm');if(f)f.reset();document.getElementById('gbTotalDays').value='';document.getElementById('gbHasExtraCharges').checked=false;toggleExtraCharges();document.getElementById('gbSubmitBtn').innerHTML='✏️ বিল আপডেট করুন';const tb=document.getElementById('gbTempBtn');if(tb){tb.style.display='block';tb.innerHTML='➕ গেস্ট যোগ করুন';tb.classList.remove('gb-btn-success');tb.classList.add('gb-btn-yellow');}window.scrollTo({top:0,behavior:'smooth'});}
 function gbResetForm(){const f=document.getElementById('gbBillForm');if(f)f.reset();document.getElementById('gbEditId').value='';document.getElementById('gbEditGuestId').value='';document.getElementById('gbEditHeadingContainer').style.display='none';document.getElementById('gbEditHeadingInput').value='';const sb=document.getElementById('gbSubmitBtn');if(sb)sb.innerHTML='📄 বিল তৈরি করুন';const tb=document.getElementById('gbTempBtn');if(tb){tb.style.display='block';tb.innerHTML='➕ গেস্ট ডাটা এন্ট্রি';tb.classList.remove('gb-btn-success');tb.classList.add('gb-btn-yellow');}const td=document.getElementById('gbTotalDays');if(td)td.value='';document.getElementById('gbHasExtraCharges').checked=false;toggleExtraCharges();gbToggleOther();guestBillState.tempGuests=[];gbRenderTempGuests();}
 function gbDeleteBill(id){checkPassword(()=>{showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?',async()=>{try{await GbStore.deleteBill(id);showToast('বিল ডিলিট হয়েছে');}catch(e){showToast('ডিলিট করতে সমস্যা','error');}});});}
-function gbRenderBillList(){const st=(document.getElementById('gbSearch')?.value||'').toLowerCase(),fb=gbGetFilteredBills();guestBillState.filteredBills=fb.filter(b=>{if(!b.guests)return false;const bd=b.createdAt?gbFormatDate(b.createdAt):'',hm=(b.heading||'').toLowerCase().includes(st),dm=bd.toLowerCase().includes(st),gm=b.guests.some(g=>(g.guestName||'').toLowerCase().includes(st)||(g.mobile||'').toLowerCase().includes(st)||(g.address||'').toLowerCase().includes(st)||(g.guestType||'').toLowerCase().includes(st)||(g.roomTypeName||'').toLowerCase().includes(st)||(g.roomNumber||'').toLowerCase().includes(st));return hm||dm||gm;});const tp=Math.ceil(guestBillState.filteredBills.length/guestBillState.itemsPerPage);if(guestBillState.currentPage>tp&&tp>0)guestBillState.currentPage=tp;if(tp===0)guestBillState.currentPage=1;const s=(guestBillState.currentPage-1)*guestBillState.itemsPerPage,pi=guestBillState.filteredBills.slice(s,s+guestBillState.itemsPerPage),c=document.getElementById('gbBillList');if(!c)return;const ce=document.getElementById('gbBillCount');if(ce)ce.innerText='বিলের তালিকা ('+guestBillState.filteredBills.length+')';if(pi.length===0){c.innerHTML='<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size: 40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>';}else{c.innerHTML=pi.map(b=>{const gs=b.guests||[],t=b.heading?escapeHtml(b.heading.toUpperCase()):'বিল',bd=b.createdAt?gbFormatDate(b.createdAt):'নতুন';let dh=gs.map((g,i)=>'<div class="gb-guest-info-box"><div class="flex-between mb-8"><strong>'+escapeHtml(g.guestName)+'</strong></div><p>📱 '+escapeHtml(g.mobile||'নেই')+'</p><p>🚪 '+escapeHtml(g.roomTypeName)+' (নং: '+escapeHtml(g.roomNumber||'নেই')+')</p><p>👤 '+escapeHtml(g.guestType)+'</p><p>📍 '+escapeHtml(g.address||'নেই')+'</p><p>📅 '+gbFormatDate(g.checkIn)+' → '+gbFormatDate(g.checkOut)+'</p><p>⏱️ মোট দিন: '+escapeHtml(g.totalDays||'-')+'</p><p>🎯 উদ্দেশ্য: '+escapeHtml(g.purpose||'নেই')+'</p><p>💬 মন্তব্য: '+escapeHtml(g.comments||'নেই')+'</p><div class="gb-total-display"><span>মোট বিল: '+getCurrencySymbol(g.currency)+(g.totalAmount||0)+'</span></div></div>').join('');return '<div class="gb-bill-card" onclick="gbToggleExpand(\''+b.id+'\')"><div class="flex-between"><div><h3>'+t+'</h3><p>🗓️ '+bd+'</p></div><span id="gb_icon_'+b.id+'" style="color:var(--text-light);font-size:12px;">▼</span></div><div id="gb_details_'+b.id+'" style="display:none;margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px;font-size:13px;">'+dh+'<div style="display:flex;gap:6px;margin-top:10px;"><button onclick="event.stopPropagation();gbDownloadPDF(\''+b.id+'\')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;padding:4px 8px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:4px;">'+dlIcon+' PDF</button><button onclick="event.stopPropagation();gbDownloadExcel(\''+b.id+'\')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;padding:4px 8px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:4px;">'+dlIcon+' Excel</button></div><div class="gb-actions"><button onclick="event.stopPropagation();gbEditBill(\''+b.id+'\')">✏️ বিল এডিট করুন</button><button class="danger" onclick="event.stopPropagation();gbDeleteBill(\''+b.id+'\')">🗑️ ডিলিট</button></div></div></div>';}).join('');}const pg=document.getElementById('gbPagination');if(pg)pg.innerHTML='<button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbPrevPage()" '+(guestBillState.currentPage===1?'disabled':'')+'>◀ Prev</button><span style="font-weight:600;color:var(--text-light);">পেজ '+guestBillState.currentPage+' / '+(tp||1)+'</span><button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbNextPage()" '+(guestBillState.currentPage===tp?'disabled':'')+'>Next ▶</button>';}
+function gbRenderBillList(){
+    const st=(document.getElementById('gbSearch')?.value||'').toLowerCase(),fb=gbGetFilteredBills();
+    guestBillState.filteredBills=fb.filter(b=>{
+        if(!b.guests)return false;
+        const bd=b.createdAt?gbFormatDate(b.createdAt):'',hm=(b.heading||'').toLowerCase().includes(st),dm=bd.toLowerCase().includes(st),gm=b.guests.some(g=>(g.guestName||'').toLowerCase().includes(st)||(g.mobile||'').toLowerCase().includes(st)||(g.address||'').toLowerCase().includes(st)||(g.guestType||'').toLowerCase().includes(st)||(g.roomTypeName||'').toLowerCase().includes(st)||(g.roomNumber||'').toLowerCase().includes(st));
+        return hm||dm||gm;
+    });
+    const tp=Math.ceil(guestBillState.filteredBills.length/guestBillState.itemsPerPage);
+    if(guestBillState.currentPage>tp&&tp>0)guestBillState.currentPage=tp;
+    if(tp===0)guestBillState.currentPage=1;
+    const s=(guestBillState.currentPage-1)*guestBillState.itemsPerPage,pi=guestBillState.filteredBills.slice(s,s+guestBillState.itemsPerPage),c=document.getElementById('gbBillList');
+    if(!c)return;
+    const ce=document.getElementById('gbBillCount');
+    if(ce)ce.innerText='বিলের তালিকা ('+guestBillState.filteredBills.length+')';
+    if(pi.length===0){
+        c.innerHTML='<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size: 40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>';
+    }else{
+        c.innerHTML=pi.map(b=>{
+            const gs=b.guests||[],t=b.heading?escapeHtml(b.heading.toUpperCase()):'বিল',bd=b.createdAt?gbFormatDate(b.createdAt):'নতুন';
+            
+            // চিকন সারির লেআউট তৈরি করা হলো
+            let dh='<div style="margin-bottom:10px;">'+
+                   '<div style="display:flex; justify-content:space-between; padding:0 10px 4px; font-size:11px; color:#64748b; font-weight:700;">'+
+                        '<span style="flex:1;">নাম</span>'+
+                        '<span style="flex:1; text-align:center;">মোট দিন</span>'+
+                        '<span style="flex:1; text-align:right;">মোট বিল</span>'+
+                   '</div>';
+            dh+=gs.map((g,i)=>{
+                let cs=getCurrencySymbol(g.currency);
+                return '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:4px; font-size:13px;">'+
+                            '<span style="flex:1; color:#1e293b; font-weight:600;">'+(i+1)+'. '+escapeHtml(g.guestName)+'</span>'+
+                            '<span style="flex:1; text-align:center; color:#475569;">'+escapeHtml(g.totalDays||'-')+'</span>'+
+                            '<span style="flex:1; text-align:right; color:#047857; font-weight:700; white-space:nowrap;">'+cs+(g.totalAmount||0)+'</span>'+
+                       '</div>';
+            }).join('');
+            dh+='</div>';
+
+            return '<div class="gb-bill-card" onclick="gbToggleExpand(\''+b.id+'\')"><div class="flex-between"><div><h3>'+t+'</h3><p>🗓️ '+bd+'</p></div><span id="gb_icon_'+b.id+'" style="color:var(--text-light);font-size:12px;">▼</span></div><div id="gb_details_'+b.id+'" style="display:none;margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px;font-size:13px;">'+dh+'<div style="display:flex;gap:6px;margin-top:10px;"><button onclick="event.stopPropagation();gbDownloadPDF(\''+b.id+'\')" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;padding:4px 8px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:4px;">'+dlIcon+' PDF</button><button onclick="event.stopPropagation();gbDownloadExcel(\''+b.id+'\')" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;padding:4px 8px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:4px;">'+dlIcon+' Excel</button></div><div class="gb-actions"><button onclick="event.stopPropagation();gbEditBill(\''+b.id+'\')">✏️ বিল এডিট করুন</button><button class="danger" onclick="event.stopPropagation();gbDeleteBill(\''+b.id+'\')">🗑️ ডিলিট</button></div></div></div>';
+        }).join('');
+    }
+    const pg=document.getElementById('gbPagination');
+    if(pg)pg.innerHTML='<button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbPrevPage()" '+(guestBillState.currentPage===1?'disabled':'')+'>◀ Prev</button><span style="font-weight:600;color:var(--text-light);">পেজ '+guestBillState.currentPage+' / '+(tp||1)+'</span><button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbNextPage()" '+(guestBillState.currentPage===tp?'disabled':'')+'>Next ▶</button>';
+}
 function gbToggleExpand(id){document.querySelectorAll('div[id^="gb_details_"]').forEach(d=>{const did=d.id.split('_')[2],ic=document.getElementById('gb_icon_'+did);if(did===id){const v=d.style.display==='block';d.style.display=v?'none':'block';if(ic)ic.textContent=v?'▼':'▲';}else{d.style.display='none';if(ic)ic.textContent='▼';}});}
 function gbPrevPage(){if(guestBillState.currentPage>1){guestBillState.currentPage--;gbRenderBillList();}}
 function gbNextPage(){const t=Math.ceil(guestBillState.filteredBills.length/guestBillState.itemsPerPage);if(guestBillState.currentPage<t){guestBillState.currentPage++;gbRenderBillList();}}
@@ -494,7 +536,7 @@ function gbDownloadBulkExcel(){
                 }
             });
         });
-                let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);
+        let totalBill=b.guests.reduce((s,g)=>s+(g.totalAmount||0),0);
         let discountAmount=totalBill*((b.discount||0)/100);
         let afterDiscount=totalBill-discountAmount;
         let vatAmount=afterDiscount*((b.vat||0)/100);
@@ -504,7 +546,7 @@ function gbDownloadBulkExcel(){
         let emptyArr = new Array(cols.length - 2).fill('');
         d.push([]);
         d.push([...emptyArr, 'মোট বিল:', curr+totalBill.toFixed(2)]);
-        d.push([...emptyArr, 'ডিসকাউন্ট ('+(b.discount||0)+'%):', '- '+curr+discountAmount.toFixed(2)]);
+                d.push([...emptyArr, 'ডিসকাউন্ট ('+(b.discount||0)+'%):', '- '+curr+discountAmount.toFixed(2)]);
         d.push([...emptyArr, 'ভ্যাট ('+(b.vat||0)+'%):', '+ '+curr+vatAmount.toFixed(2)]);
         d.push([...emptyArr, 'ট্যাক্স ('+(b.tax||0)+'%):', '+ '+curr+taxAmount.toFixed(2)]);
         d.push([...emptyArr, 'নিট বিল:', curr+netBill.toFixed(2)]);
