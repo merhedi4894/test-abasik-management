@@ -123,7 +123,7 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 document.querySelectorAll('.nav-item').forEach(i=>{if(i.dataset.page)i.addEventListener('click',()=>changePage(i.dataset.page));});
 function changePage(p){state.currentPage=p;document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));const a=document.querySelector('.nav-item[data-page="'+p+'"]');if(a)a.classList.add('active');renderPage();}
 function renderPage(){document.getElementById('searchBox').style.display='flex';const a=document.getElementById('actionBtn'),c=document.getElementById('pageContent');if(state.isLoading){if(a)a.style.display='none';c.innerHTML='<div class="card" style="text-align:center; padding: 50px;"><div class="spinner"><div></div><div></div><div></div><div></div></div><p class="mt-16 text-light">ডাটা লোড হচ্ছে...</p></div>';return;}if(state.currentPage==='dashboard'){a.style.display='inline-flex';a.textContent='+ বিল্ডিং';a.onclick=showAddBuildingModal;}else if(state.currentPage==='troubleReport'){a.style.display='inline-flex';a.textContent='+ নতুন রিপোর্ট';a.onclick=showAddReportModal;}else{a.style.display='none';}if(state.currentPage==='dashboard')renderDashboard(c);else if(state.currentPage==='templates')renderTemplates(c);else if(state.currentPage==='download')renderDownload(c);else if(state.currentPage==='payment')renderPayment(c);else if(state.currentPage==='troubleReport')renderTroubleReport(c);}
-function renderDashboard(c){if(state.buildings.length===0){c.innerHTML='<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><p class="text-sm text-light mt-8">নতুন বিল্ডিং যোগ করতে নিচের বাটনে ক্লিক করুন।</p><button class="btn btn-primary mt-16" onclick="showAddBuildingModal()">+ বিল্ডিং যোগ করুন</button></div></div>';return;}const rb={};state.rooms.forEach(r=>{if(!rb[r.buildingId])rb[r.buildingId]=[];rb[r.buildingId].push(r);});let oh=state.expandedBuilding?'<div class="expanded-overlay" onclick="toggleExpand(\''+state.expandedBuilding+'\')"></div>':'';c.innerHTML=oh+'<div class="building-grid">'+state.buildings.map(b=>{const r=rb[b.id]||[],o=r.filter(x=>(x.tenants&&x.tenants.length>0)||x.tenant).length,e=state.expandedBuilding===b.id;let body='';if(e){for(let f=1;f<=(b.floorCount||1);f++){const fr=r.filter(x=>x.floor==String(f));body+='<div style="margin-bottom:16px"><div class="flex-between mb-16"><strong>তলা: '+f+'</strong><button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); showAddRoomModal(\''+b.id+'\', \''+f+'\')">➕ রুম</button></div><div class="room-grid">'+(fr.length>0?fr.map(x=>{const oc=!!(x.tenants&&x.tenants.length>0)||!!x.tenant,isf=x.tenants?.some(t=>t.type==='family')||x.tenant?.type==='family';return '<div class="room-box-mini '+(oc?'occupied':'')+'" onclick="event.stopPropagation(); showRoomDetail(\''+x.id+'\')"><div class="r-num">'+escapeHtml(x.number)+'</div><div class="r-icon">'+(isf?'<span style="font-size:16px;">👪</span>':(oc?'👤':''))+'</div></div>';}).join(''):'<p class="text-sm text-light" style="grid-column: 1 / -1;">কোন রুম নেই।</p>')+'</div></div>';}}return '<div class="building-card '+(e?'expanded':'')+'"><div class="building-card-header" onclick="toggleExpand(\''+b.id+'\')"><div class="b-actions" onclick="event.stopPropagation()"><button class="b-icon" onclick="editBuilding(\''+b.id+'\')">'+editIcon+'</button><button class="b-icon danger" onclick="deleteBuilding(\''+b.id+'\')">'+delIcon+'</button></div><div><h3>🏢 '+escapeHtml(b.name)+'</h3><div class="b-stats">তলা: '+(b.floorCount||0)+' | রুম: '+r.length+' | ভাড়াটে: '+o+'</div></div></div><div class="building-card-body" onclick="if(event.target === this) toggleExpand(\''+b.id+'\')">'+body+'</div></div>';}).join('')+'</div>';}
+function renderDashboard(c){if(state.buildings.length===0){c.innerHTML='<div class="card"><div class="empty-state"><p style="font-size:40px">🏢</p><p>কোন বিল্ডিং নেই।</p><p class="text-sm text-light mt-8">নতুন বিল্ডিং যোগ করতে নিচের বাটনে ক্লিক করুন।</p><button class="btn btn-primary mt-16" onclick="showAddBuildingModal()">+ বিল্ডিং যোগ করুন</button></div></div>';return;}const rb={};state.rooms.forEach(r=>{if(!rb[r.buildingId])rb[r.buildingId]=[];rb[r.buildingId].push(r);});let oh=state.expandedBuilding?'<div class="expanded-overlay" onclick="toggleExpand(\''+state.expandedBuilding+'\')"></div>':'';c.innerHTML=oh+'<div class="building-grid">'+state.buildings.map(b=>{const r=rb[b.id]||[],o=r.filter(x=>(x.tenants&&x.tenants.length>0)||x.tenant).length,e=state.expandedBuilding===b.id; let body='';if(e){for(let f=1;f<=(b.floorCount||1);f++){const fr=r.filter(x=>x.floor==String(f));body+='<div style="margin-bottom:16px"><div class="flex-between mb-16"><strong>তলা: '+f+'</strong><button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); showAddRoomModal(\''+b.id+'\', \''+f+'\')">➕ রুম</button></div><div class="room-grid">'+(fr.length>0?fr.map(x=>{const oc=!!(x.tenants&&x.tenants.length>0)||!!x.tenant,isf=x.tenants?.some(t=>t.type==='family')||x.tenant?.type==='family';return '<div class="room-box-mini '+(oc?'occupied':'')+'" onclick="event.stopPropagation(); showRoomDetail(\''+x.id+'\')"><div class="r-num">'+escapeHtml(x.number)+'</div><div class="r-icon">'+(isf?'<span style="font-size:16px;">👪</span>':(oc?'👤':''))+'</div></div>';}).join(''):'<p class="text-sm text-light" style="grid-column: 1 / -1;">কোন রুম নেই।</p>')+'</div></div>';}}return '<div class="building-card '+(e?'expanded':'')+'"><div class="building-card-header" onclick="toggleExpand(\''+b.id+'\')"><div class="b-actions" onclick="event.stopPropagation()"><button class="b-icon" onclick="editBuilding(\''+b.id+'\')">'+editIcon+'</button><button class="b-icon danger" onclick="deleteBuilding(\''+b.id+'\')">'+delIcon+'</button></div><div><h3>🏢 '+escapeHtml(b.name)+'</h3><div class="b-stats">তলা: '+(b.floorCount||0)+' | রুম: '+r.length+' | ভাড়াটে: '+o+'</div></div></div><div class="building-card-body" onclick="if(event.target === this) toggleExpand(\''+b.id+'\')">'+body+'</div></div>';}).join('')+'</div>';}
 function toggleExpand(id){state.expandedBuilding=state.expandedBuilding===id?null:id;renderPage();}
 function showAddBuildingModal(){openModal('নতুন বিল্ডিং','<div class="grid grid-2"><div class="form-group"><label>বিল্ডিং এর নাম</label><input type="text" id="buildingName"></div><div class="form-group"><label>কয়টা তলা?</label><input type="number" id="floorCount" value="1" min="1"></div></div><div class="flex gap-8 mt-16"><button class="btn btn-primary" style="flex:1" onclick="saveBuildingModal()">সেভ করুন</button><button class="btn btn-outline" style="flex:1" onclick="closeModal()">বাতিল</button></div>');}
 async function saveBuildingModal(){const n=document.getElementById('buildingName').value.trim(),f=parseInt(document.getElementById('floorCount').value)||0;if(!n){showToast('নাম লিখুন','error');return;}const t='temp_'+Date.now(),nb={id:t,name:n,floorCount:f};state.buildings.push(nb);closeModal();renderPage();try{const sb=await Store.saveBuilding(nb);const i=state.buildings.findIndex(b=>b.id===t);if(i>-1)state.buildings[i]=sb;showToast('বিল্ডিং সেভ হয়েছে');}catch(e){showToast('সেভ করতে সমস্যা','error');state.buildings=state.buildings.filter(b=>b.id!==t);renderPage();}}
@@ -256,11 +256,14 @@ async function gbSubmitBill(){const eid=document.getElementById('gbEditId').valu
 function gbEditBill(id){const b=guestBillState.bills.find(x=>x.id===id);if(!b)return;gbSwitchTab('newBill');guestBillState.tempGuests=b.guests.map(g=>({...g}));gbRenderTempGuests();document.getElementById('gbEditHeadingContainer').style.display='block';document.getElementById('gbEditHeadingInput').value=b.heading||'';document.getElementById('gbEditDateInput').value=b.billDate||new Date().toISOString().split('T')[0];document.getElementById('gbEditId').value=b.id;document.getElementById('gbEditGuestId').value='';const f=document.getElementById('gbBillForm');if(f)f.reset();document.getElementById('gbTotalDays').value='';document.getElementById('gbHasExtraCharges').checked=false;toggleExtraCharges();document.getElementById('gbSubmitBtn').innerHTML='✏️ বিল আপডেট করুন';const tb=document.getElementById('gbTempBtn');if(tb){tb.style.display='block';tb.innerHTML='➕ গেস্ট যোগ করুন';tb.classList.remove('gb-btn-success');tb.classList.add('gb-btn-yellow');}window.scrollTo({top:0,behavior:'smooth'});}
 function gbResetForm(){const f=document.getElementById('gbBillForm');if(f)f.reset();document.getElementById('gbEditId').value='';document.getElementById('gbEditGuestId').value='';document.getElementById('gbEditHeadingContainer').style.display='none';document.getElementById('gbEditHeadingInput').value='';document.getElementById('gbEditDateInput').value='';const sb=document.getElementById('gbSubmitBtn');if(sb)sb.innerHTML='📄 বিল তৈরি করুন';const tb=document.getElementById('gbTempBtn');if(tb){tb.style.display='block';tb.innerHTML='➕ গেস্ট ডাটা এন্ট্রি';tb.classList.remove('gb-btn-success');tb.classList.add('gb-btn-yellow');}const td=document.getElementById('gbTotalDays');if(td)td.value='';document.getElementById('gbHasExtraCharges').checked=false;toggleExtraCharges();gbToggleOther();guestBillState.tempGuests=[];gbRenderTempGuests();}
 function gbDeleteBill(id){checkPassword(()=>{showConfirm('আপনি কি এই বিলটি ডিলিট করতে চান?',async()=>{try{await GbStore.deleteBill(id);showToast('বিল ডিলিট হয়েছে');}catch(e){showToast('ডিলিট করতে সমস্যা','error');}});});}
+
+// Updated gbGetFilteredBills to default to all bills when no dates are selected
 function gbGetFilteredBills(){
     const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
     const ft=document.getElementById('gbFilterType')?.value || 'all';
     
-    if(!f && !t) return []; // Require dates to show/download/delete
+    // If no dates are selected, return all bills by default
+    if(!f && !t) return guestBillState.bills;
 
     return guestBillState.bills.filter(b=>{
         if(!b.guests||b.guests.length===0) return false;
@@ -315,6 +318,7 @@ function gbGetFilteredBills(){
         });
     });
 }
+
 function gbRenderBillList(){
     const st=(document.getElementById('gbSearch')?.value||'').toLowerCase(),fb=gbGetFilteredBills();
     guestBillState.filteredBills=fb.filter(b=>{
@@ -330,7 +334,7 @@ function gbRenderBillList(){
     const ce=document.getElementById('gbBillCount');
     if(ce)ce.innerText='বিলের তালিকা ('+guestBillState.filteredBills.length+')';
     if(pi.length===0){
-        c.innerHTML='<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size: 40px;">📅</div><p>তারিখ সিলেক্ট করে বিল খুঁজুন।</p></div>';
+        c.innerHTML='<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size: 40px;">📄</div><p>কোন বিল পাওয়া যায়নি।</p></div>';
     }else{
         c.innerHTML=pi.map(b=>{
             const gs=b.guests||[],t=b.heading?escapeHtml(b.heading.toUpperCase()):'বিল',bd=b.billDate?gbFormatSimpleDate(b.billDate):(b.createdAt?gbFormatSimpleDate(b.createdAt):'নতুন');
@@ -355,19 +359,18 @@ function gbRenderBillList(){
     const pg=document.getElementById('gbPagination');
     if(pg)pg.innerHTML='<button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbPrevPage()" '+(guestBillState.currentPage===1?'disabled':'')+'>◀ Prev</button><span style="font-weight:600;color:var(--text-light);">পেজ '+guestBillState.currentPage+' / '+(tp||1)+'</span><button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbNextPage()" '+(guestBillState.currentPage===tp?'disabled':'')+'>Next ▶</button>';
 }
+
+// Updated gbBulkDeleteBills to allow deleting all bills if no dates are selected
 function gbBulkDeleteBills(){
     const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
-    if(!f && !t){
-        showToast('ডিলিট করার জন্য অনুগ্রহ করে তারিখ সিলেক্ট করুন!','error');
-        return;
-    }
     const bs = gbGetFilteredBills();
     if(bs.length === 0){
-        showToast('এই তারিখের মধ্যে কোনো বিল পাওয়া যায়নি।','error');
+        showToast('ডিলিট করার জন্য কোনো বিল পাওয়া যায়নি।','error');
         return;
     }
     checkPassword(()=>{
-        showConfirm('আপনি কি নিশ্চিত? এই তারিখের মধ্যে '+bs.length+' টি বিল ডিলিট হবে।', async()=>{
+        const msg = (!f && !t) ? 'কোন ফিল্টার সিলেক্ট করা হয়নি! সব ('+bs.length+' টি) বিল ডিলিট হবে। আপনি কি নিশ্চিত?' : 'আপনি কি নিশ্চিত? এই তারিখের মধ্যে '+bs.length+' টি বিল ডিলিট হবে।';
+        showConfirm(msg, async()=>{
             try{
                 const batch = db.batch();
                 bs.forEach(b => {
@@ -390,7 +393,7 @@ function gbPrevPage(){if(guestBillState.currentPage>1){guestBillState.currentPag
 function gbNextPage(){const t=Math.ceil(guestBillState.filteredBills.length/guestBillState.itemsPerPage);if(guestBillState.currentPage<t){guestBillState.currentPage++;gbRenderBillList();}}
 function getActiveBillColumns(b){let possibleCols=[{key:'index',label:'ক্রম'},{key:'guestName',label:'নাম'},{key:'address',label:'ঠিকানা'},{key:'mobile',label:'মোবাইল'},{key:'nidNumber',label:'NID'},{key:'roomNumber',label:'রুম নং'},{key:'checkIn',label:'চেক-ইন'},{key:'checkOut',label:'চেক-আউট'},{key:'totalDays',label:'মোট দিন'},{key:'guestType',label:'গেস্ট টাইপ'},{key:'roomTypeName',label:'রুম টাইপ'},{key:'regularRate',label:'দৈনিক ভাড়া<=15 দিন'},{key:'extraRate',label:'দৈনিক ভাড়া>15 দিন'},{key:'purpose',label:'উদ্দেশ্য'},{key:'comments',label:'মন্তব্য'},{key:'service',label:'সার্ভিস নাম'},{key:'charge',label:'সার্ভিস চার্জ'}];return possibleCols.filter(col=>{if(['index','guestName','address','roomNumber','checkIn','checkOut','totalDays','guestType','roomTypeName','regularRate','extraRate','service','charge'].includes(col.key))return true;return b.guests.some(g=>g[col.key]&&String(g[col.key]).trim()!=='');});}
 function generateBillTableHtml(b){
-    let h='<div style="border: 2px solid #2563eb; padding: 20px; border-radius: 10px; margin: 20px auto; box-sizing: border-box; display: inline-block; min-width: 100%;">';
+    let h='<div style="border: 2px solid #2563eb; padding: 20px; border-radius: 10px; margin: 20    px auto; box-sizing: border-box; display: inline-block; min-width: 100%;">';
     h+='<h1 style="text-align:center;margin-bottom:5px;color:#1e40af;font-size:32px;letter-spacing:2px;font-weight:800;">INVOICE</h1>';
     h+='<h2 style="text-align:center;margin-bottom:5px;color:#1e293b;">'+escapeHtml(b.heading||'Rest House Bill')+'</h2>';
     h+='<p style="text-align:center;margin-bottom:20px;color:#64748b;font-size:13px;">বিল তৈরির তারিখ: '+gbFormatSimpleDate(b.billDate||b.createdAt)+'</p>';
