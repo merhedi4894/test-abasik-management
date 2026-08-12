@@ -221,7 +221,7 @@ document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 function gbSwitchTab(t){guestBillState.activeGbTab=t;renderPage();}
 function getGbFormHtml(){return '<div class="gb-form-card"><div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:8px;"><h3 style="font-size:16px;font-weight:700;">নতুন বিল তৈরি করুন</h3><button class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbOpenSettings()">⚙️ সেটিংস</button></div><div id="gbEditHeadingContainer" class="gb-form-section" style="display:none; margin-bottom:16px;"><div class="gb-grid-2"><div><label class="gb-label">বিলের হেডিং *</label><input type="text" id="gbEditHeadingInput" class="gb-input" placeholder="যেমন: EGB Rest House Bill"></div><div><label class="gb-label">বিল তৈরির তারিখ *</label><input type="date" id="gbEditDateInput" class="gb-input"></div></div></div><form id="gbBillForm" onsubmit="event.preventDefault(); gbSubmitBill();"><input type="hidden" id="gbEditId"><input type="hidden" id="gbEditGuestId"><div class="gb-form-section"><h4>👤 গেস্টের তথ্য</h4><div class="gb-grid-2 mb-16"><div><label class="gb-label">নাম</label><input type="text" id="gbGuestName" class="gb-input" placeholder="যেমন: রহিম উদ্দিন"></div><div><label class="gb-label">NID নম্বর</label><input type="text" id="gbNidNumber" class="gb-input" placeholder="NID Number"></div></div><div class="gb-grid-2 mb-16"><div><label class="gb-label">মোবাইল</label><input type="text" id="gbMobile" class="gb-input" placeholder="01XXXXXXXXX"></div><div><label class="gb-label">ঠিকানা</label><input type="text" id="gbAddress" class="gb-input" placeholder="ঢাকা, বাংলাদেশ"></div></div><div class="gb-grid-2"><div><label class="gb-label">গেস্ট টাইপ</label><select id="gbGuestType" onchange="gbToggleOther()" class="gb-input"></select></div><div><label class="gb-label">রুম টাইপ</label><select id="gbRoomType" class="gb-input"></select></div></div><div id="gbOtherField" class="mt-16" style="display:none;"><label class="gb-label">অন্যান্য গেস্ট টাইপ</label><input type="text" id="gbCustomType" class="gb-input" placeholder="গেস্ট টাইপ লিখুন"></div></div><div class="gb-form-section"><h4>🏨 বুকিং ও রুম ডিটেইলস</h4><div class="gb-grid-2 mb-16"><div><label class="gb-label">চেক ইন</label><input type="datetime-local" id="gbCheckIn" oninput="gbUpdateDays()" class="gb-input"></div><div><label class="gb-label">চেক আউট</label><input type="datetime-local" id="gbCheckOut" oninput="gbUpdateDays()" class="gb-input"></div></div><div class="mb-16"><div><label class="gb-label">রুম নম্বর</label><input type="text" id="gbRoomNumber" class="gb-input" placeholder="যেমন: 101"></div></div><div><label class="gb-label">বাদ দেওয়া তারিখ (যেকোনো ফরম্যাটে লিখুন)</label><input type="text" id="gbExcluded" oninput="gbUpdateDays()" class="gb-input" placeholder="e.g., 12-10-2023, 12/10/23"></div></div><div class="gb-form-section"><h4>📝 অন্যান্য তথ্য</h4><div class="mb-16"><label class="gb-label">আগমনের উদ্দেশ্য</label><input type="text" id="gbPurpose" class="gb-input" placeholder="যেমন: অফিসিয়াল কাজ"></div><div class="gb-grid-2"><div><label class="gb-label">মোট দিন (অটো)</label><input type="text" id="gbTotalDays" readonly class="gb-input" style="background:#e2e8f0;font-weight:700;color:#1e40af;cursor:not-allowed;"></div><div style="display:flex; align-items:center; padding-bottom: 5px;"><label for="gbHasExtraCharges" style="cursor:pointer; margin:0; font-weight:600; color:#475569;">অতিরিক্ত চার্জ আছে কিনা?</label><input type="checkbox" id="gbHasExtraCharges" onchange="toggleExtraCharges()" style="width:18px; height:18px; cursor:pointer; margin-left:8px;"></div></div><div id="gbExtraChargesContainer" style="display:none; margin-top: 15px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;"><div class="flex-between mb-8"><span style="font-weight:600; font-size:13px; color:#475569;">সার্ভিস চার্জ যুক্ত করুন</span><button type="button" class="gb-btn gb-btn-outline gb-btn-sm" onclick="gbAddChargeRow()">➕ যোগ করুন</button></div><div id="gbChargeList"></div><div style="text-align:right; margin-top:10px; font-size:13px; font-weight:bold; color:#1e40af;">সার্ভিস চার্জ মোট: <span id="gbChargeTotalDisplay">0</span> টাকা</div></div><div class="gb-grid-3 mt-16"><div><label class="gb-label">ডিসকাউন্ট (%)</label><input type="number" id="gbDiscount" class="gb-input" placeholder="0" min="0" step="0.01" oninput="gbUpdateNetBillDisplay()"></div><div><label class="gb-label">ভ্যাট (%)</label><input type="number" id="gbVat" class="gb-input" placeholder="0" min="0" step="0.01" oninput="gbUpdateNetBillDisplay()"></div><div><label class="gb-label">ট্যাক্স (%)</label><input type="number" id="gbTax" class="gb-input" placeholder="0" min="0" step="0.01" oninput="gbUpdateNetBillDisplay()"></div></div><div id="gbNetBillDisplay" class="mt-16" style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:6px 12px;display:none;text-align:center;margin-bottom:10px;"><span style="font-size:13px;font-weight:600;color:#065f46;">নিট বিল: </span><span id="gbNetBillAmount" style="font-size:16px;font-weight:800;color:#047857;">৳0.00</span></div><div class="gb-grid-2 mt-16"><div><label class="gb-label">মন্তব্য</label><input type="text" id="gbComments" class="gb-input" placeholder="মন্তব্য লিখুন"></div></div></div><button type="button" onclick="gbAddTemp()" id="gbTempBtn" class="gb-btn gb-btn-yellow" style="width:100%;">➕ গেস্ট ডাটা এন্ট্রি</button><div style="margin-top:16px;"><div class="gb-section-title">এন্ট্রি দেওয়া গেস্টগণ (এডিট করতে ✏️ আইকনে ক্লিক করুন):</div><div id="gbTempList" style="max-height:200px;overflow-y:auto;margin-bottom:12px;"></div><button type="submit" id="gbSubmitBtn" class="gb-btn gb-btn-primary" style="width:100%;">📄 বিল তৈরি করুন</button></div></form></div>';}
-function getGbListHtml(){return '<div class="gb-list-card"><div class="gb-bulk-panel"><div class="gb-section-title" style="color:#1e40af;">📥 বিল ডাউনলোড ও ডিলিট করুন</div><div class="gb-bulk-grid"><div class="gb-bulk-full"><label class="gb-label" style="font-size:11px;">ফিল্টার অপশন</label><select id="gbFilterType" onchange="gbRenderBillList()" class="gb-input" style="font-size:13px;padding:8px;"><option value="all">সকল বিল (তারিখ সিলেক্ট না করলে সবগুলো)</option><option value="billDate">বিল তৈরির তারিখ অনুযায়ী</option><option value="checkIn">চেক ইন তারিখ অনুযায়ী</option><option value="checkOut">চেক আউট তারিখ অনুযায়ী</option><option value="checkoutDone">সকল চেক-আউট হওয়া বিল</option></select></div><div><label class="gb-label" style="font-size:11px;">শুরু তারিখ</label><input type="date" id="gbFromDate" onchange="gbRenderBillList()" class="gb-input" style="font-size:13px;padding:8px;"></div><div><label class="gb-label" style="font-size:11px;">শেষ তারিখ</label><input type="date" id="gbToDate" onchange="gbRenderBillList()" class="gb-input" style="font-size:13px;padding:8px;"></div></div><div class="gb-bulk-btns"><button onclick="gbDownloadBulkPDF()" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;min-width:90px;">'+dlIcon+' PDF</button><button onclick="gbDownloadBulkExcel()" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;min-width:90px;">'+dlIcon+' Excel</button><button onclick="gbBulkDeleteBills()" class="gb-btn gb-btn-outline gb-btn-sm" style="flex:1;min-width:90px;border-color:#e11d48;color:#e11d48;">🗑️ ডিলিট</button></div></div><div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:12px;"><h3 id="gbBillCount" style="font-size:16px;font-weight:700;">বিলের তালিকা (0)</h3><div style="position:relative;width:100%;max-width:240px;"><input type="text" id="gbSearch" oninput="gbRenderBillList()" placeholder="যেকোনো তথ্য দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span></div></div><div id="gbBillList" class="gb-bill-grid"></div><div id="gbPagination" class="gb-pagination"></div></div>';}
+function getGbListHtml(){return '<div class="gb-list-card"><div class="gb-bulk-panel"><div class="gb-section-title" style="color:#1e40af;">📥 বিল ডাউনলোড ও ডিলিট করুন</div><div class="gb-bulk-grid"><div class="gb-bulk-full"><label class="gb-label" style="font-size:11px;">ফিল্টার অপশন</label><select id="gbFilterType" onchange="gbRenderBillList()" class="gb-input" style="font-size:13px;padding:8px;"><option value="all">সকল বিল</option><option value="billDate">বিল তৈরির তারিখ অনুযায়ী</option><option value="checkIn">চেক ইন তারিখ অনুযায়ী</option><option value="checkOut">চেক আউট তারিখ অনুযায়ী</option></select></div><div><label class="gb-label" style="font-size:11px;">শুরু তারিখ</label><input type="date" id="gbFromDate" onchange="gbRenderBillList()" class="gb-input" style="font-size:13px;padding:8px;"></div><div><label class="gb-label" style="font-size:11px;">শেষ তারিখ</label><input type="date" id="gbToDate" onchange="gbRenderBillList()" class="gb-input" style="font-size:13px;padding:8px;"></div></div><div class="gb-bulk-btns"><button onclick="gbDownloadBulkPDF()" class="gb-btn gb-btn-danger gb-btn-sm" style="flex:1;min-width:90px;">'+dlIcon+' PDF</button><button onclick="gbDownloadBulkExcel()" class="gb-btn gb-btn-success gb-btn-sm" style="flex:1;min-width:90px;">'+dlIcon+' Excel</button><button onclick="gbBulkDeleteBills()" class="gb-btn gb-btn-outline gb-btn-sm" style="flex:1;min-width:90px;border-color:#e11d48;color:#e11d48;">🗑️ ডিলিট</button></div></div><div class="flex-between mb-16" style="border-bottom:1px solid var(--border);padding-bottom:12px;"><h3 id="gbBillCount" style="font-size:16px;font-weight:700;">বিলের তালিকা (0)</h3><div style="position:relative;width:100%;max-width:240px;"><input type="text" id="gbSearch" oninput="gbRenderBillList()" placeholder="যেকোনো তথ্য দিয়ে সার্চ..." class="gb-input" style="padding-left:32px;font-size:13px;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span></div></div><div id="gbBillList" class="gb-bill-grid"></div><div id="gbPagination" class="gb-pagination"></div></div>';}
 function renderGuestBillTab(c){c.innerHTML='<div class="tabs"><div class="tab '+(guestBillState.activeGbTab==='newBill'?'active':'')+'" onclick="gbSwitchTab(\'newBill\')">➕ বিল তৈরি</div><div class="tab '+(guestBillState.activeGbTab==='billList'?'active':'')+'" onclick="gbSwitchTab(\'billList\')">📋 বিল তালিকা ও ডাউনলোড</div></div><div id="gbTabContent"></div>';const tc=document.getElementById('gbTabContent');if(guestBillState.activeGbTab==='newBill')tc.innerHTML=getGbFormHtml();else tc.innerHTML=getGbListHtml();gbUpdateSelects();gbRenderTempGuests();gbRenderBillList();}
 function gbOpenSettings(){if(!guestBillState.settings.categories)guestBillState.settings.categories={};const c='<div style="margin-bottom:20px;"><div class="gb-section-title" style="color:#1e40af;">🛏️ ক্যাটাগরি ও রুম ভাড়া সেটিংস</div><div id="gbRoomSettings"></div><button onclick="gbAddCategory()" class="gb-btn gb-btn-outline" style="width:100%;border:2px dashed #3b82f6;color:#2563eb;margin-top:8px;">➕ নতুন ক্যাটাগরি যোগ করুন</button></div><button onclick="gbSaveSettings()" class="gb-btn gb-btn-primary" style="width:100%;">💾 সেটিংস সেভ করুন</button>';openModal('সেটিংস (ভাড়া কনফিগারেশন)',c,true,true);gbRenderSettings();}
 function gbRenderSettings(){if(!guestBillState.settings.categories)guestBillState.settings.categories={};let h='';for(let c in guestBillState.settings.categories){let cat=guestBillState.settings.categories[c];h+='<div class="gb-cat-item" id="gb_cat_'+c+'"><button type="button" class="gb-del-btn" onclick="gbDeleteCategory(\''+c+'\')">'+gbDelIcon+'</button><input type="text" value="'+escapeHtml(cat.name)+'" id="gb_cat_'+c+'_name" class="gb-input" style="font-weight:700;color:#1e40af;margin-bottom:10px;font-size:14px;" placeholder="ক্যাটাগরির নাম (যেমন: Student)"><div class="gb-section-title" style="font-size:12px;color:#475569;">রুম টাইপসমূহ:</div><div id="gb_cat_'+c+'_rooms" style="display:grid;gap:8px;">';if(cat.roomTypes){for(let r in cat.roomTypes){let rt=cat.roomTypes[r];h+='<div class="gb-room-row" id="gb_room_'+c+'_'+r+'"><button type="button" class="gb-del-btn" style="top:10px;right:10px;" onclick="gbDeleteRoomType(\''+c+'\',\''+r+'\')">'+gbDelIcon+'</button><div class="gb-room-field"><label>Room Name</label><input type="text" value="'+escapeHtml(rt.name)+'" id="gb_room_'+c+'_'+r+'_name" placeholder="A"></div><div class="gb-room-field"><label>Currency</label><select id="gb_room_'+c+'_'+r+'_curr"><option value="BDT" '+(rt.currency==='BDT'?'selected':'')+'>BDT (৳)</option><option value="USD" '+(rt.currency==='USD'?'selected':'')+'>USD ($)</option></select></div><div class="gb-room-field"><label>Regular Rate</label><input type="number" value="'+rt.regularRate+'" id="gb_room_'+c+'_'+r+'_reg" placeholder="0"></div><div class="gb-room-field"><label>Day Limit</label><input type="number" value="'+rt.limitDays+'" id="gb_room_'+c+'_'+r+'_limit" placeholder="15"></div><div class="gb-room-field"><label>Daily fare after limit</label><input type="number" value="'+rt.extraRate+'" id="gb_room_'+c+'_'+r+'_extra" placeholder="0"></div></div>';}}h+='</div><button onclick="gbAddRoomType(\''+c+'\')" class="gb-btn gb-btn-outline" style="width:100%;border:1px dashed #3b82f6;color:#2563eb;margin-top:8px;font-size:12px;padding:6px;">➕ রুম টাইপ যোগ করুন</button></div>';}document.getElementById('gbRoomSettings').innerHTML=h;}
@@ -259,21 +259,42 @@ function gbDeleteBill(id){checkPassword(()=>{showConfirm('আপনি কি �
 function gbGetFilteredBills(){
     const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
     const ft=document.getElementById('gbFilterType')?.value || 'all';
-    const hasDate = f || t;
-
-    if(!hasDate && ft === 'all') return guestBillState.bills;
+    
+    if(!f && !t) return []; // Require dates to show/download/delete
 
     return guestBillState.bills.filter(b=>{
         if(!b.guests||b.guests.length===0) return false;
         
-        let typeMatch = true;
-        if(ft === 'checkoutDone') {
-            typeMatch = b.guests.some(g => g.checkOut);
+        // For 'all' (সকল বিল), check if ANY date (creation, checkin, checkout) matches
+        if(ft === 'all') {
+            let match = false;
+            const bDateStr = b.billDate ? b.billDate : (b.createdAt?.seconds ? new Date(b.createdAt.seconds*1000).toISOString().split('T')[0] : '');
+            if(bDateStr) {
+                let fo=true, to=true;
+                if(f) fo = bDateStr >= f;
+                if(t) to = bDateStr <= t;
+                if(fo && to) match = true;
+            }
+            if(!match) {
+                for(const g of b.guests) {
+                    const datesToCheck = [g.checkIn, g.checkOut].filter(Boolean);
+                    for(const dt of datesToCheck) {
+                        const dtStr = typeof dt === 'string' ? dt.split('T')[0] : '';
+                        if(dtStr) {
+                            let fo=true, to=true;
+                            if(f) fo = dtStr >= f;
+                            if(t) to = dtStr <= t;
+                            if(fo && to) { match = true; break; }
+                        }
+                    }
+                    if(match) break;
+                }
+            }
+            return match;
         }
-
-        if(!hasDate) return typeMatch;
-
-        return typeMatch && b.guests.some(g=>{
+        
+        // For specific types
+        return b.guests.some(g=>{
             let dateStr = '';
             if(ft === 'checkIn') {
                 if(!g.checkIn) return false;
@@ -284,9 +305,6 @@ function gbGetFilteredBills(){
             } else if(ft === 'billDate') {
                 if(!b.billDate && !b.createdAt) return false;
                 dateStr = b.billDate ? b.billDate : (b.createdAt?.seconds ? new Date(b.createdAt.seconds*1000).toISOString().split('T')[0] : '');
-            } else { // 'all' with date filters falls back to check-in date
-                if(!g.checkIn) return false;
-                dateStr = typeof g.checkIn==='string'?g.checkIn.split('T')[0]:'';
             }
 
             if(!dateStr) return false;
@@ -312,16 +330,16 @@ function gbRenderBillList(){
     const ce=document.getElementById('gbBillCount');
     if(ce)ce.innerText='বিলের তালিকা ('+guestBillState.filteredBills.length+')';
     if(pi.length===0){
-        c.innerHTML='<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size: 40px;">📁</div><p>কোনো বিল পাওয়া যায়নি।</p></div>';
+        c.innerHTML='<div class="gb-empty" style="grid-column:1/-1;"><div style="font-size: 40px;">📅</div><p>তারিখ সিলেক্ট করে বিল খুঁজুন।</p></div>';
     }else{
         c.innerHTML=pi.map(b=>{
             const gs=b.guests||[],t=b.heading?escapeHtml(b.heading.toUpperCase()):'বিল',bd=b.billDate?gbFormatSimpleDate(b.billDate):(b.createdAt?gbFormatSimpleDate(b.createdAt):'নতুন');
             let dh='<div style="margin-bottom:10px;">'+
-                   '<div style="display:flex; justify-content:space-between; padding:0 10px 4px; font-size:11px; color:#64748b; font-weight:700;">'+
-                        '<span style="flex:1;">নাম</span>'+
-                        '<span style="flex:1; text-align:center;">মোট দিন</span>'+
-                        '<span style="flex:1; text-align:right;">মোট বিল</span>'+
-                   '</div>';
+                                           '<div style="display:flex; justify-content:space-between; padding:0 10px 4px; font-size:11px; color:#64748b; font-weight:700;">'+
+                            '<span style="flex:1;">নাম</span>'+
+                            '<span style="flex:1; text-align:center;">মোট দিন</span>'+
+                            '<span style="flex:1; text-align:right;">মোট বিল</span>'+
+                       '</div>';
             dh+=gs.map((g,i)=>{
                 let cs=getCurrencySymbol(g.currency);
                 return '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:4px; font-size:13px;">'+
@@ -339,21 +357,17 @@ function gbRenderBillList(){
 }
 function gbBulkDeleteBills(){
     const f=document.getElementById('gbFromDate')?.value,t=document.getElementById('gbToDate')?.value;
-    const ft=document.getElementById('gbFilterType')?.value || 'all';
-    
-    if(!f && !t && ft === 'all'){
-        showToast('ডিলিট করার জন্য অনুগ্রহ করে তারিখ অথবা অপশন সিলেক্ট করুন!','error');
+    if(!f && !t){
+        showToast('ডিলিট করার জন্য অনুগ্রহ করে তারিখ সিলেক্ট করুন!','error');
         return;
     }
-    
     const bs = gbGetFilteredBills();
     if(bs.length === 0){
-        showToast('এই শর্ত অনুযায়ী কোনো বিল পাওয়া যায়নি।','error');
+        showToast('এই তারিখের মধ্যে কোনো বিল পাওয়া যায়নি।','error');
         return;
     }
-    
     checkPassword(()=>{
-        showConfirm('আপনি কি নিশ্চিত? এই শর্ত অনুযায়ী '+bs.length+' টি বিল ডিলিট হবে।', async()=>{
+        showConfirm('আপনি কি নিশ্চিত? এই তারিখের মধ্যে '+bs.length+' টি বিল ডিলিট হবে।', async()=>{
             try{
                 const batch = db.batch();
                 bs.forEach(b => {
@@ -363,7 +377,6 @@ function gbBulkDeleteBills(){
                 showToast(bs.length+' টি বিল সফলভাবে ডিলিট হয়েছে');
                 document.getElementById('gbFromDate').value = '';
                 document.getElementById('gbToDate').value = '';
-                if(document.getElementById('gbFilterType')) document.getElementById('gbFilterType').value = 'all';
                 gbRenderBillList();
             }catch(e){
                 showToast('ডিলিট করতে সমস্যা হয়েছে','error');
