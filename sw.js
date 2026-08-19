@@ -1,4 +1,4 @@
-const CACHE_NAME = 'abasik-cache-v2';
+const CACHE_NAME = 'abasik-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
