@@ -5,8 +5,8 @@
   "description": "আবাসিক ম্যানেজমেন্ট সিস্টেম",
   "start_url": "/index.html",
   "display": "standalone",
-    "background_color": "#1e3a8a",
-  "theme_color": "#1e3a8a",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "orientation": "portrait",
   "icons": [
     {
