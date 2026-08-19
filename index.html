@@ -793,6 +793,13 @@ function initApp(){
     });
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);else initApp();
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker registered'))
+            .catch(err => console.log('SW registration failed:', err));
+    });
+}
 </script>
 </body>
 </html>
