@@ -6,7 +6,8 @@
 <title>আবাসিক ম্যানেজমেন্ট সিস্টেম</title>
 <!-- PWA এবং অ্যাপ কনফিগারেশন -->
 <meta name="theme-color" content="#1e3a8a">
-<link rel="apple-touch-icon" href="https://z-cdn-media.chatglm.cn/files/bfcc1dd6-9730-4894-bc06-2262d3408c89.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -98,34 +99,6 @@
 <div class="modal-overlay" id="customAlertOverlay" style="z-index:3000"></div>
 <div id="toastContainer"></div>
 
-<script>
-// PWA ম্যানিফেস্ট ইনজেকশন (যাতে একটি ফাইলেই অ্যাপ হিসেবে ইন্সটল হয়)
-const manifest = {
-  "name": "আবাসিক ম্যানেজমেন্ট সিস্টেম",
-  "short_name": "আবাসিক",
-  "description": "আবাসিক ম্যানেজমেন্ট সিস্টেম",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#1e3a8a",
-  "theme_color": "#1e3a8a",
-  "orientation": "portrait",
-  "icons": [
-    {
-      "src": "https://z-cdn-media.chatglm.cn/files/bfcc1dd6-9730-4894-bc06-2262d3408c89.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
-};
-const stringManifest = JSON.stringify(manifest);
-const blob = new Blob([stringManifest], {type: 'application/json'});
-const manifestURL = URL.createObjectURL(blob);
-const linkManifest = document.createElement('link');
-linkManifest.rel = 'manifest';
-linkManifest.href = manifestURL;
-document.querySelector('head').appendChild(linkManifest);
-</script>
 
 <script>
 (function(){var l=document.getElementById('loader'),a=document.getElementById('authContainer'),p=document.getElementById('appContainer');if(l)l.style.display='flex';if(a)a.style.display='none';if(p)p.style.display='none';})();
