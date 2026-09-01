@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/electricity-bill", "destination": "/index.html" }
+  ]
+}
