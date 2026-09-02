@@ -744,7 +744,64 @@ function loadUserSuggestions(){let u=[];try{const s=localStorage.getItem('rms_lo
 function validateEmail(e){const r=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;return r.test(e);}
 function validateMobile(m){const r=/^(\+?880|0)1[3-9]\d{8}$/;return r.test(m);}
 let at;function checkAvailability(i,t){const v=i.value.trim(),f=document.getElementById(t+'Feedback');i.style.borderColor='';f.textContent='';f.className='feedback-text';if(!v)return;if(t==='email'&&!validateEmail(v)){i.style.borderColor='var(--danger)';f.textContent='ভুল ইমেইল লেখা হয়েছে';f.classList.add('text-danger');return;}clearTimeout(at);at=setTimeout(async()=>{try{let s;if(t==='username')s=await db.collection('users').where('username','==',v.toLowerCase()).limit(1).get();else s=await db.collection('users').where('email','==',v).limit(1).get();if(s.empty){i.style.borderColor='var(--success)';f.textContent='Available';f.classList.add('text-success');}else{i.style.borderColor='var(--danger)';f.textContent='Already exists';f.classList.add('text-danger');}}catch(e){console.error(e);}},500);}
-async function handleSignup(){const u=document.getElementById('signupUsername').value.trim().toLowerCase(),e=document.getElementById('signupEmail').value.trim(),m=document.getElementById('signupMobile').value.trim(),p=document.getElementById('signupPassword').value.trim();if(!u||!e||!m||!p){showToast('সব ফিল্ড পূরণ করুন','error');return;}if(!validateEmail(e)){showToast('ভুল ইমেইল লেখা হয়েছে','error');return;}if(!validateMobile(m)){showToast('সঠিক মোবাইল নম্বর দিন','error');return;}if(p.length<6){showToast('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে','error');return;}try{const c=await firebase.auth().createUserWithEmailAndPassword(e,p);const uid=c.user.uid;await db.collection('users').doc(uid).set({username:u,email:e,mobile:m,uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()});['signupUsername','signupEmail','signupMobile','signupPassword'].forEach(id=>document.getElementById(id).value='');showToast('সাইন-আপ সফল! লগইন করুন');showLoginView();}catch(e){let m='ত্রুটি: '+e.message;if(e.code==='auth/email-already-in-use')m='এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট তৈরি করা হয়েছে।';else if(e.code==='auth/invalid-email')m='ভুল ইমেইল লেখা হয়েছে';showToast(m,'error');}}
+async function handleSignup(){
+  const u=document.getElementById('signupUsername').value.trim().toLowerCase(),
+        e=document.getElementById('signupEmail').value.trim(),
+        m=document.getElementById('signupMobile').value.trim(),
+        p=document.getElementById('signupPassword').value.trim();
+  if(!u||!e||!m||!p){showToast('সব ফিল্ড পূরণ করুন','error');return;}
+  if(!validateEmail(e)){showToast('ভুল ইমেইল লেখা হয়েছে','error');return;}
+  if(!validateMobile(m)){showToast('সঠিক মোবাইল নম্বর দিন','error');return;}
+  if(p.length<6){showToast('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে','error');return;}
+  try{
+    /* Anonymous user sign out করি প্রথমে */
+    try{
+      const cur=firebase.auth().currentUser;
+      if(cur&&cur.isAnonymous){
+        await firebase.auth().signOut();
+        await new Promise(r=>setTimeout(r,400));
+      }
+    }catch(signOutErr){/* ignore */}
+    const c=await firebase.auth().createUserWithEmailAndPassword(e,p);
+    const uid=c.user.uid;
+    await db.collection('users').doc(uid).set({username:u,email:e,mobile:m,uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    /* সাইন-আপ সফল হলে username-email mapping cache করি ভবিষ্যতের লগইনের জন্য */
+    saveUserEmailToCache(u,e);
+    ['signupUsername','signupEmail','signupMobile','signupPassword'].forEach(id=>document.getElementById(id).value='');
+    showToast('সাইন-আপ সফল! লগইন করুন');
+    showLoginView();
+  }catch(err){
+    let m='ত্রুটি: '+err.message;
+    if(err.code==='auth/email-already-in-use')m='এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট তৈরি করা হয়েছে।';
+    else if(err.code==='auth/invalid-email')m='ভুল ইমেইল লেখা হয়েছে';
+    showToast(m,'error');
+  }
+}
+/* === User email cache helper functions ===
+   উদ্দেশ্য: Firestore rules যদি users collection read করতে না দেয় (বিশেষত anonymous user-কে),
+   তখন localStorage cache থেকে username → email mapping খুঁজে বের করতে হবে।
+   একবার কোনো user সফলভাবে লগইন করলে, তার username-email mapping localStorage-এ সংরক্ষিত হবে। */
+const USER_EMAIL_CACHE_KEY='rms_user_email_cache';
+function getUserEmailCache(){
+  try{
+    const s=localStorage.getItem(USER_EMAIL_CACHE_KEY);
+    return s?JSON.parse(s):{};
+  }catch(e){return {};}
+}
+function saveUserEmailToCache(username,email){
+  try{
+    if(!username||!email)return;
+    const cache=getUserEmailCache();
+    cache[username.toLowerCase()]=email;
+    localStorage.setItem(USER_EMAIL_CACHE_KEY,JSON.stringify(cache));
+  }catch(e){console.warn('saveUserEmailToCache failed:',e);}
+}
+function getEmailFromCache(username){
+  if(!username)return null;
+  const cache=getUserEmailCache();
+  return cache[username.toLowerCase()]||null;
+}
+/* পুরোনো rms_logged_users থেকে যদি কোনো username-only entry থাকে, সেগুলো রাখা হয়েছে */
 async function handleLogin(){
   const i=document.getElementById('loginIdentifier').value.trim(),p=document.getElementById('loginPassword').value.trim();
   if(!i||!p){showToast('সব ফিল্ড পূরণ করুন','error');return;}
@@ -766,26 +823,51 @@ async function handleLogin(){
       const id=i.toLowerCase();
       console.log('handleLogin: looking up username',id);
       let s;
+      let lookupError=null;
       try{
         s=await db.collection('users').where('username','==',id).limit(1).get();
       }catch(qErr){
         console.error('handleLogin: username lookup DB error:',qErr.code,qErr.message);
-        if(qErr.code==='permission-denied'){
-          showToast('Firestore rules-এ users collection read অনুমতি নেই। Firebase Console-এ rules চেক করুন।','error');
+        lookupError=qErr;
+        s=null;
+      }
+      /* যদি Firestore query ব্যর্থ হয় (permission-denied ইত্যাদি), localStorage cache থেকে email খুঁজি */
+      if(!s||lookupError){
+        const cachedEmail=getEmailFromCache(id);
+        if(cachedEmail){
+          console.log('handleLogin: using cached email for username',id,'->',cachedEmail);
+          e=cachedEmail;
+          /* চেক সফল হিসেবে ধরে নিচের স্টেপে যাই */
         }else{
-          showToast('ডাটাবেজ সমস্যা: '+qErr.message,'error');
+          /* cache-এ ও নেই — ব্যর্থতার বার্তা দেখাই */
+          if(lookupError&&lookupError.code==='permission-denied'){
+            showToast('Firestore rules-এ users collection read অনুমতি নেই। প্রথমে একবার admin credentials দিয়ে লগইন করুন যেন email cache হয়।','error');
+          }else if(lookupError){
+            showToast('ডাটাবেজ সমস্যা: '+lookupError.message,'error');
+          }else{
+            showToast('সঠিক তথ্য দিন','error');
+          }
+          setBtnLoading('loginBtn',false);
+          return;
         }
-        setBtnLoading('loginBtn',false);
-        return;
-      }
-      if(s.empty){
+      }else if(s.empty){
         console.warn('handleLogin: username not found in DB');
-        showToast('সঠিক তথ্য দিন','error');
-        setBtnLoading('loginBtn',false);
-        return;
+        /* cache চেক করি */
+        const cachedEmail=getEmailFromCache(id);
+        if(cachedEmail){
+          console.log('handleLogin: DB empty, using cached email');
+          e=cachedEmail;
+        }else{
+          showToast('সঠিক তথ্য দিন','error');
+          setBtnLoading('loginBtn',false);
+          return;
+        }
+      }else{
+        e=s.docs[0].data().email;
+        console.log('handleLogin: found email for username',e);
+        /* username-email mapping cache করি ভবিষ্যতের জন্য */
+        saveUserEmailToCache(id,e);
       }
-      e=s.docs[0].data().email;
-      console.log('handleLogin: found email for username',e);
     }else{
       if(!validateEmail(i)){
         showToast('সঠিক তথ্য দিন','error');
@@ -795,9 +877,16 @@ async function handleLogin(){
     }
     isExplicitLogout=false;
     sessionStorage.setItem('rms_is_logged_in','true');
-    console.log('handleLogin: calling signInWithEmailAndPassword');
+    console.log('handleLogin: calling signInWithEmailAndPassword with email',e);
     const c=await firebase.auth().signInWithEmailAndPassword(e,p);
     console.log('handleLogin: signInWithEmailAndPassword success',c.user.uid);
+    /* সফল লগইন হলে username-email mapping cache করি (আবার নিশ্চিত করতে) */
+    if(!i.includes('@')){
+      saveUserEmailToCache(i.toLowerCase(),e);
+    }else{
+      /* ইমেইল দিয়ে লগইন হলে, ইমেইলটি নিজেই সেভ করি */
+      saveUserEmailToCache(e.toLowerCase(),e);
+    }
     let su=[];
     try{const s=localStorage.getItem('rms_logged_users');if(s)su=JSON.parse(s);}catch(err){}
     if(!su.includes(i)){su.push(i);localStorage.setItem('rms_logged_users',JSON.stringify(su));}
