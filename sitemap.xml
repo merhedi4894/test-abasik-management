@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- sitemap.xml for abasik.vercel.app -->
+<!-- এই sitemap Google-কে সাইটের সব পেজ জানাতে সাহায্য করে -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- হোম পেজ -->
+  <url>
+    <loc>https://abasik.vercel.app/</loc>
+    <lastmod>2025-09-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://abasik.vercel.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://abasik.vercel.app/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://abasik.vercel.app/"/>
+  </url>
+
+  <!-- বিদ্যুৎ বিল পেজ — সবচেয়ে গুরুত্বপূর্ণ -->
+  <url>
+    <loc>https://abasik.vercel.app/bill</loc>
+    <lastmod>2025-09-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://abasik.vercel.app/bill"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://abasik.vercel.app/bill"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://abasik.vercel.app/bill"/>
+    <image:image>
+      <image:loc>https://abasik.vercel.app/icon-512.png</image:loc>
+      <image:title>আবাসিক বিদ্যুৎ বিল</image:title>
+      <image:caption>হরিপুর ৪১২ মেগাওয়াট আবাসিক বিদ্যুৎ বিল</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://abasik.vercel.app/icon-192.png</image:loc>
+      <image:title>Dormitory electricity bill</image:title>
+      <image:caption>আবাসিক বিদ্যুৎ বিল অনলাইন</image:caption>
+    </image:image>
+  </url>
+
+</urlset>
