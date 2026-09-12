@@ -28,10 +28,10 @@
     <image:image>
       <image:loc>https://abasik.vercel.app/icon-512.png</image:loc>
       <আবাসিক</image:title>
-      <image:caption>হরিপুর ৪১২ মেগাওয়াট আবাসিক বিদ্যুৎ বিল</image:caption>
+      <image:caption>হরিপুর ৪১২ মেগাওয়াট আবাসিক</image:caption>
     </image:image>
     <image:image>
-      <image:loc>https://abasik.vercel.app/icon-192.png</image:loc>
+      <image:loc>https://abasik.vercel.app/bill/icon-192.png</image:loc>
       <image:title>Dormitory electricity bill</image:title>
       <image:caption>আবাসিক বিদ্যুৎ বিল অনলাইন</image:caption>
     </image:image>
