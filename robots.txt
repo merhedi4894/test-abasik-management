@@ -1,0 +1,41 @@
+# robots.txt for abasik.vercel.app
+# সব search engine bots-কে সব পেজ crawl করার অনুমতি দেওয়া হলো
+
+User-agent: *
+Allow: /
+Allow: /bill
+Allow: /index.html
+Allow: /manifest.json
+Allow: /icon-192.png
+Allow: /icon-512.png
+Allow: /googlea792a4bd36238616.html
+
+# Google bot-কে বিশেষ অনুমতি
+User-agent: Googlebot
+Allow: /
+Allow: /bill
+Crawl-delay: 0
+
+# Google Image bot
+User-agent: Googlebot-Image
+Allow: /
+Allow: /icon-192.png
+Allow: /icon-512.png
+
+# Bing bot
+User-agent: Bingbot
+Allow: /
+Allow: /bill
+
+# অন্যান্য search engines
+User-agent: Slurp
+Allow: /
+User-agent: DuckDuckBot
+Allow: /
+User-agent: Baiduspider
+Allow: /
+User-agent: YandexBot
+Allow: /
+
+# Sitemap location
+Sitemap: https://abasik.vercel.app/sitemap.xml
